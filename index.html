@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>You & Me.</title>
+<link rel="manifest" href="manifest.json">
+<link rel="apple-touch-icon" href="icon-192.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="theme-color" content="#D62E63">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<div id="app">
+
+  <!-- ONBOARDING -->
+  <div class="modal-overlay" id="onboarding">
+    <div class="modal">
+      <h3>Bienvenue sur You & Me.</h3>
+      <p>La première fois, vous entrez chacun le même code secret pour vous connecter en couple. Choisissez aussi qui est qui.</p>
+      <label>Ton prénom</label>
+      <input id="ob-name" placeholder="Sof">
+      <label>Qui es-tu ?</label>
+      <div class="role-pick">
+        <button id="role-a" onclick="pickRole('a')">Moi</button>
+        <button id="role-b" onclick="pickRole('b')">Elle</button>
+      </div>
+      <label>Code secret du couple</label>
+      <input id="ob-room" placeholder="ex: sofia-2025">
+      <button class="primary" onclick="finishOnboarding()">C'est parti</button>
+    </div>
+  </div>
+
+  <div class="topbar">
+    <div class="logo">You & Me<span class="dot">.</span></div>
+    <div class="online-pill"><span class="avatar off" id="partner-avatar"></span><span id="partner-status">Hors ligne</span></div>
+  </div>
+
+  <div class="screens">
+
+    <!-- HOME -->
+    <div class="screen active" id="home">
+      <div class="stories-row">
+        <div class="story" onclick="showScreen('notes')">
+          <div class="ring"><div class="inner" id="my-note-preview-icon">✏️</div></div>
+          <div class="label">Ta note</div>
+        </div>
+        <div class="story" onclick="showScreen('notes')">
+          <div class="ring"><div class="inner" id="her-note-preview-icon">💌</div></div>
+          <div class="label" id="her-note-label">Sa note</div>
+          <div class="preview" id="her-note-preview"></div>
+        </div>
+      </div>
+
+      <div class="mood-row" id="mood-row">
+        <div class="mood-bubble" data-mood="😊">😊</div>
+        <div class="mood-bubble" data-mood="😠">😠</div>
+        <div class="mood-bubble" data-mood="🤔">🤔</div>
+        <div class="mood-bubble" data-mood="😢">😢</div>
+        <div class="mood-bubble" data-mood="😭">😭</div>
+        <div class="mood-bubble" data-mood="🥰">🥰</div>
+      </div>
+
+      <div class="status-row" id="status-row">
+        <div class="status-chip" data-status="Au taf">Au taf</div>
+        <div class="status-chip" data-status="En route">En route</div>
+        <div class="status-chip" data-status="Dodo">Dodo</div>
+        <div class="status-chip" data-status="Yomb">Yomb</div>
+      </div>
+
+      <div class="two-col">
+        <div class="heart-card">&lt;3</div>
+        <div class="mood-card">
+          <div class="eyebrow" id="partner-name-label">SON MOOD</div>
+          <div class="big-emoji" id="partner-mood">🤍</div>
+          <div class="time" id="partner-mood-time"></div>
+        </div>
+      </div>
+
+      <div class="music-card">
+        <div class="music-top">
+          <div class="vinyl-wrap">
+            <svg class="vinyl" id="vinyl" viewBox="0 0 100 100">
+              <circle cx="50" cy="50" r="49" fill="#0c0c0e"/>
+              <circle cx="50" cy="50" r="42" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
+              <circle cx="50" cy="50" r="36" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
+              <circle cx="50" cy="50" r="30" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
+              <circle cx="50" cy="50" r="24" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
+              <circle cx="50" cy="50" r="19" fill="#D6295C"/>
+              <path d="M50 34 C44 34 40 38 40 44 C40 49 44 50 47 51 C50 52 51 54 49 56 C47 58 43 56 43 53" fill="none" stroke="#ffe3ea" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
+              <circle cx="50" cy="50" r="3" fill="#2b1420"/>
+            </svg>
+          </div>
+          <div class="music-info">
+            <div class="eyebrow">Musique du moment</div>
+            <div class="title" id="music-title">Rien de partagé pour l'instant</div>
+            <div class="subtitle" id="music-subtitle">Envoie-lui un son ✨</div>
+          </div>
+        </div>
+        <div class="music-input-row">
+          <input class="music-input" id="music-input" placeholder="Lien Spotify ou YouTube">
+          <button class="send-btn" onclick="shareMusic()">➤</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- CALENDAR -->
+    <div class="screen" id="calendar">
+      <h2 class="section-title">Calendrier</h2>
+      <div class="countdown-card">
+        <div class="countdown-top">
+          <div class="ring-wrap">
+            <svg viewBox="0 0 120 120">
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#F3D9D0" stroke-width="9"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#D6295C" stroke-width="9" stroke-linecap="round" id="countdown-arc" transform="rotate(-90 60 60)"/>
+            </svg>
+            <div class="ring-center">
+              <div class="num" id="countdown-days">--</div>
+              <div class="lbl">JOURS</div>
+            </div>
+          </div>
+          <div class="countdown-info">
+            <div class="date" id="next-anniv-date">--</div>
+            <div class="sub" id="next-anniv-sub"></div>
+            <div class="since-pill" id="since-pill"></div>
+          </div>
+        </div>
+        <div class="anniv-row">
+          <span>Notre anniversaire</span>
+          <input type="date" id="anniversary-date">
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="cal-nav">
+          <button class="cal-arrow" onclick="changeMonth(-1)">‹</button>
+          <div class="month" id="cal-month-label"></div>
+          <button class="cal-arrow" onclick="changeMonth(1)">›</button>
+        </div>
+        <div class="cal-grid" id="cal-grid"></div>
+        <div class="day-detail">
+          <div class="d-title" id="day-detail-title"></div>
+          <div class="annot-row">
+            <input class="annot-input" id="annot-input" placeholder="Annoter">
+            <button class="plus-btn" onclick="saveAnnotation()">+</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- NOTES -->
+    <div class="screen" id="notes">
+      <h2 class="section-title">Notes</h2>
+      <div class="canvas-area">
+        <button class="trash" onclick="clearCanvas()">🗑</button>
+        <canvas id="draw-canvas"></canvas>
+      </div>
+      <div class="tool-row" id="tool-row">
+        <button class="tool active" data-width="2" data-alpha="1">✒️<span class="name">Feutre fin</span></button>
+        <button class="tool" data-width="6" data-alpha="1">🖌️<span class="name">Pinceau</span></button>
+        <button class="tool" data-width="10" data-alpha="1">🖍️<span class="name">Marqueur</span></button>
+        <button class="tool" data-width="16" data-alpha="0.35">🌟<span class="name">Surligneur</span></button>
+      </div>
+      <div class="color-row" id="color-row">
+        <button class="swatch selected" style="background:#D6295C" data-color="#D6295C"></button>
+        <button class="swatch" style="background:#F2A0AF" data-color="#F2A0AF"></button>
+        <button class="swatch" style="background:#9E1E49" data-color="#9E1E49"></button>
+        <button class="swatch" style="background:#F2A65A" data-color="#F2A65A"></button>
+        <button class="swatch" style="background:#F0CC5B" data-color="#F0CC5B"></button>
+        <button class="swatch" style="background:#3FA774" data-color="#3FA774"></button>
+        <button class="swatch" style="background:#3FB8C4" data-color="#3FB8C4"></button>
+        <button class="swatch" style="background:#5B8CE0" data-color="#5B8CE0"></button>
+        <button class="swatch" style="background:#7C6BC4" data-color="#7C6BC4"></button>
+        <button class="swatch" style="background:#2B2130" data-color="#2B2130"></button>
+        <button class="swatch" style="background:#fff;border:1px solid var(--line);" data-color="#ffffff" title="Gomme"></button>
+      </div>
+      <div class="note-input-row">
+        <input id="note-word" placeholder="Écris un petit mot">
+        <button class="send-btn" onclick="sendNote()">➤</button>
+      </div>
+    </div>
+
+    <!-- CHAT -->
+    <div class="screen" id="chat">
+      <h2 class="section-title">Chat</h2>
+      <div class="chat-scroll" id="chat-scroll"></div>
+      <div class="chat-input-row">
+        <input id="chat-input" placeholder="Ton message">
+        <button class="send-btn" onclick="sendMessage()">➤</button>
+      </div>
+    </div>
+
+    <!-- PHOTOS -->
+    <div class="screen" id="photos">
+      <h2 class="section-title">Photos</h2>
+      <div class="camera-row">
+        <label class="camera-btn">📸 Prendre une photo
+          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
+        </label>
+        <label class="camera-btn alt">🖼️ Galerie
+          <input type="file" accept="image/*" style="display:none" onchange="handlePhoto(event)">
+        </label>
+      </div>
+      <div id="photos-feed"></div>
+    </div>
+
+    <!-- SETTINGS -->
+    <div class="screen" id="settings">
+      <h2 class="section-title">Paramètres</h2>
+      <div class="card">
+        <div class="settings-row">
+          <div class="settings-left">
+            <div class="settings-avatar" id="my-avatar-preview"></div>
+            <div class="settings-name">Ma photo</div>
+          </div>
+          <label class="btn-small">Modifier<input type="file" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)"></label>
+        </div>
+        <div class="settings-row">
+          <div class="settings-left">
+            <div class="settings-avatar her" id="her-avatar-preview"></div>
+            <div class="settings-name">Sa photo</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:11px;font-weight:800;color:var(--ink-soft);letter-spacing:0.5px;margin-bottom:12px;">FOND D'ÉCRAN</div>
+        <div class="wallpaper-row">
+          <label class="wallpaper-btn">🖼️ Ma galerie<input type="file" accept="image/*" style="display:none" onchange="handleWallpaper(event)"></label>
+          <button class="wallpaper-btn" onclick="resetWallpaper()">↺ Par défaut</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="settings-row">
+          <div class="settings-name">Notifications</div>
+          <button class="toggle off" id="notif-toggle" onclick="toggleNotifications()"></button>
+        </div>
+        <div style="font-size:11.5px;color:var(--ink-soft);padding-top:6px;">
+          Alerte à chaque interaction (mood, note, chat, photo) — tant que l'app est ouverte sur ton téléphone.
+        </div>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="bottomnav">
+    <button class="nav-btn active" onclick="showScreen('home')"><span class="ic">🏠</span>Accueil</button>
+    <button class="nav-btn" onclick="showScreen('calendar')"><span class="ic">📅</span>Calendrier</button>
+    <button class="nav-btn" onclick="showScreen('notes')"><span class="ic">✏️</span>Notes</button>
+    <button class="nav-btn" onclick="showScreen('chat')"><span class="ic">💬</span>Chat</button>
+    <button class="nav-btn" onclick="showScreen('photos')"><span class="ic">📷</span>Photos</button>
+    <button class="nav-btn" onclick="showScreen('settings')"><span class="ic">⚙️</span>Réglages</button>
+  </div>
+
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
+<script src="firebase-config.js"></script>
+<script src="app.js"></script>
+</body>
+</html>
