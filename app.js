@@ -843,7 +843,8 @@ function renderMessage(m) {
     '<div class="bubble ' + (mine ? 'me' : 'her') + '" onclick="toggleReactionPicker(\'' + m.id + '\')">' +
     escapeHtml(m.text) + (reactionText ? '<span class="reaction">' + reactionText + '</span>' : '') + '</div></div>' +
     '<div class="reaction-picker" id="picker-' + m.id + '">' +
-    ['\u{1F60D}', '\u{1F602}', '\u{1F622}', '\u{1F525}', '\u{1F44D}', '\u2764\uFE0F'].map(e => '<span onclick="react(\'' + m.id + '\',\'' + e + '\')">' + e + '</span>').join('') + '</div>';
+    ['\u{1F60D}', '\u{1F602}', '\u{1F622}', '\u{1F525}', '\u{1F44D}', '\u2764\uFE0F'].map(e => '<span onclick="react(\'' + m.id + '\',\'' + e + '\')">' + e + '</span>').join('') +
+    (mine ? '<span class="picker-del" onclick="deleteMessage(\'' + m.id + '\')" aria-label="Supprimer le message"><svg><use href="#i-trash"/></svg></span>' : '') + '</div>';
 }
 function toggleReactionPicker(id) {
   document.querySelectorAll('.reaction-picker').forEach(p => { if (p.id !== 'picker-' + id) p.classList.remove('show'); });
@@ -852,6 +853,11 @@ function toggleReactionPicker(id) {
 function react(id, emoji) {
   roomRef.child('chat/' + id + '/reactions/' + myRole).set(emoji);
   $('picker-' + id).classList.remove('show');
+}
+function deleteMessage(id) {
+  if (!roomRef) return;
+  if (!confirm('Supprimer ce message ?')) return;
+  roomRef.child('chat/' + id).remove();
 }
 function scrollChatToBottom() {
   if (!$('chat').classList.contains('active')) return;   // ne pas faire défiler l'accueil quand un message arrive
@@ -1061,12 +1067,88 @@ function addComment(id, input) {
   input.value = '';
 }
 /* ---------- RÉGLAGES ---------- */
-async function handleProfilePhoto(event) {
+function handleProfilePhoto(event) {
   const file = event.target.files[0];
+  event.target.value = '';
   if (!file || !roomRef) return;
-  const dataURL = await fileToCompressedDataURL(file, 240, 0.7);
-  roomRef.child('profiles/' + myRole + '/photo').set(dataURL);
+  openAvatarCropper(file);
+}
+
+/* — Recadrage / zoom de la photo de profil avant envoi — */
+const CROP_SIZE = 220;   // taille (px CSS) du cadre affiché à l'écran
+const CROP_OUTPUT = 320; // taille (px) de l'image carrée finalement enregistrée
+let cropState = null;
+function openAvatarCropper(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    const img = new Image();
+    img.onload = () => {
+      const minScale = Math.max(CROP_SIZE / img.width, CROP_SIZE / img.height);
+      cropState = { naturalW: img.width, naturalH: img.height, scale: minScale, minScale, x: 0, y: 0 };
+      $('crop-img').src = e.target.result;
+      $('crop-zoom').value = 100;
+      applyCropTransform();
+      $('avatar-cropper').classList.remove('hidden');
+    };
+    img.src = e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function clampCropOffset() {
+  if (!cropState) return;
+  const w = cropState.naturalW * cropState.scale, h = cropState.naturalH * cropState.scale;
+  const maxX = Math.max(0, (w - CROP_SIZE) / 2), maxY = Math.max(0, (h - CROP_SIZE) / 2);
+  cropState.x = Math.min(maxX, Math.max(-maxX, cropState.x));
+  cropState.y = Math.min(maxY, Math.max(-maxY, cropState.y));
+}
+function applyCropTransform() {
+  if (!cropState) return;
+  const w = cropState.naturalW * cropState.scale, h = cropState.naturalH * cropState.scale;
+  const el = $('crop-img');
+  el.style.width = w + 'px';
+  el.style.height = h + 'px';
+  el.style.transform = 'translate(' + (CROP_SIZE / 2 - w / 2 + cropState.x) + 'px,' + (CROP_SIZE / 2 - h / 2 + cropState.y) + 'px)';
+}
+function onCropZoomInput(e) {
+  if (!cropState) return;
+  cropState.scale = cropState.minScale * (Number(e.target.value) / 100);
+  clampCropOffset();
+  applyCropTransform();
+}
+(function bindCropDrag() {
+  const frame = $('crop-frame');
+  let dragging = false, startX = 0, startY = 0, baseX = 0, baseY = 0;
+  frame.addEventListener('pointerdown', e => {
+    if (!cropState) return;
+    dragging = true; startX = e.clientX; startY = e.clientY; baseX = cropState.x; baseY = cropState.y;
+    frame.setPointerCapture(e.pointerId);
+  });
+  frame.addEventListener('pointermove', e => {
+    if (!dragging || !cropState) return;
+    cropState.x = baseX + (e.clientX - startX);
+    cropState.y = baseY + (e.clientY - startY);
+    clampCropOffset();
+    applyCropTransform();
+  });
+  frame.addEventListener('pointerup', () => { dragging = false; });
+  frame.addEventListener('pointercancel', () => { dragging = false; });
+})();
+function closeAvatarCropper() {
+  $('avatar-cropper').classList.add('hidden');
+  cropState = null;
+}
+function saveAvatarCrop() {
+  if (!cropState || !roomRef) { closeAvatarCropper(); return; }
+  const ratio = CROP_OUTPUT / CROP_SIZE;
+  const dw = cropState.naturalW * cropState.scale * ratio, dh = cropState.naturalH * cropState.scale * ratio;
+  const dx = (CROP_SIZE / 2 - (cropState.naturalW * cropState.scale) / 2 + cropState.x) * ratio;
+  const dy = (CROP_SIZE / 2 - (cropState.naturalH * cropState.scale) / 2 + cropState.y) * ratio;
+  const c = document.createElement('canvas');
+  c.width = CROP_OUTPUT; c.height = CROP_OUTPUT;
+  c.getContext('2d').drawImage($('crop-img'), dx, dy, dw, dh);
+  roomRef.child('profiles/' + myRole + '/photo').set(c.toDataURL('image/jpeg', 0.85));
   toast('Photo de profil mise à jour');
+  closeAvatarCropper();
 }
 function handleWallpaper(event) {
   const file = event.target.files[0];

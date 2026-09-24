@@ -95,38 +95,38 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 .av.md{width:38px;height:38px;font-size:15px}
 
 /* Bento : cœur · mood · musique */
-.bento{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:12px}
-.w-heart{position:relative;min-height:176px;border:0;border-radius:var(--r-xl);background:#000;color:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0}
-.w-heart .lbl{position:absolute;top:16px;left:18px;font-size:8px;font-weight:800;letter-spacing:1.5px;opacity:.48}
-.w-heart .heart-glyph{width:74px;height:74px;fill:#fff;margin-top:-14px;filter:drop-shadow(0 0 18px rgba(255,255,255,.18))}
-.w-heart .cupid{position:absolute;right:16px;bottom:18px;width:66px;height:auto;transform:rotate(-30deg);opacity:.96}
+.bento{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+.w-heart{position:relative;min-height:148px;border:0;border-radius:var(--r-xl);background:#000;color:#fff;overflow:hidden;display:flex;align-items:center;justify-content:center;padding:0}
+.w-heart .lbl{position:absolute;top:14px;left:16px;font-size:8px;font-weight:800;letter-spacing:1.5px;opacity:.48}
+.w-heart .heart-glyph{width:60px;height:60px;fill:#fff;margin-top:-10px;filter:drop-shadow(0 0 18px rgba(255,255,255,.18))}
+.w-heart .cupid{position:absolute;right:13px;bottom:14px;width:52px;height:auto;transform:rotate(-30deg);opacity:.96}
 .w-heart.pulse .heart-glyph{animation:beat .5s ease}
 @keyframes beat{30%{transform:scale(1.22)}55%{transform:scale(.96)}75%{transform:scale(1.08)}100%{transform:none}}
 .w-heart:active{transform:scale(.985)}
 
-.w-mood{min-height:176px;border-radius:var(--r-xl);background:var(--lilac);padding:16px 16px 14px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;color:#2a2140}
+.w-mood{min-height:148px;border-radius:var(--r-xl);background:var(--lilac);padding:14px 14px 12px;display:flex;flex-direction:column;align-items:flex-start;justify-content:space-between;color:#2a2140}
 .w-title{font-size:13px;font-weight:800}
-.w-mood .big-emoji{font-size:58px;line-height:1;align-self:center}
+.w-mood .big-emoji{font-size:46px;line-height:1;align-self:center}
 .w-foot{display:flex;flex-direction:column;align-items:flex-start;gap:5px;width:100%;min-height:36px}
 .mood-status{font-size:11.5px;font-weight:800;background:rgba(255,255,255,.75);padding:5px 10px;border-radius:999px}
 .mood-status:empty{display:none}
 .w-mood .time{font-size:11px;font-weight:600;color:#6e6389}
 .w-mood .time:empty{display:none}
 
-.w-music{border-radius:var(--r-xl);padding:16px;background:linear-gradient(135deg,#F0245B 0%,#F84F7C 55%,#FF7FA0 100%);color:#fff;margin-bottom:12px;position:relative;overflow:hidden}
+.w-music{border-radius:var(--r-xl);padding:14px;background:linear-gradient(135deg,#F0245B 0%,#F84F7C 55%,#FF7FA0 100%);color:#fff;margin-bottom:14px;position:relative;overflow:hidden}
 .w-music:after{content:'';position:absolute;width:190px;height:190px;border-radius:50%;left:-70px;bottom:-110px;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%);pointer-events:none}
 .music-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
 .music-info{min-width:0;flex:1}
 .m-eyebrow{font-size:12px;font-weight:800;opacity:.85}
-.music-info .title{font-size:19px;font-weight:900;letter-spacing:-.5px;margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.music-info .title{font-size:17px;font-weight:900;letter-spacing:-.5px;margin:3px 0 2px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
 .music-info .subtitle{font-size:12px;font-weight:600;opacity:.85;line-height:1.35}
-.music-input-row{display:flex;gap:8px;margin-top:14px;position:relative;z-index:1}
+.music-input-row{display:flex;gap:8px;margin-top:12px;position:relative;z-index:1}
 .music-input{min-width:0;flex:1;background:rgba(255,255,255,.2);border:1px solid rgba(255,255,255,.35);border-radius:999px;padding:0 16px;height:44px;color:#fff;font-size:13px;font-weight:600;outline:none}
 .music-input::placeholder{color:rgba(255,255,255,.75)}
 .music-input:focus{background:rgba(255,255,255,.28)}
 
 /* Tourne-disque : le disque tourne, les reflets restent fixes */
-.turntable{--v:104px;position:relative;width:calc(var(--v) + 22px);height:calc(var(--v) + 8px);flex-shrink:0}
+.turntable{--v:88px;position:relative;width:calc(var(--v) + 22px);height:calc(var(--v) + 8px);flex-shrink:0}
 .vinyl{position:absolute;left:0;top:6px;width:var(--v);height:var(--v);border-radius:50%;box-shadow:0 12px 22px rgba(90,0,25,.38),0 2px 3px rgba(0,0,0,.35)}
 .vinyl .disc{position:absolute;inset:0;border-radius:50%;animation:spin 2s linear infinite;will-change:transform;
   background:
@@ -143,9 +143,11 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 
 .panel{background:#fff;border:1px solid var(--line);border-radius:var(--r-xl);padding:16px 16px 14px;margin-bottom:12px}
 .panel-title{font-size:13px;font-weight:800;margin-bottom:12px}
-.mood-row{display:flex;justify-content:space-between;gap:6px;margin-bottom:14px}
+.mood-row{display:flex;justify-content:space-between;gap:6px;margin-bottom:12px}
 .mood-bubble{width:46px;height:46px;flex-shrink:0;border-radius:50%;border:0;background:var(--blush);font-size:23px;line-height:1;transition:transform .16s,background .16s;padding:0}
 .mood-bubble.selected{background:var(--ink);transform:translateY(-3px) scale(1.1)}
+.status-divider{height:1px;background:var(--line);margin:0 0 12px}
+.status-label{font-size:10.5px;font-weight:800;color:var(--muted);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px}
 .status-row{display:flex;gap:7px;flex-wrap:wrap}
 .status-chip{padding:9px 15px;border-radius:999px;background:#fff;border:1.5px solid var(--line);font-size:13px;font-weight:800;color:#5b4f57}
 .status-chip.active{background:var(--ink);border-color:var(--ink);color:#fff}
@@ -163,6 +165,20 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 .since-pill{display:inline-block;white-space:nowrap;background:rgba(255,255,255,.22);color:#fff;padding:6px 11px;border-radius:999px;font-size:11px;font-weight:800}
 .anniv-row{display:flex;justify-content:space-between;align-items:center;margin-top:16px;padding-top:14px;border-top:1px solid rgba(255,255,255,.28);font-size:13px;font-weight:800}
 .anniv-row input{background:rgba(255,255,255,.2);color:#fff;border:1px solid rgba(255,255,255,.35);padding:8px 10px;border-radius:12px;font-weight:700;font-size:13px;width:140px;color-scheme:dark}
+.mini-heart{font-size:11px;opacity:.85;margin-left:2px}
+
+/* Décor discret du calendrier : ballons et petits cœurs, aspect romantique et non enfantin */
+#calendar{position:relative}
+.cal-deco{position:absolute;inset:0;z-index:-1;pointer-events:none;overflow:hidden}
+.deco-balloon{position:absolute;width:52px;height:auto;opacity:.13}
+.deco-balloon.b1{top:2px;right:8px;transform:rotate(6deg)}
+.deco-balloon.b2{top:96px;left:-6px;width:40px;transform:rotate(-8deg)}
+.deco-balloon.b3{top:230px;right:22px;width:34px;transform:rotate(10deg)}
+.deco-heart{position:absolute;width:16px;height:16px;fill:var(--cherry);opacity:.12}
+.deco-heart.h1{top:34px;left:30px;transform:rotate(-12deg)}
+.deco-heart.h2{top:150px;right:64px;width:12px;height:12px;fill:var(--rose);transform:rotate(10deg)}
+.deco-heart.h3{top:300px;left:16px;width:13px;height:13px;fill:var(--lilac);transform:rotate(6deg)}
+.deco-heart.h4{top:60px;right:110px;width:11px;height:11px;fill:var(--rose)}
 
 .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
 .cal-nav .month{font-size:17px;font-weight:900;letter-spacing:-.4px}
@@ -225,8 +241,11 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 .bubble.me{background:var(--cherry);color:#fff;border-bottom-right-radius:7px}
 .reaction{position:absolute;right:8px;bottom:-12px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:1px 6px;font-size:12px;color:var(--ink)}
 .msg-row:has(.reaction){margin-bottom:10px}
-.reaction-picker{display:none;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px;width:fit-content;font-size:19px}
+.reaction-picker{display:none;align-items:center;gap:8px;background:#fff;border:1px solid var(--line);border-radius:999px;padding:8px 12px;width:fit-content;font-size:19px}
 .reaction-picker.show{display:flex}
+.picker-del{display:flex;align-items:center;justify-content:center;width:20px;height:20px;color:var(--muted);padding-left:2px;margin-left:2px;border-left:1px solid var(--line)}
+.picker-del svg{width:15px;height:15px}
+.picker-del:active{color:var(--cherry)}
 .chat-input-row{display:flex;gap:8px;position:sticky;bottom:-34px;padding:14px 0 4px;background:linear-gradient(to top,var(--bg) 62%,rgba(255,244,246,0));z-index:3}
 .chat-input-row input{min-width:0;flex:1;background:#fff;border:1px solid var(--line);border-radius:999px;padding:0 18px;height:46px;font-size:15px;font-weight:600;outline:none}
 
@@ -303,6 +322,16 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 .comp-actions button{height:50px;border-radius:999px;border:0;font-size:15px;font-weight:900}
 .comp-actions .ghost{background:#fff;border:1.5px solid var(--line)}
 .comp-actions .primary{background:var(--cherry);color:#fff}
+
+/* Recadrage / zoom de la photo de profil */
+.crop-sheet{text-align:center}
+.crop-frame{position:relative;width:220px;height:220px;margin:4px auto 0;border-radius:50%;overflow:hidden;background:var(--blush);touch-action:none;cursor:grab;border:1px solid var(--line)}
+.crop-frame:active{cursor:grabbing}
+.crop-frame img{position:absolute;top:0;left:0;max-width:none;user-select:none;-webkit-user-drag:none;pointer-events:none}
+.crop-hint{font-size:12px;font-weight:600;color:var(--muted);margin:12px 0 2px}
+.crop-zoom-row{display:flex;align-items:center;gap:10px;margin:10px 0 4px}
+.crop-zoom-row input[type=range]{flex:1;accent-color:var(--cherry)}
+.crop-zoom-lbl{font-size:18px;font-weight:800;color:var(--muted);width:14px;text-align:center;flex-shrink:0}
 
 /* ---------- RÉGLAGES ---------- */
 .settings-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 0}
