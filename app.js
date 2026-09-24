@@ -1321,10 +1321,28 @@ function loadWidgetConfigs() {
   return all;
 }
 function applyWidgetConfig(el, cfg) {
-  if (!cfg) { el.style.removeProperty('--wscale'); el.style.background = ''; el.style.fontFamily = ''; return; }
+  if (!cfg) {
+    el.style.removeProperty('--wscale');
+    el.style.removeProperty('--live-color');
+    el.style.removeProperty('--live-y');
+    el.style.removeProperty('--live-x');
+    el.style.background = '';
+    el.style.fontFamily = '';
+    return;
+  }
   el.style.setProperty('--wscale', String((cfg.scale || 100) / 100));
-  el.style.background = cfg.bg || '';
   el.style.fontFamily = cfg.font || '';
+  if (el.dataset.wid === 'home-live') {
+    el.style.removeProperty('background');
+    el.style.setProperty('--live-color', cfg.bg || '');
+    el.style.setProperty('--live-y', String(Number.isFinite(Number(cfg.y)) ? Number(cfg.y) : 92) + 'px');
+    el.style.setProperty('--live-x', String(Number.isFinite(Number(cfg.x)) ? Number(cfg.x) : 0) + 'px');
+  } else {
+    el.style.removeProperty('--live-color');
+    el.style.removeProperty('--live-y');
+    el.style.removeProperty('--live-x');
+    el.style.background = cfg.bg || '';
+  }
 }
 function saveWidgetConfig(wid, patch) {
   widgetConfigs[wid] = Object.assign({ scale: 100, bg: '', font: '' }, widgetConfigs[wid] || {}, patch);
@@ -1375,6 +1393,9 @@ function openWidgetEditor(el) {
   $('we-scale').value = cfg.scale || 100;
   renderSwatches(cfg.bg || '');
   renderFonts(cfg.font || '');
+  const isLive = currentEditWid === 'home-live';
+  $('we-standard-pos').classList.toggle('hidden', isLive);
+  $('we-live-pos').classList.toggle('hidden', !isLive);
   $('widget-editor').classList.remove('hidden');
 }
 function closeWidgetEditor() { $('widget-editor').classList.add('hidden'); }
@@ -1405,6 +1426,15 @@ function pickWidgetFont(css) {
   saveWidgetConfig(currentEditWid, { font: css });
   renderFonts(css);
 }
+
+function nudgeLiveRail(dx, dy) {
+  if (currentEditWid !== 'home-live') return;
+  const cfg = widgetConfigs[currentEditWid] || { scale: 100, bg: '', font: '', x: 0, y: 92 };
+  const x = Math.max(-34, Math.min(34, (Number(cfg.x) || 0) + dx));
+  const y = Math.max(54, Math.min(210, (Number(cfg.y) || 92) + dy));
+  saveWidgetConfig(currentEditWid, { x, y });
+}
+
 function moveCurrentWidget(dir) {
   if (!currentEditWid) return;
   const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]');
