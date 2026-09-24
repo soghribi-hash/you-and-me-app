@@ -444,3 +444,73 @@ body.edit-mode .edit-done{display:block}
 
 .nav-heart{width:100%;height:54px;border:0;border-radius:20px;background:linear-gradient(135deg,#f3d8e4,#e5dcf8);color:#2b2028;display:flex;align-items:center;justify-content:center;gap:5px;flex-direction:column;padding:3px;box-shadow:0 4px 14px rgba(232,188,211,.28);font-size:8px;font-weight:900;letter-spacing:.4px;text-transform:uppercase}.nav-heart svg{width:22px;height:22px;fill:#c77f9d}.nav-heart:active{transform:scale(.94)}.nav-heart.pulse svg{animation:beat .5s ease}
 .nav-heart.widget:before{display:none!important}
+
+
+/* ---------- EN DIRECT : rail latéral façon cartes Instagram ---------- */
+#home{position:relative}
+.live-rail{position:absolute;top:92px;right:0;width:100%;height:0;z-index:16;pointer-events:none}
+.live-peek-stack{position:absolute;right:-9px;top:0;width:104px;height:156px;border:0;background:none;padding:0;pointer-events:auto;filter:drop-shadow(0 12px 24px rgba(45,16,31,.16));transition:transform .28s ease}
+.peek-card{position:absolute;display:block;width:82px;height:112px;right:0;top:15px;border-radius:20px;background:#eadfe4 center/cover no-repeat;border:3px solid #fff;box-shadow:0 10px 22px rgba(60,20,40,.14);transform-origin:right center}
+.peek-card-1{transform:rotate(7deg) translateY(3px);right:2px;z-index:1}
+.peek-card-2{transform:rotate(-4deg) translateY(-3px);right:9px;z-index:2}
+.peek-card-3{transform:rotate(1deg);right:16px;z-index:3}
+.placeholder-peek{background:linear-gradient(145deg,#fff,#eadcf0 72%,#f8dce5)}
+.peek-label{position:absolute;right:9px;bottom:0;z-index:5;background:#171318;color:#fff;border-radius:999px;padding:7px 10px;font-size:9px;font-weight:900;letter-spacing:.2px;box-shadow:0 7px 16px rgba(30,0,10,.2)}
+.peek-label b{font-size:13px;margin-left:3px}
+.live-drawer{position:absolute;right:-292px;top:-6px;width:300px;max-height:390px;padding:14px 14px 16px 18px;background:rgba(255,255,255,.96);border:1px solid rgba(255,255,255,.9);border-radius:28px 0 0 28px;box-shadow:-18px 18px 50px rgba(48,16,32,.18);backdrop-filter:blur(18px);pointer-events:auto;transition:right .36s cubic-bezier(.2,.8,.2,1)}
+.live-rail.open .live-drawer{right:0}
+.live-rail.open .live-peek-stack{opacity:0;pointer-events:none;transform:translateX(18px)}
+.live-drawer-tab{position:absolute;left:-43px;top:22px;width:43px;height:112px;border:0;border-radius:20px 0 0 20px;background:#171318;color:#fff;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;box-shadow:-8px 8px 20px rgba(30,0,10,.12)}
+.live-drawer-tab span{writing-mode:vertical-rl;transform:rotate(180deg);font-size:8px;font-weight:900;letter-spacing:1.5px}
+.live-drawer-tab b{font-size:18px;line-height:1;transform:rotate(180deg)}
+.live-drawer-head{display:flex;align-items:flex-end;justify-content:space-between;gap:10px;margin:2px 0 12px}
+.live-drawer-head .eyebrow{display:block;font-size:9px;font-weight:900;letter-spacing:1.7px;color:#a98e9b}
+.live-drawer-head h3{font-size:21px;line-height:1;margin:4px 0 4px;font-weight:900;letter-spacing:-.7px}
+.live-drawer-head p{margin:0;color:var(--muted);font-size:10.5px;font-weight:650;line-height:1.25;max-width:180px}
+.live-drawer-head>button{border:0;background:#f8eef2;color:#9d6680;border-radius:999px;padding:8px 10px;font-size:10px;font-weight:900;white-space:nowrap}
+.live-drawer-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px;max-height:300px;overflow:auto;padding:1px 1px 3px 0}
+.live-drawer-grid::-webkit-scrollbar{display:none}
+.live-drawer .snapshot-card{width:100%;height:142px;border-radius:20px}
+.live-drawer .snapshot-card.placeholder{grid-column:1/-1;height:155px}
+.live-drawer .snapshot-meta{font-size:9px}
+.live-drawer .snapshot-meta b{font-size:11px}
+@media(max-width:360px){
+  .live-drawer{width:286px;right:-278px}
+  .live-drawer-grid{grid-template-columns:1fr 1fr}
+}
+
+/* ---------- SEND LOVE : bouton central signature ---------- */
+.bottomnav{overflow:visible}
+.nav-heart{position:relative;z-index:3;justify-self:center;width:86px;height:86px;margin-top:-22px;border:0;border-radius:50%;background:#16121A;color:#fff;display:flex;align-items:center;justify-content:center;gap:3px;flex-direction:column;padding:5px;box-shadow:0 15px 34px rgba(20,12,18,.34),0 0 0 5px rgba(255,255,255,.72);font-size:10px;font-weight:900;letter-spacing:.5px;text-transform:uppercase;transition:transform .16s ease,box-shadow .16s ease}
+.nav-heart svg{width:31px;height:31px;fill:#fff;filter:drop-shadow(0 3px 7px rgba(0,0,0,.18))}
+.nav-heart span{font-size:9.5px;line-height:1;font-weight:900;letter-spacing:.3px}
+.nav-heart:active{transform:scale(.94) translateY(2px)}
+.nav-heart.pulse{animation:loveButtonPop .52s cubic-bezier(.2,.85,.25,1)}
+.nav-heart.pulse svg{animation:beat .52s ease}
+@keyframes loveButtonPop{
+  0%{transform:scale(1)}
+  35%{transform:scale(1.12)}
+  65%{transform:scale(.97)}
+  100%{transform:scale(1)}
+}
+
+/* ---------- Petit tir de Cupidon réaliste/stylisé ---------- */
+#cupid-fx{position:fixed;inset:0;z-index:270;pointer-events:none;opacity:0}
+#cupid-fx svg{position:absolute;width:420px;height:280px;overflow:visible}
+#cupid-fx .cupid-arc{fill:none;stroke:rgba(22,18,26,.16);stroke-width:3;stroke-linecap:round;stroke-dasharray:7 8;opacity:0}
+#cupid-fx .cupid-bow{fill:none;stroke:#16121A;stroke-width:5;stroke-linecap:round;opacity:0}
+#cupid-fx .cupid-bow-grip{fill:none;stroke:#16121A;stroke-width:5;stroke-linecap:round;opacity:0}
+#cupid-fx .cupid-arrow{fill:none;stroke:#16121A;stroke-width:4;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform-origin:0 0}
+#cupid-fx .cupid-arrow .cupid-feather{stroke:#b58fa6;stroke-width:3}
+#cupid-fx.go{opacity:1}
+#cupid-fx.go .cupid-bow,#cupid-fx.go .cupid-bow-grip{animation:cupidBow .38s ease-out forwards}
+#cupid-fx.go .cupid-arc{animation:cupidArc .72s ease-out forwards}
+#cupid-fx .cupid-arrow.go{animation:cupidArrow .78s cubic-bezier(.2,.7,.2,1) forwards}
+@keyframes cupidBow{0%{opacity:0;transform:scale(.72)}25%{opacity:1}100%{opacity:0;transform:scale(1.02)}}
+@keyframes cupidArc{0%{opacity:0;stroke-dashoffset:90}25%{opacity:.7}100%{opacity:0;stroke-dashoffset:0}}
+@keyframes cupidArrow{
+  0%{opacity:0;transform:translate(0,0) rotate(-18deg) scale(.72)}
+  10%{opacity:1}
+  68%{opacity:1;transform:translate(188px,-120px) rotate(-28deg) scale(1)}
+  100%{opacity:0;transform:translate(330px,-184px) rotate(-22deg) scale(.86)}
+}

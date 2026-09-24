@@ -180,7 +180,7 @@ function applyNames() {
   otherName = NAMES[otherRole];
   const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
   setText('her-note-label', 'Note de ' + otherName);
-  setText('partner-name-label', 'Mood de ' + otherName);
+  /* Mood is shown beside the avatar; no standalone mood widget. */
   setText('partner-status', otherName + ' \u00b7 hors ligne');
   setText('other-photo-label', 'Photo de ' + otherName);
   setText('me-profile-name', myName ? 'Tu es ' + myName : '');
@@ -241,6 +241,7 @@ function resetIdentity() {
 
 /* ---------- NAV ---------- */
 function showScreen(id) {
+  if (typeof closeLivePeek === 'function') closeLivePeek();
   if (typeof exitEditMode === 'function') exitEditMode();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
@@ -359,9 +360,36 @@ function refreshAvatars() {
 }
 /* ---------- CŒUR ---------- */
 let lastHeartSent = 0, heartBase = false, lastHeartTs = 0;
+function playCupidShot(originEl) {
+  const fx = $('cupid-fx');
+  if (!fx) return;
+  const svg = fx.querySelector('svg');
+  const arrow = fx.querySelector('.cupid-arrow');
+  if (!svg || !arrow) return;
+
+  fx.classList.remove('go');
+  arrow.classList.remove('go');
+  void fx.offsetWidth;
+
+  const r = originEl ? originEl.getBoundingClientRect() : {left: window.innerWidth/2, top: window.innerHeight-80, width:0, height:0};
+  const startX = r.left + r.width / 2;
+  const startY = r.top + r.height / 2;
+
+  svg.style.left = (startX - 78) + 'px';
+  svg.style.top = (startY - 228) + 'px';
+  fx.classList.add('go');
+  arrow.classList.add('go');
+
+  setTimeout(() => {
+    fx.classList.remove('go');
+    arrow.classList.remove('go');
+  }, 950);
+}
+
 function sendHeart() {
   const btn = $('heart-btn');
   btn.classList.remove('pulse'); void btn.offsetWidth; btn.classList.add('pulse');
+  playCupidShot(btn);
   burstHearts(btn, 9);
   if (navigator.vibrate) navigator.vibrate(25);
   if (!roomRef) { showBanner("Pas encore connecté à la base — vérifie ta connexion."); return; }
@@ -1030,15 +1058,49 @@ function listenPhotos() {
 function renderHomeSnapshots(items) {
   const box = $('home-snapshots');
   if (!box) return;
+
+  const rail = $('live-rail');
+  const stack = rail ? rail.querySelector('.live-peek-stack') : null;
+
   if (!items.length) {
-    box.innerHTML = '<button class="snapshot-card placeholder" onclick="showScreen(\'photos\')">Vos prochains instants apparaîtront ici.</button>';
+    box.innerHTML =
+      '<button class="snapshot-card placeholder" onclick="closeLivePeek();showScreen(\'photos\')">' +
+      '<span><b>En direct</b><br>Vos prochains directs apparaîtront ici.</span></button>';
+    if (stack) stack.innerHTML =
+      '<span class="peek-card peek-card-1 placeholder-peek"></span>' +
+      '<span class="peek-card peek-card-2 placeholder-peek"></span>' +
+      '<span class="peek-card peek-card-3 placeholder-peek"></span>' +
+      '<span class="peek-label">En direct <b>›</b></span>';
     return;
   }
-  box.innerHTML = items.slice(0, 5).map(p => {
+
+  const visible = items.slice(0, 6);
+  box.innerHTML = visible.map(p => {
     const who = p.from === myRole ? 'Toi' : nameOf(p.from);
     const live = p.src === 'live';
-    return '<button class="snapshot-card" onclick="showScreen(\'photos\')" aria-label="Ouvrir les photos"><img src="' + p.img + '" alt="" draggable="false"><span class="snapshot-meta"><b>' + (live ? 'En direct' : who) + '</b>' + relativeTime(p.ts || Date.now()) + '</span></button>';
+    return '<button class="snapshot-card" onclick="closeLivePeek();showScreen(\'photos\')" aria-label="Ouvrir ce direct">' +
+      '<img src="' + p.img + '" alt="" draggable="false">' +
+      '<span class="snapshot-meta"><b>' + (live ? 'En direct' : who) + '</b>' +
+      relativeTime(p.ts || Date.now()) + '</span></button>';
   }).join('');
+
+  if (stack) {
+    const peek = visible.slice(0,3);
+    stack.innerHTML = peek.map((p,i) =>
+      '<span class="peek-card peek-card-' + (i+1) + '" style="background-image:url(' +
+      p.img.replace(/"/g,'&quot;') + ')"></span>'
+    ).join('') + '<span class="peek-label">En direct <b>›</b></span>';
+  }
+}
+function toggleLivePeek() {
+  const rail = $('live-rail');
+  if (!rail) return;
+  rail.classList.toggle('open');
+  if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+}
+function closeLivePeek() {
+  const rail = $('live-rail');
+  if (rail) rail.classList.remove('open');
 }
 function renderPhotos(items) {
   const feed = $('photos-feed');
@@ -1428,6 +1490,9 @@ function initWidgetSystem() {
 initWidgetSystem();
 
 /* ---------- DÉMARRAGE ---------- */
+const obRoomInput = $('ob-room');
+if (obRoomInput && !obRoomInput.value) obRoomInput.value = '18052025';
+
 applyNames();
 if (myRole && room) {
   $('onboarding').classList.add('hidden');

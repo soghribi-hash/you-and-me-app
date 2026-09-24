@@ -36,6 +36,18 @@
 
 <div id="banners" aria-live="polite"></div>
 <div id="fx" aria-hidden="true"></div>
+<div id="cupid-fx" aria-hidden="true">
+  <svg viewBox="0 0 420 280" preserveAspectRatio="none">
+    <path class="cupid-arc" d="M78 214 C150 82 285 38 382 88" />
+    <g class="cupid-arrow">
+      <path d="M0 0 L82 0" />
+      <path d="M82 0 L68 -8 M82 0 L68 8" />
+      <path class="cupid-feather" d="M15 0 C5 -11 0 -10 -8 -5 M15 0 C5 11 0 10 -8 5" />
+    </g>
+    <path class="cupid-bow" d="M72 228 C28 192 28 126 72 92" />
+    <path class="cupid-bow-grip" d="M67 159 L86 159" />
+  </svg>
+</div>
 <div id="toast" role="status"></div>
 
 <div id="app">
@@ -132,7 +144,7 @@
       <h3>Bienvenue dans notre p'tit coin à nous</h3>
       <p>Rentre le mot de passe et découvre.</p>
       <label>Mot de passe</label>
-      <input id="ob-room" placeholder="notre code secret, connu de nous deux seulement">
+      <input id="ob-room" value="18052025" inputmode="numeric" autocomplete="off" placeholder="notre code secret, connu de nous deux seulement">
       <label>Qui es-tu ?</label>
       <div class="role-pick">
         <button id="role-a" onclick="pickRole('a')">Soso</button>
@@ -199,19 +211,31 @@
         </div>
       </div>
 
-      <!-- Instantanés : aperçu léger de l'onglet Photos -->
-      <section class="snapshots-home" aria-label="Instantanés">
-        <div class="snapshots-head">
-          <div>
-            <span class="eyebrow">INSTANTANÉS</span>
-            <h3>Quelques moments à nous</h3>
-          </div>
-          <button onclick="showScreen('photos')">Voir tout</button>
-        </div>
-        <div class="snapshot-strip" id="home-snapshots"></div>
-      </section>
+      <!-- EN DIRECT : cartes qui dépassent du bord, puis tiroir interactif -->
+      <section class="live-rail" id="live-rail" aria-label="En direct">
+        <button class="live-peek-stack" onclick="toggleLivePeek()" aria-label="Ouvrir les cartes En direct">
+          <span class="peek-card peek-card-1"></span>
+          <span class="peek-card peek-card-2"></span>
+          <span class="peek-card peek-card-3"></span>
+          <span class="peek-label">En direct <b>›</b></span>
+        </button>
 
-      <div class="w-music widget" data-wid="home-music" data-wname="Musique du moment">
+        <div class="live-drawer" id="live-drawer">
+          <button class="live-drawer-tab" onclick="toggleLivePeek()" aria-label="Fermer En direct">
+            <span>EN DIRECT</span><b>›</b>
+          </button>
+          <div class="live-drawer-head">
+            <div>
+              <span class="eyebrow">EN DIRECT</span>
+              <h3>Un peu de nous</h3>
+              <p>Vos prochains directs apparaîtront ici.</p>
+            </div>
+            <button onclick="closeLivePeek();showScreen('photos')" aria-label="Voir toutes les photos">Voir tout</button>
+          </div>
+          <div class="live-drawer-grid" id="home-snapshots"></div>
+        </div>
+      </section>
+<div class="w-music widget" data-wid="home-music" data-wname="Musique du moment">
         <div class="music-top" onclick="openMusic()">
           <div class="turntable" aria-hidden="true">
             <div class="vinyl" id="vinyl">
@@ -456,6 +480,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
-<script src="app.js?v=8"></script>
+<script src="app.js?v=9"></script>
 </body>
 </html>
