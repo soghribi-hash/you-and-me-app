@@ -777,22 +777,21 @@ function updateNoteEditorCardColor(){
   if(sheet) sheet.style.setProperty('--editor-note-color',selectedNoteColor);
 }
 function toggleNoteDrawingPanel(force){
-  const panel=$('note-drawing-panel'), card=$('note-drawing-card');
-  if(!panel) return;
-  const open=typeof force==='boolean' ? force : panel.hidden;
-  panel.hidden=!open;
-  card?.setAttribute('aria-expanded',open?'true':'false');
-  card?.classList.toggle('is-open',open);
-  if(open){
-    requestAnimationFrame(()=>{
-      if(noteDrawCanvas){
-        const r=noteDrawCanvas.getBoundingClientRect();
-        if(r.width && r.height) window.dispatchEvent(new Event('resize'));
-      }
-    });
+  // Compatibilité avec les anciennes notes : le dessin est maintenant
+  // toujours édité dans le panneau indépendant, jamais en accordéon.
+  if(typeof force==='boolean' && force === false){
+    closeStandaloneDrawing();
+    return;
   }
+  openStandaloneDrawing();
 }
-function clearNoteDrawing(){ if(!noteDrawCtx||!noteDrawCanvas)return; const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.setTransform(2,0,0,2,0,0); noteDrawCtx.clearRect(0,0,r.width,r.height); noteCanvasDirty=false; }
+function clearNoteDrawing(){
+  if(!noteDrawCtx||!noteDrawCanvas)return;
+  const r=noteDrawCanvas.getBoundingClientRect();
+  noteDrawCtx.setTransform(2,0,0,2,0,0);
+  noteDrawCtx.clearRect(0,0,r.width,r.height);
+  noteCanvasDirty=false;
+}
 function toggleNoteEraser(){ noteDrawEraser=!noteDrawEraser; $('note-draw-eraser')?.classList.toggle('active',noteDrawEraser); }
 function loadNoteDrawing(src){
   clearNoteDrawing();
@@ -801,7 +800,220 @@ function loadNoteDrawing(src){
   img.onload=()=>{const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.drawImage(img,0,0,r.width,r.height); noteCanvasDirty=true;};
   img.src=src;
 }
-function resetNoteDrawing(){ clearNoteDrawing(); noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active'); toggleNoteDrawingPanel(false); }
+function resetNoteDrawing(){
+  clearNoteDrawing();
+  noteDrawEraser=false;
+  $('note-draw-eraser')?.classList.remove('active');
+  if($('standalone-drawing') && !$('standalone-drawing').classList.contains('hidden')) closeStandaloneDrawing();
+}
+
+
+/* ---------- PANNEAU DE DESSIN INDÉPENDANT ---------- */
+let standaloneCanvas = null, standaloneCtx = null;
+let standaloneDrawing = false, standaloneLastX = 0, standaloneLastY = 0;
+let standaloneColor = '#ef3f70', standaloneWidth = 2, standaloneAlpha = 1, standaloneEraser = false;
+let standaloneHistory = [], standaloneHistoryIndex = -1, standaloneResizeObserver = null;
+
+function standaloneCanvasRect(){
+  return standaloneCanvas ? standaloneCanvas.getBoundingClientRect() : {left:0,top:0,width:0,height:0};
+}
+function standalonePoint(e){
+  const r=standaloneCanvasRect();
+  return {x:e.clientX-r.left,y:e.clientY-r.top};
+}
+function updateStandaloneHistoryButtons(){
+  $('standalone-undo')?.toggleAttribute('disabled', standaloneHistoryIndex<=0);
+  $('standalone-redo')?.toggleAttribute('disabled', standaloneHistoryIndex<0 || standaloneHistoryIndex>=standaloneHistory.length-1);
+}
+function standaloneBlank(){
+  if(!standaloneCanvas||!standaloneCtx)return;
+  const r=standaloneCanvas.getBoundingClientRect();
+  standaloneCtx.setTransform(2,0,0,2,0,0);
+  standaloneCtx.clearRect(0,0,r.width,r.height);
+}
+function standaloneSnapshot(){
+  if(!standaloneCanvas)return;
+  const data=standaloneCanvas.toDataURL('image/png');
+  standaloneHistory=standaloneHistory.slice(0,standaloneHistoryIndex+1);
+  standaloneHistory.push(data);
+  if(standaloneHistory.length>25) standaloneHistory.shift();
+  standaloneHistoryIndex=standaloneHistory.length-1;
+  updateStandaloneHistoryButtons();
+}
+function standaloneRestore(data){
+  if(!standaloneCanvas||!standaloneCtx)return;
+  const r=standaloneCanvas.getBoundingClientRect();
+  standaloneCtx.setTransform(2,0,0,2,0,0);
+  standaloneCtx.clearRect(0,0,r.width,r.height);
+  if(!data){ updateStandaloneHistoryButtons(); return; }
+  const img=new Image();
+  img.onload=()=>{standaloneCtx.setTransform(2,0,0,2,0,0);standaloneCtx.drawImage(img,0,0,r.width,r.height);};
+  img.src=data;
+  updateStandaloneHistoryButtons();
+}
+function resizeStandaloneCanvas(preserve=true){
+  if(!standaloneCanvas)return;
+  const r=standaloneCanvas.getBoundingClientRect();
+  if(!r.width||!r.height)return;
+  const old=preserve && standaloneCanvas.width ? standaloneCanvas.toDataURL('image/png') : null;
+  standaloneCanvas.width=Math.round(r.width*2);
+  standaloneCanvas.height=Math.round(r.height*2);
+  standaloneCtx=standaloneCanvas.getContext('2d');
+  standaloneCtx.setTransform(2,0,0,2,0,0);
+  standaloneCtx.clearRect(0,0,r.width,r.height);
+  if(old){
+    const img=new Image();
+    img.onload=()=>{standaloneCtx.setTransform(2,0,0,2,0,0);standaloneCtx.drawImage(img,0,0,r.width,r.height);};
+    img.src=old;
+  }
+}
+function resetStandaloneDrawing(){
+  resizeStandaloneCanvas(false);
+  standaloneBlank();
+  standaloneHistory=[];
+  standaloneHistoryIndex=-1;
+  standaloneSnapshot();
+  standaloneEraser=false;
+  document.body.classList.remove('standalone-drawing-active');
+  $('standalone-eraser')?.classList.remove('active');
+}
+function loadStandaloneDrawing(src){
+  if(!src||!standaloneCanvas)return;
+  resizeStandaloneCanvas(false);
+  standaloneBlank();
+  const r=standaloneCanvas.getBoundingClientRect();
+  const img=new Image();
+  img.onload=()=>{
+    standaloneCtx.setTransform(2,0,0,2,0,0);
+    standaloneCtx.drawImage(img,0,0,r.width,r.height);
+    standaloneHistory=[standaloneCanvas.toDataURL('image/png')];
+    standaloneHistoryIndex=0;
+    updateStandaloneHistoryButtons();
+  };
+  img.src=src;
+}
+function openStandaloneDrawing(src){
+  const modal=$('standalone-drawing');
+  if(!modal)return;
+  modal.classList.remove('hidden');
+  document.body.classList.add('standalone-drawing-active');
+  standaloneCanvas=$('standalone-draw-canvas');
+  standaloneCtx=standaloneCanvas?.getContext('2d');
+  requestAnimationFrame(()=>{
+    if(src) loadStandaloneDrawing(src);
+    else resetStandaloneDrawing();
+    updateStandaloneHistoryButtons();
+  });
+}
+function closeStandaloneDrawing(){
+  const modal=$('standalone-drawing');
+  if(modal) modal.classList.add('hidden');
+  document.body.classList.remove('standalone-drawing-active');
+  standaloneDrawing=false;
+  standaloneEraser=false;
+  $('standalone-eraser')?.classList.remove('active');
+}
+function clearStandaloneDrawing(){
+  if(!standaloneCanvas)return;
+  standaloneBlank();
+  standaloneSnapshot();
+  standaloneDrawing=false;
+}
+function undoStandaloneDrawing(){
+  if(standaloneHistoryIndex<=0)return;
+  standaloneHistoryIndex--;
+  standaloneRestore(standaloneHistory[standaloneHistoryIndex]);
+}
+function redoStandaloneDrawing(){
+  if(standaloneHistoryIndex>=standaloneHistory.length-1)return;
+  standaloneHistoryIndex++;
+  standaloneRestore(standaloneHistory[standaloneHistoryIndex]);
+}
+function sendStandaloneDrawing(){
+  if(!roomRef){toast('Connexion indisponible');return;}
+  if(!standaloneCanvas || standaloneHistoryIndex<=0){
+    toast('Dessine quelque chose avant d’envoyer');
+    return;
+  }
+  const src=standaloneCanvas.toDataURL('image/png');
+  const note={
+    title:'Dessin',
+    blocks:[{type:'drawing',src}],
+    color:'#ffdfe9',
+    from:myRole,
+    ts:Date.now(),
+    favorite:false
+  };
+  roomRef.child('notesInbox/'+otherRole).push().set(note).then(()=>{
+    closeStandaloneDrawing();
+    renderStructuredNotes();
+    toast('Dessin ajouté à la pile');
+  }).catch(()=>toast('Impossible d’envoyer le dessin'));
+}
+function initStandaloneDrawing(){
+  standaloneCanvas=$('standalone-draw-canvas');
+  if(!standaloneCanvas)return;
+  standaloneCtx=standaloneCanvas.getContext('2d');
+  standaloneCanvas.addEventListener('pointerdown',e=>{
+    if(!standaloneCtx)return;
+    resizeStandaloneCanvas(true);
+    standaloneDrawing=true;
+    try{standaloneCanvas.setPointerCapture(e.pointerId);}catch(_){}
+    const p=standalonePoint(e);
+    standaloneLastX=p.x; standaloneLastY=p.y;
+    standaloneCtx.globalCompositeOperation=standaloneEraser?'destination-out':'source-over';
+    standaloneCtx.globalAlpha=standaloneEraser?1:standaloneAlpha;
+    standaloneCtx.strokeStyle=standaloneColor;
+    standaloneCtx.lineWidth=standaloneWidth;
+    standaloneCtx.lineCap='round';
+    standaloneCtx.beginPath();
+    standaloneCtx.moveTo(p.x,p.y);standaloneCtx.lineTo(p.x+.01,p.y);standaloneCtx.stroke();
+  });
+  standaloneCanvas.addEventListener('pointermove',e=>{
+    if(!standaloneDrawing||!standaloneCtx)return;
+    const p=standalonePoint(e);
+    standaloneCtx.globalCompositeOperation=standaloneEraser?'destination-out':'source-over';
+    standaloneCtx.globalAlpha=standaloneEraser?1:standaloneAlpha;
+    standaloneCtx.strokeStyle=standaloneColor;
+    standaloneCtx.lineWidth=standaloneWidth;
+    standaloneCtx.lineCap='round';
+    standaloneCtx.beginPath();
+    standaloneCtx.moveTo(standaloneLastX,standaloneLastY);
+    standaloneCtx.lineTo(p.x,p.y);
+    standaloneCtx.stroke();
+    standaloneLastX=p.x;standaloneLastY=p.y;
+  });
+  const finish=()=>{if(standaloneDrawing){standaloneDrawing=false;standaloneSnapshot();}};
+  standaloneCanvas.addEventListener('pointerup',finish);
+  standaloneCanvas.addEventListener('pointercancel',finish);
+  $('standalone-tool-row')?.addEventListener('click',e=>{
+    const btn=e.target.closest('.standalone-tool');if(!btn)return;
+    document.querySelectorAll('.standalone-tool').forEach(x=>x.classList.remove('active'));
+    btn.classList.add('active');
+    if(btn.dataset.eraser){
+      standaloneEraser=true;
+    }else{
+      standaloneEraser=false;
+      standaloneWidth=parseFloat(btn.dataset.width)||2;
+      standaloneAlpha=parseFloat(btn.dataset.alpha)||1;
+    }
+    $('standalone-eraser')?.classList.toggle('active',standaloneEraser);
+  });
+  $('standalone-color-row')?.addEventListener('click',e=>{
+    const btn=e.target.closest('.standalone-color');if(!btn)return;
+    document.querySelectorAll('.standalone-color').forEach(x=>x.classList.remove('selected'));
+    btn.classList.add('selected');
+    standaloneColor=btn.dataset.color||'#ef3f70';
+    standaloneEraser=false;
+    $('standalone-eraser')?.classList.remove('active');
+    document.querySelectorAll('.standalone-tool').forEach(x=>x.classList.remove('active'));
+    document.querySelector('.standalone-tool[data-width="2"]')?.classList.add('active');
+    standaloneWidth=2;standaloneAlpha=1;
+  });
+  window.addEventListener('resize',()=>{
+    if(!$('standalone-drawing')?.classList.contains('hidden')) resizeStandaloneCanvas(true);
+  });
+}
 
 function resetNoteEditorBlocks(){
   const box=$('note-editor-blocks');
@@ -1054,8 +1266,7 @@ function openStructuredNote(id){
   updateNoteEditorCardColor();
   resetNoteDrawing();
   if(drawingSrc){
-    toggleNoteDrawingPanel(true);
-    requestAnimationFrame(()=>loadNoteDrawing(drawingSrc));
+    openStandaloneDrawing(drawingSrc);
   }
   $('note-delete-btn')?.classList.remove('hidden');
   const send=document.querySelector('#note-editor .primary');
@@ -1087,6 +1298,7 @@ function sendDrawingNote(){
 }
 
 setupNoteDrawing();
+initStandaloneDrawing();
 document.querySelector('.notes-stack-wrap')?.addEventListener('click',e=>{if(e.target.closest('.notes-add,.note-fav,.stack-note'))return;toggleNotesStack();});
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
@@ -1799,7 +2011,8 @@ function applyWidgetConfig(el, cfg, allowDefaults = false) {
     el.style.setProperty('--live-color', c.bg || '#171318');
   } else {
     el.style.removeProperty('--live-color');
-    if (c.bg) el.style.background = c.bg; else el.style.removeProperty('background');
+    if (c.bg) el.style.setProperty('background', c.bg, 'important');
+    else el.style.removeProperty('background');
   }
 }
 function saveWidgetConfig(wid, patch) {
@@ -1845,12 +2058,11 @@ function moveWidgetInGroup(el, dir) {
 }
 
 function openWidgetEditor(el) {
+  if(!el || !el.dataset.wid) return;
   currentEditWid = el.dataset.wid;
   const cfg = normalizedWidgetConfig(currentEditWid, widgetConfigs[currentEditWid]);
   $('we-title').textContent = el.dataset.wname || 'Widget';
   $('we-scale').value = Math.max(60, Math.min(150, Number(cfg.scale) || 100));
-  $('we-x').value = Math.max(-220, Math.min(220, Number(cfg.x) || 0));
-  $('we-y').value = Math.max(-520, Math.min(720, Number(cfg.y) || 0));
   renderSwatches(cfg.bg || ''); renderFonts(cfg.font || '');
   $('widget-editor').classList.remove('hidden');
 }
@@ -1885,11 +2097,40 @@ function resetCurrentWidget() {
   if (roomRef) roomRef.child('widgetConfigs/' + wid).remove();
   closeWidgetEditor();
 }
+function renderWidgetEditHandles(){
+  document.querySelectorAll('.widget[data-wid]').forEach(w=>{
+    let btn=w.querySelector(':scope > .widget-edit-handle');
+    if(!editMode){
+      btn?.remove();
+      return;
+    }
+    if(!btn){
+      btn=document.createElement('button');
+      btn.type='button';
+      btn.className='widget-edit-handle';
+      btn.setAttribute('aria-label','Modifier '+(w.dataset.wname||'ce widget'));
+      btn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
+      btn.addEventListener('pointerdown',e=>{e.stopPropagation();});
+      btn.addEventListener('click',e=>{
+        e.preventDefault();e.stopPropagation();
+        openWidgetEditor(w);
+      });
+      w.appendChild(btn);
+    }
+  });
+}
 function enterEditMode() {
   editMode = true; document.body.classList.add('edit-mode');
   if (!$('edit-done-btn')) { const b = document.createElement('button'); b.id = 'edit-done-btn'; b.className = 'edit-done'; b.textContent = 'Terminé'; document.body.appendChild(b); }
+  renderWidgetEditHandles();
 }
-function exitEditMode() { if (!editMode) return; editMode = false; dragState = null; document.body.classList.remove('edit-mode'); closeWidgetEditor(); }
+function exitEditMode() {
+  if (!editMode) return;
+  editMode = false; dragState = null;
+  document.body.classList.remove('edit-mode');
+  closeWidgetEditor();
+  renderWidgetEditHandles();
+}
 
 function startWidgetDrag(e, w) {
   if (!editMode || !w || e.target.closest('#widget-editor') || e.target.closest('input,textarea,button,select,label')) return;
@@ -1905,7 +2146,7 @@ function moveWidgetDrag(e) {
   if (Math.abs(dx) + Math.abs(dy) > 4) dragState.moved = true;
   const pos = clampWidgetPosition(dragState.wid, dragState.x + dx, dragState.y + dy);
   saveWidgetConfig(dragState.wid, pos);
-  if (currentEditWid === dragState.wid) { $('we-x').value = pos.x; $('we-y').value = pos.y; }
+  if (currentEditWid === dragState.wid) { renderWidgetEditHandles(); }
 }
 function endWidgetDrag() { dragState = null; }
 
@@ -1947,6 +2188,7 @@ function initWidgetSystem() {
 
   document.addEventListener('click', e => {
     if (e.target.closest('#widget-editor')) return;
+    if (e.target.closest('.widget-edit-handle')) return;
     if (suppressClickOn) { e.preventDefault(); e.stopPropagation(); suppressClickOn = null; return; }
     if (e.target.closest('.edit-done')) { e.preventDefault(); exitEditMode(); return; }
     if (!editMode) return;
