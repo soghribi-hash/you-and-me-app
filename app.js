@@ -30,6 +30,7 @@ let drawing = false;
 let canvasDirty = false;
 let lastX = 0, lastY = 0;
 let notifOn = localStorage.getItem('yam_notif') === 'on';
+let appName = localStorage.getItem('yam_appname') || '';
 
 /* ---------- UTILITAIRES ---------- */
 function escapeHtml(str) {
@@ -239,6 +240,7 @@ function resetIdentity() {
 
 /* ---------- NAV ---------- */
 function showScreen(id) {
+  if (typeof exitEditMode === 'function') exitEditMode();
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
@@ -453,6 +455,11 @@ function listenAnniversary() {
     }
     lastAnnivSig = sig;
     annivBase = true;
+    if (typeof s.appName === 'string' && s.appName !== appName) {
+      appName = s.appName;
+      try { localStorage.setItem('yam_appname', appName); } catch (e) {}
+      applyAppName(appName);
+    }
   });
   input.addEventListener('change', () => {
     if (!input.value) return;
@@ -476,11 +483,11 @@ function renderCountdown(dateStr) {
   $('since-pill').textContent = daysSince > 0 ? 'Ensemble depuis ' + daysSince + ' jours' : '';
   $('since-pill').style.display = daysSince > 0 ? 'inline-block' : 'none';
 
-  const circumference = 2 * Math.PI * 52;
   const progress = Math.max(0, Math.min(1, 1 - daysLeft / 365));
   const arc = $('countdown-arc');
-  arc.setAttribute('stroke-dasharray', circumference);
-  arc.setAttribute('stroke-dashoffset', circumference * (1 - progress));
+  const total = arc.getTotalLength();
+  arc.setAttribute('stroke-dasharray', total);
+  arc.setAttribute('stroke-dashoffset', total * (1 - progress));
 }
 
 /* ---------- CALENDRIER (plusieurs annotations par jour, par l'un ou l'autre) ---------- */
@@ -524,7 +531,7 @@ function renderCalendar() {
   const year = currentMonthDate.getFullYear();
   const month = currentMonthDate.getMonth();
   const monthLabel = currentMonthDate.toLocaleDateString('fr-FR', { month: 'long', year: 'numeric' });
-  $('cal-month-label').textContent = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1);
+  $('cal-month-label').innerHTML = monthLabel.charAt(0).toUpperCase() + monthLabel.slice(1) + ' <span class="cal-month-heart">\u2665</span>';
 
   const anniv = new Date(annivStr + 'T00:00:00');
   let html = ['L', 'M', 'M', 'J', 'V', 'S', 'D'].map(d => '<div class="dow">' + d + '</div>').join('');
@@ -1030,7 +1037,8 @@ function renderPhoto(p) {
     '<div class="post-photo" data-id="' + p.id + '"><img src="' + p.img + '" alt="" draggable="false">' +
       '<svg class="pop-heart" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg></div>' +
     (p.caption ? '<div class="post-caption">' + escapeHtml(p.caption) + '</div>' : '') +
-    '<div class="post-actions"><button class="fav' + (liked ? ' on' : '') + '" aria-label="Aimer" aria-pressed="' + liked + '" onclick="toggleLike(\'' + p.id + '\',' + liked + ',this)">' + HEART_ICON + '</button></div>' +
+    '<div class="post-actions"><button class="fav' + (liked ? ' on' : '') + '" aria-label="Aimer" aria-pressed="' + liked + '" onclick="toggleLike(\'' + p.id + '\',' + liked + ',this)">' + HEART_ICON + '</button>' +
+    '<button class="post-del" aria-label="Supprimer la photo" onclick="deletePhotoItem(\'' + p.id + '\')"><svg><use href="#i-trash"/></svg></button></div>' +
     (comments.length ? '<div class="post-comments">' + comments.map(c => '<div class="comment"><b>' + (c.from === myRole ? 'Toi' : nameOf(c.from)) + '</b>' + escapeHtml(c.text) + '</div>').join('') + '</div>' : '') +
     '<div class="comment-input-row">' + avatarHTML(myRole, 'sm') +
       '<input data-pid="' + p.id + '" placeholder="Ajouter un commentaire" enterkeyhint="send" onkeydown="if(event.key===\'Enter\')addComment(\'' + p.id + '\', this)">' +
@@ -1056,6 +1064,12 @@ $('photos-feed').addEventListener('click', e => {
     if (ph2 && !(ph2.likes && ph2.likes[myRole])) toggleLike(ph.dataset.id, false, null);
   } else lastTap = { id: ph.dataset.id, t: now };
 });
+function deletePhotoItem(id) {
+  if (!roomRef) return;
+  if (!confirm('Supprimer cette photo ? C\u2019est définitif.')) return;
+  roomRef.child('photos/' + id).remove();
+  toast('Photo supprimée');
+}
 function addComment(id, input) {
   const text = input.value.trim();
   if (!text || !roomRef) return;
@@ -1167,6 +1181,216 @@ function applyWallpaper() {
   $('app').style.backgroundImage = wp ? 'url(' + wp + ')' : 'none';
 }
 applyWallpaper();
+
+/* ---------- NOM DE L'APPLICATION (éditable) ---------- */
+function applyAppName(name) {
+  const val = (name || '').trim();
+  const display = val || 'You & Me.';
+  const el = $('app-logo');
+  if (el) el.textContent = display;
+  document.title = display;
+  const input = $('appname-input');
+  if (input && document.activeElement !== input) input.value = val;
+}
+function saveAppName() {
+  const input = $('appname-input');
+  const val = input.value.trim();
+  try { localStorage.setItem('yam_appname', val); } catch (e) {}
+  appName = val;
+  applyAppName(val);
+  if (roomRef) roomRef.child('settings').update({ appName: val, appNameBy: myRole });
+  toast('Nom mis à jour');
+}
+applyAppName(appName);
+
+/* ---------- WIDGETS PERSONNALISABLES (appui long, façon iPhone) ---------- */
+const FONT_OPTIONS = [
+  { css: '', label: 'Par défaut' },
+  { css: "'Figtree',sans-serif", label: 'Figtree' },
+  { css: "'Caveat','Segoe Script',cursive", label: 'Manuscrite' },
+  { css: "'Playfair Display',Georgia,serif", label: 'Élégante' },
+  { css: 'system-ui,-apple-system,sans-serif', label: 'Système' }
+];
+const COLOR_OPTIONS = ['#FFFFFF', '#000000', '#F0245B', '#FF9DB4', '#E6DDFF', '#FFE3EA', '#FF9A55', '#F5CB4F', '#3FA774', '#3FB8C4', '#5B8CE0', '#8A6FE0'];
+
+let widgetConfigs = {};
+let editMode = false;
+let currentEditWid = null;
+
+function loadWidgetConfigs() {
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem('yam_widget_cfg') || '{}'); } catch (e) {}
+  document.querySelectorAll('.widget[data-wid]').forEach(el => applyWidgetConfig(el, all[el.dataset.wid]));
+  return all;
+}
+function applyWidgetConfig(el, cfg) {
+  if (!cfg) { el.style.removeProperty('--wscale'); el.style.background = ''; el.style.fontFamily = ''; return; }
+  el.style.setProperty('--wscale', String((cfg.scale || 100) / 100));
+  el.style.background = cfg.bg || '';
+  el.style.fontFamily = cfg.font || '';
+}
+function saveWidgetConfig(wid, patch) {
+  widgetConfigs[wid] = Object.assign({ scale: 100, bg: '', font: '' }, widgetConfigs[wid] || {}, patch);
+  try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
+  const el = document.querySelector('.widget[data-wid="' + wid + '"]');
+  if (el) applyWidgetConfig(el, widgetConfigs[wid]);
+}
+
+function groupKeyFor(container) {
+  return container.id || (container.className || 'grp').split(' ')[0];
+}
+function initOrderGroup(container) {
+  if (!container) return;
+  const children = Array.from(container.children);
+  children.forEach((c, i) => { if (c.dataset.origIdx === undefined) c.dataset.origIdx = String(i); });
+  const key = 'yam_order_' + groupKeyFor(container);
+  let seq;
+  try { seq = JSON.parse(localStorage.getItem(key)); } catch (e) { seq = null; }
+  if (!Array.isArray(seq) || seq.length !== children.length) seq = children.map((_, i) => i);
+  seq.forEach((origIdx, pos) => {
+    const el = children.find(c => Number(c.dataset.origIdx) === origIdx);
+    if (el) el.style.order = pos;
+  });
+}
+function saveOrderGroup(container) {
+  const children = Array.from(container.children).sort((a, b) => (parseInt(a.style.order || '0', 10) - parseInt(b.style.order || '0', 10)));
+  const key = 'yam_order_' + groupKeyFor(container);
+  try { localStorage.setItem(key, JSON.stringify(children.map(c => Number(c.dataset.origIdx)))); } catch (e) {}
+}
+function moveWidgetInGroup(el, dir) {
+  const container = el.parentElement;
+  if (!container) return false;
+  const children = Array.from(container.children).sort((a, b) => (parseInt(a.style.order || '0', 10) - parseInt(b.style.order || '0', 10)));
+  const idx = children.indexOf(el);
+  let t = idx + dir;
+  while (t >= 0 && t < children.length && children[t].dataset.pinned === 'true') t += dir;
+  if (t < 0 || t >= children.length) return false;
+  const other = children[t];
+  const tmp = el.style.order; el.style.order = other.style.order; other.style.order = tmp;
+  saveOrderGroup(container);
+  return true;
+}
+
+function openWidgetEditor(el) {
+  currentEditWid = el.dataset.wid;
+  const cfg = widgetConfigs[currentEditWid] || { scale: 100, bg: '', font: '' };
+  $('we-title').textContent = el.dataset.wname || 'Widget';
+  $('we-scale').value = cfg.scale || 100;
+  renderSwatches(cfg.bg || '');
+  renderFonts(cfg.font || '');
+  $('widget-editor').classList.remove('hidden');
+}
+function closeWidgetEditor() { $('widget-editor').classList.add('hidden'); }
+function onWidgetScaleInput(e) {
+  if (!currentEditWid) return;
+  saveWidgetConfig(currentEditWid, { scale: Number(e.target.value) });
+}
+function renderSwatches(current) {
+  const box = $('we-swatches');
+  let html = COLOR_OPTIONS.map(c =>
+    '<button type="button" class="we-swatch' + (current === c ? ' selected' : '') + '" style="background:' + c + (c === '#FFFFFF' ? ';box-shadow:0 0 0 1px var(--line)' : '') + '" data-c="' + c + '" aria-label="' + c + '"></button>').join('');
+  html += '<button type="button" class="we-swatch transp' + (current === 'transparent' ? ' selected' : '') + '" data-c="transparent" aria-label="Transparent"></button>';
+  html += '<label class="we-swatch custom" aria-label="Couleur personnalisée">\uD83C\uDFA8<input type="color" id="we-custom-color" value="' + (current && current.charAt(0) === '#' ? current : '#ffffff') + '"></label>';
+  box.innerHTML = html;
+}
+function renderFonts(current) {
+  const box = $('we-fonts');
+  box.innerHTML = FONT_OPTIONS.map((f, i) =>
+    '<button type="button" class="we-font' + (current === f.css ? ' selected' : '') + '" data-idx="' + i + '" style="' + (f.css ? 'font-family:' + f.css : '') + '">' + f.label + '</button>').join('');
+}
+function pickWidgetColor(c) {
+  if (!currentEditWid) return;
+  saveWidgetConfig(currentEditWid, { bg: c });
+  renderSwatches(c);
+}
+function pickWidgetFont(css) {
+  if (!currentEditWid) return;
+  saveWidgetConfig(currentEditWid, { font: css });
+  renderFonts(css);
+}
+function moveCurrentWidget(dir) {
+  if (!currentEditWid) return;
+  const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]');
+  if (el) moveWidgetInGroup(el, dir);
+}
+function resetCurrentWidget() {
+  if (!currentEditWid) return;
+  delete widgetConfigs[currentEditWid];
+  try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
+  const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]');
+  if (el) applyWidgetConfig(el, null);
+  closeWidgetEditor();
+}
+function enterEditMode() {
+  editMode = true;
+  document.body.classList.add('edit-mode');
+  if (!$('edit-done-btn')) {
+    const b = document.createElement('button');
+    b.id = 'edit-done-btn';
+    b.className = 'edit-done';
+    b.textContent = 'Terminé';
+    document.body.appendChild(b);
+  }
+}
+function exitEditMode() {
+  if (!editMode) return;
+  editMode = false;
+  document.body.classList.remove('edit-mode');
+  closeWidgetEditor();
+}
+
+function initWidgetSystem() {
+  ['home', 'calendar', 'notes', 'photos'].forEach(id => initOrderGroup($(id)));
+  initOrderGroup(document.querySelector('.bento'));
+  widgetConfigs = loadWidgetConfigs();
+
+  $('we-swatches').addEventListener('click', e => {
+    const b = e.target.closest('.we-swatch'); if (!b || !b.dataset.c) return;
+    pickWidgetColor(b.dataset.c);
+  });
+  $('we-swatches').addEventListener('input', e => {
+    if (e.target.id === 'we-custom-color') pickWidgetColor(e.target.value);
+  });
+  $('we-fonts').addEventListener('click', e => {
+    const b = e.target.closest('.we-font'); if (!b) return;
+    pickWidgetFont(FONT_OPTIONS[Number(b.dataset.idx)].css);
+  });
+
+  let pressTimer = null, pressStart = null, suppressClickOn = null;
+  const LONG_PRESS_MS = 480;
+  document.addEventListener('pointerdown', e => {
+    const w = e.target.closest('.widget');
+    if (!w || editMode) { pressStart = null; return; }
+    if (e.pointerType === 'mouse' && e.button !== 0) return;
+    pressStart = { x: e.clientX, y: e.clientY };
+    clearTimeout(pressTimer);
+    pressTimer = setTimeout(() => {
+      if (!pressStart) return;
+      enterEditMode();
+      if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
+      suppressClickOn = w;
+      pressStart = null;
+    }, LONG_PRESS_MS);
+  }, { passive: true });
+  document.addEventListener('pointermove', e => {
+    if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) {
+      clearTimeout(pressTimer); pressStart = null;
+    }
+  }, { passive: true });
+  document.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressStart = null; }, { passive: true });
+  document.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressStart = null; }, { passive: true });
+
+  document.addEventListener('click', e => {
+    if (e.target.closest('#widget-editor')) return;
+    if (suppressClickOn) { e.preventDefault(); e.stopPropagation(); suppressClickOn = null; return; }
+    if (e.target.closest('.edit-done')) { e.preventDefault(); exitEditMode(); return; }
+    if (!editMode) return;
+    const w = e.target.closest('.widget');
+    if (w) { e.preventDefault(); e.stopPropagation(); openWidgetEditor(w); return; }
+    if (e.target.closest('#app') && !e.target.closest('.bottomnav')) { e.preventDefault(); e.stopPropagation(); }
+  }, true);
+}
+initWidgetSystem();
 
 /* ---------- DÉMARRAGE ---------- */
 /* ---------- DATE DU JOUR (accueil) ---------- */

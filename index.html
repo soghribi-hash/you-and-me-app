@@ -93,6 +93,39 @@
     </div>
   </div>
 
+  <!-- ÉDITEUR DE WIDGET -->
+  <div class="modal-overlay hidden" id="widget-editor" onclick="if(event.target===this) closeWidgetEditor()">
+    <div class="comp-sheet widget-sheet" onclick="event.stopPropagation()">
+      <div class="we-head">
+        <b id="we-title">Widget</b>
+        <button class="we-close" onclick="closeWidgetEditor()" aria-label="Fermer"><svg><use href="#i-close"/></svg></button>
+      </div>
+      <div class="we-block">
+        <div class="we-label">Taille</div>
+        <input type="range" id="we-scale" min="85" max="130" value="100" oninput="onWidgetScaleInput(event)" aria-label="Taille du widget">
+      </div>
+      <div class="we-block">
+        <div class="we-label">Couleur</div>
+        <div class="we-swatches" id="we-swatches"></div>
+      </div>
+      <div class="we-block">
+        <div class="we-label">Police</div>
+        <div class="we-fonts" id="we-fonts"></div>
+      </div>
+      <div class="we-block">
+        <div class="we-label">Emplacement</div>
+        <div class="we-pos-row">
+          <button class="btn-small" onclick="moveCurrentWidget(-1)">↑ Monter</button>
+          <button class="btn-small" onclick="moveCurrentWidget(1)">↓ Descendre</button>
+        </div>
+      </div>
+      <div class="comp-actions">
+        <button class="ghost" onclick="resetCurrentWidget()">Réinitialiser</button>
+        <button class="primary" onclick="closeWidgetEditor()">OK</button>
+      </div>
+    </div>
+  </div>
+
   <!-- ONBOARDING -->
   <div class="modal-overlay" id="onboarding">
     <div class="modal">
@@ -110,7 +143,7 @@
   </div>
 
   <div class="topbar">
-    <div class="logo" aria-label="You &amp; Me.">You <span class="amp" aria-hidden="true">&amp;</span> Me<span class="dot">.</span></div>
+    <div class="logo" id="app-logo">You &amp; Me.</div>
     <div class="online-pill"><span class="avatar off" id="partner-avatar"></span><span id="partner-status">Hors ligne</span></div>
   </div>
 
@@ -118,10 +151,10 @@
 
     <!-- HOME -->
     <div class="screen active" id="home">
-      <div class="home-date" id="home-date"></div>
+      <div class="home-date" id="home-date" data-pinned="true"></div>
 
       <!-- Notes façon Instagram : on écrit directement dans la bulle -->
-      <div class="note-duo">
+      <div class="note-duo widget" data-wid="home-notes" data-wname="Vos petites notes">
         <div class="note-cell">
           <div class="note-bubble mine" id="my-note-bubble">
             <textarea id="my-note-input" rows="1" maxlength="60" placeholder="Une pensée…" enterkeyhint="send" aria-label="Ta note"></textarea>
@@ -138,7 +171,7 @@
         </div>
       </div>
 
-      <div class="panel your-mood">
+      <div class="panel your-mood widget" data-wid="home-mood" data-wname="Ton mood">
         <div class="panel-title">Ton mood</div>
         <div class="mood-row" id="mood-row">
           <button class="mood-bubble" data-mood="😊" title="Heureuse" aria-label="Heureuse">😊</button>
@@ -159,7 +192,7 @@
       </div>
 
       <div class="bento">
-        <button class="w-heart" id="heart-btn" onclick="sendHeart()" aria-label="Envoyer un cœur">
+        <button class="w-heart widget" id="heart-btn" data-wid="bento-heart" data-wname="Envoyer un cœur" onclick="sendHeart()" aria-label="Envoyer un cœur">
           <span class="lbl">SEND LOVE</span>
           <svg class="heart-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg>
           <svg class="cupid" viewBox="0 0 72 44" aria-hidden="true">
@@ -184,7 +217,7 @@
           </svg>
         </button>
 
-        <div class="w-mood">
+        <div class="w-mood widget" data-wid="bento-mood" data-wname="Mood de l'autre">
           <div class="w-title" id="partner-name-label">Mood de Nono</div>
           <div class="big-emoji" id="partner-mood">🤍</div>
           <div class="w-foot">
@@ -194,7 +227,7 @@
         </div>
       </div>
 
-      <div class="w-music">
+      <div class="w-music widget" data-wid="home-music" data-wname="Musique du moment">
         <div class="music-top" onclick="openMusic()">
           <div class="turntable" aria-hidden="true">
             <div class="vinyl" id="vinyl">
@@ -245,14 +278,14 @@
         <svg class="deco-heart h3" viewBox="0 0 24 24"><use href="#i-heart"/></svg>
         <svg class="deco-heart h4" viewBox="0 0 24 24"><use href="#i-heart"/></svg>
       </div>
-      <h2 class="section-title">Calendrier</h2>
-      <div class="screen-subtitle">Les dates qui comptent</div>
-      <div class="countdown-card">
+      <h2 class="section-title" data-pinned="true">Calendrier</h2>
+      <div class="screen-subtitle" data-pinned="true">Les dates qui comptent</div>
+      <div class="countdown-card widget" data-wid="cal-countdown" data-wname="Compte à rebours">
         <div class="countdown-top">
           <div class="ring-wrap">
             <svg viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="9"/>
-              <circle cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" id="countdown-arc" transform="rotate(-90 60 60)"/>
+              <path d="M60,108 C25,84 6,58 6,36 C6,16 22,4 40,4 C50,4 58,10 60,20 C62,10 70,4 80,4 C98,4 114,16 114,36 C114,58 95,84 60,108 Z" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="9" stroke-linejoin="round"/>
+              <path d="M60,108 C25,84 6,58 6,36 C6,16 22,4 40,4 C50,4 58,10 60,20 C62,10 70,4 80,4 C98,4 114,16 114,36 C114,58 95,84 60,108 Z" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" stroke-linejoin="round" id="countdown-arc"/>
             </svg>
             <div class="ring-center">
               <div class="num" id="countdown-days">--</div>
@@ -271,7 +304,7 @@
         </div>
       </div>
 
-      <div class="card">
+      <div class="card widget" data-wid="cal-grid" data-wname="Calendrier du mois">
         <div class="cal-nav">
           <button class="cal-arrow" onclick="changeMonth(-1)" aria-label="Mois précédent">‹</button>
           <div class="month" id="cal-month-label"></div>
@@ -295,15 +328,15 @@
 
     <!-- NOTES (dessin) -->
     <div class="screen" id="notes">
-      <h2 class="section-title">Notes</h2>
-      <div class="screen-subtitle">Un coin pour laisser une trace, même toute petite.</div>
+      <h2 class="section-title" data-pinned="true">Notes</h2>
+      <div class="screen-subtitle" data-pinned="true">Un coin pour laisser une trace, même toute petite.</div>
 
       <button class="recv-note" id="recv-note" onclick="openNote(otherRole)" style="display:none">
         <span class="recv-thumb" id="recv-thumb"></span>
         <span class="recv-txt"><b id="recv-title">Note</b><small id="recv-sub"></small></span>
       </button>
 
-      <div class="canvas-area">
+      <div class="canvas-area widget" data-wid="notes-canvas" data-wname="Zone de dessin">
         <button class="trash" onclick="clearCanvas()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button>
         <canvas id="draw-canvas"></canvas>
       </div>
@@ -345,15 +378,15 @@
 
     <!-- PHOTOS -->
     <div class="screen" id="photos">
-      <h2 class="section-title">Photos</h2>
+      <h2 class="section-title" data-pinned="true">Photos</h2>
 
-      <button class="live-widget" onclick="openLive()" aria-label="En direct : prendre une photo maintenant">
+      <button class="live-widget widget" data-wid="photos-live" data-wname="En direct" onclick="openLive()" aria-label="En direct : prendre une photo maintenant">
         <span class="vf"><i></i><i></i><i></i><i></i></span>
         <span class="live-inset"><svg><use href="#i-heart"/></svg></span>
         <span class="live-txt"><span class="rec"></span><b>En direct</b></span>
         <span class="live-shutter"><span></span></span>
       </button>
-      <label class="gal-btn">
+      <label class="gal-btn widget" data-wid="photos-gal" data-wname="Depuis la galerie">
         <svg><use href="#i-image"/></svg>Depuis la galerie
         <input id="file-gal" type="file" accept="image/*" style="display:none" onchange="handleGallery(event)">
       </label>
@@ -365,6 +398,10 @@
     <!-- SETTINGS -->
     <div class="screen" id="settings">
       <h2 class="section-title">Réglages</h2>
+      <div class="card">
+        <div class="card-title">Personnaliser les widgets</div>
+        <div class="hint">Reste appuyé(e) sur un widget (cœur, mood, musique, calendrier, photos…) pour changer sa taille, sa couleur, sa police ou sa place, un peu comme sur iPhone.</div>
+      </div>
       <div class="card">
         <div class="settings-row">
           <div class="settings-name" id="me-profile-name"></div>
@@ -385,6 +422,15 @@
             <div class="settings-name" id="other-photo-label">Photo de Nono</div>
           </div>
         </div>
+      </div>
+
+      <div class="card">
+        <div class="card-title">Nom de l'application</div>
+        <div class="appname-row">
+          <input id="appname-input" placeholder="You & Me.">
+          <button class="btn-small" onclick="saveAppName()">Enregistrer</button>
+        </div>
+        <div class="hint">S'affiche en haut de l'app, modifiable à tout moment.</div>
       </div>
 
       <div class="card">
