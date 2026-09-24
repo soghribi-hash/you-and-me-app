@@ -788,8 +788,28 @@ function openNoteEditor(){
   requestAnimationFrame(()=>{ const r=noteDrawCanvas?.getBoundingClientRect(); if(r?.width){} });
 }
 function closeNoteEditor(){ $('note-editor').classList.add('hidden'); editingNoteId=null; }
-function addNoteBlock(type){ const box=$('note-editor-blocks'); const row=document.createElement('div'); row.className='note-block'; if(type==='check') row.innerHTML='<input type="checkbox"><input class="nb-text" placeholder="À faire…"><button onclick="this.parentElement.remove()">×</button>'; else if(type==='image') row.innerHTML='<input type="file" accept="image/*" onchange="noteImagePreview(event)"><span class="nb-file">Photo</span><button onclick="this.parentElement.remove()">×</button>'; else row.innerHTML='<textarea class="nb-text" rows="2" placeholder="Écris ici…"></textarea><button onclick="this.parentElement.remove()">×</button>'; box.appendChild(row); }
-function noteImagePreview(e){ const f=e.target.files?.[0]; if(f){const r=new FileReader();r.onload=()=>{e.target.dataset.data=r.result;};r.readAsDataURL(f);} }
+function addNoteBlock(type){
+  const box=$('note-editor-blocks'); const row=document.createElement('div'); row.className='note-block';
+  if(type==='check'){
+    row.innerHTML='<input type="checkbox" aria-label="Cocher"><input class="nb-text" placeholder="À faire…"><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+  } else if(type==='image'){
+    row.innerHTML='<label class="nb-photo-btn">📷 <span class="nb-file">Ajouter une photo</span><input class="nb-photo-input" type="file" accept="image/*" onchange="noteImagePreview(event)"></label><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+  } else {
+    row.innerHTML='<textarea class="nb-text" rows="2" placeholder="Écris ici…"></textarea><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+  }
+  box.appendChild(row);
+}
+function noteImagePreview(e){
+  const f=e.target.files?.[0];
+  if(!f)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    e.target.dataset.data=r.result;
+    const label=e.target.closest('.nb-photo-btn')?.querySelector('.nb-file');
+    if(label) label.textContent='Photo ajoutée ✓';
+  };
+  r.readAsDataURL(f);
+}
 function collectNoteBlocks(){
   const blocks=[];
   document.querySelectorAll('#note-editor-blocks .note-block').forEach(row=>{
@@ -809,23 +829,76 @@ async function sendStructuredNote(){
   closeNoteEditor(); toast('Note envoyée à '+otherName);
 }
 let structuredNotes=[];
+let noteCommentsOpen = {};
+let noteSources = { a: {}, b: {} };
+
+function formatNoteDate(ts){
+  const d = new Date(Number(ts) || Date.now());
+  return d.toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'}) +
+    ' · ' + d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+}
+function notePath(n){
+  return n && n._inboxRole ? 'notesInbox/'+n._inboxRole+'/'+n.id : null;
+}
+function noteLikeState(n){
+  return !!((n.likes && n.likes[myRole]) || (n.favorite && n.from === myRole));
+}
+function normalizeNoteComments(comments){
+  if(!comments)return [];
+  return Object.keys(comments).map(id=>Object.assign({id},comments[id]||{})).filter(c=>c && c.text).sort((a,b)=>(a.ts||0)-(b.ts||0));
+}
 function renderStructuredNotes(){
   const box=$('notes-stack'); if(!box)return;
   const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  if(!notes.length){box.innerHTML='<div class="notes-empty"><b>+</b><span>Crée votre première note</span></div>';return;}
+  if(!notes.length){
+    box.innerHTML='<div class="notes-empty"><span>Crée votre première note</span></div>';
+    return;
+  }
   box.innerHTML=notes.map((n,i)=>{
     const bg=n.color||(['#ffffff','#ffdfe9','#e9e0fb','#dff3e8','#dcecfb'][i%5]);
-    const body=(n.blocks||[]).slice(0,5).map(b=>b.type==='check'
-      ? '<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\',this.checked,this)"><span>'+escapeHtml(b.text)+'</span></label>'
-      : (b.type==='image'||b.type==='drawing') ? '<img src="'+b.src+'" alt="" class="note-media">'
+    const blocks=n.blocks||[];
+    const body=blocks.slice(0,8).map((b,bi)=>b.type==='check'
+      ? '<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\','+!!b.checked+',this,'+bi+')"><span>'+escapeHtml(b.text)+'</span></label>'
+      : (b.type==='image'||b.type==='drawing') ? '<img src="'+escapeHtml(b.src||'')+'" alt="" class="note-media">'
       : '<p>'+escapeHtml(b.text)+'</p>').join('');
+    const comments=normalizeNoteComments(n.comments);
+    const open=!!noteCommentsOpen[n.id];
+    const commentsHtml=comments.length
+      ? '<div class="note-comments-list">'+comments.map(c=>'<div class="note-comment"><b>'+escapeHtml(nameOf(c.from))+'</b><span>'+escapeHtml(c.text)+'</span></div>').join('')+'</div>'
+      : '';
+    const commentPanel=open
+      ? '<div class="note-comment-panel" onclick="event.stopPropagation()">'+commentsHtml+
+        `<div class="note-comment-input-row"><input id="note-comment-input-${n.id}" maxlength="180" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter'){event.preventDefault();addNoteComment('${n.id}',this.value)}"><button type="button" onclick="addNoteComment('${n.id}',document.getElementById('note-comment-input-${n.id}').value)">↑</button></div></div>`
+      : '';
+    const likeClass=noteLikeState(n)?'on':'';
     return '<article class="stack-note" data-note-index="'+i+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="openStructuredNote(\''+n.id+'\')">'+
-      '<button class="note-fav '+(n.favorite?'on':'')+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')">♥</button>'+
-      '<h3>'+escapeHtml(n.title)+'</h3><div class="stack-note-body">'+body+'</div><small>'+relativeTime(n.ts)+'</small></article>';
+      '<div class="stack-note-origin">'+escapeHtml(n.from===myRole?'Toi':nameOf(n.from))+'</div>'+
+      '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note">♥</button>'+
+      '<h3>'+escapeHtml(n.title||'Note')+'</h3><div class="stack-note-body">'+body+'</div>'+
+      '<div class="note-footer" onclick="event.stopPropagation()"><small>'+formatNoteDate(n.ts)+'</small>'+
+      '<button class="note-comment-toggle" type="button" onclick="toggleNoteComments(\''+n.id+'\')" aria-expanded="'+open+'">♡ '+comments.length+'</button></div>'+
+      commentPanel+
+      '</article>';
   }).join('');
 }
-function toggleNotesStack(force){ const wrap=document.querySelector('.notes-stack-wrap'); if(!wrap)return; const next=typeof force==='boolean'?force:!wrap.classList.contains('is-fanned'); wrap.classList.toggle('is-fanned',next); }
-function listenNotes(){ onValue(roomRef.child('notesInbox/'+myRole),snap=>{const v=snap.val()||{};structuredNotes=Object.keys(v).map(id=>Object.assign({id},v[id])).filter(n=>n);renderStructuredNotes();}); }
+function toggleNotesStack(force){
+  const wrap=document.querySelector('.notes-stack-wrap'); if(!wrap)return;
+  const next=typeof force==='boolean'?force:!wrap.classList.contains('is-fanned');
+  wrap.classList.toggle('is-fanned',next);
+}
+function listenNotes(){
+  ['a','b'].forEach(inboxRole=>{
+    onValue(roomRef.child('notesInbox/'+inboxRole),snap=>{
+      const v=snap.val()||{};
+      noteSources[inboxRole]=Object.keys(v).map(id=>Object.assign({id,_inboxRole:inboxRole},v[id]||{})).filter(n=>n);
+      const merged=[...Object.values(noteSources).flat()];
+      const seen=new Map();
+      merged.forEach(n=>seen.set(n.id,n));
+      structuredNotes=Array.from(seen.values());
+      renderStructuredNotes();
+    });
+  });
+}
 function showLittleNotePop(text, senderLabel){
   const pop=$('little-note-pop'), body=$('little-note-pop-text');
   if(!pop||!body)return;
@@ -857,23 +930,85 @@ function listenLittleNotes(){
     setTimeout(()=>snap.ref.remove().catch(()=>{}),1800);
   }, dbError);
 }
-
-function updateNote(id,patch){ const idx=structuredNotes.findIndex(n=>n.id===id); if(idx<0)return; const next=Object.assign({},structuredNotes[idx],patch); structuredNotes[idx]=next; roomRef.child('notesInbox/'+myRole+'/'+id).update(patch); renderStructuredNotes(); }
-function toggleNoteFavorite(id){const n=structuredNotes.find(x=>x.id===id);if(n)updateNote(id,{favorite:!n.favorite});}
-function toggleNoteCheck(id,checked,el){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; let ix=0; const blocks=(n.blocks||[]).map(b=>{const x=Object.assign({},b); if(x.type==='check'){ if(el){ const labels=[...el.closest('.stack-note').querySelectorAll('input[type=checkbox]')]; if(labels[ix]===el)x.checked=checked; ix++; } } return x; }); updateNote(id,{blocks}); }
+function updateNote(id,patch){
+  const idx=structuredNotes.findIndex(n=>n.id===id); if(idx<0||!roomRef)return;
+  const n=structuredNotes[idx], path=notePath(n); if(!path)return;
+  const next=Object.assign({},n,patch); structuredNotes[idx]=next;
+  roomRef.child(path).update(patch).catch(()=>{});
+  renderStructuredNotes();
+}
+function toggleNoteFavorite(id){
+  const n=structuredNotes.find(x=>x.id===id); if(!n)return;
+  const liked=noteLikeState(n);
+  const patch={}; patch['likes/'+myRole]=liked?null:true;
+  updateNote(id,patch);
+}
+function toggleNoteCheck(id,checked,el,blockIndex){
+  const n=structuredNotes.find(x=>x.id===id); if(!n)return;
+  const blocks=(n.blocks||[]).map((b,i)=>i===Number(blockIndex)?Object.assign({},b,{checked:!!checked}):Object.assign({},b));
+  updateNote(id,{blocks});
+}
+function toggleNoteComments(id){
+  noteCommentsOpen[id]=!noteCommentsOpen[id];
+  renderStructuredNotes();
+  if(noteCommentsOpen[id]) requestAnimationFrame(()=>{
+    const input=document.getElementById('note-comment-input-'+id);
+    input?.focus();
+  });
+}
+async function addNoteComment(id,text){
+  const value=String(text||'').trim().slice(0,180);
+  const n=structuredNotes.find(x=>x.id===id); if(!n||!value||!roomRef)return;
+  const path=notePath(n); if(!path)return;
+  await roomRef.child(path+'/comments').push({from:myRole,text:value,ts:firebase.database.ServerValue.TIMESTAMP});
+  noteCommentsOpen[id]=true;
+}
 function openStructuredNote(id){
   const n=structuredNotes.find(x=>x.id===id); if(!n)return; editingNoteId=id; selectedNoteColor=n.color||'#ffffff';
   $('note-editor').classList.remove('hidden'); $('note-editor-title').value=n.title||'Note'; const box=$('note-editor-blocks');box.innerHTML='';
   let drawingSrc=null;
-  (n.blocks||[]).forEach(b=>{ if(b.type==='drawing'){drawingSrc=b.src;return;} addNoteBlock(b.type); const row=box.lastElementChild; if(b.type==='check'){row.querySelector('input[type=checkbox]').checked=!!b.checked;row.querySelector('.nb-text').value=b.text||'';} else if(b.type==='text')row.querySelector('.nb-text').value=b.text||''; else if(b.type==='image'){row.querySelector('.nb-file').textContent='Photo ajoutée'; if(b.src)row.querySelector('input[type=file]').dataset.data=b.src;} });
+  (n.blocks||[]).forEach(b=>{
+    if(b.type==='drawing'){drawingSrc=b.src;return;}
+    addNoteBlock(b.type);
+    const row=box.lastElementChild;
+    if(b.type==='check'){
+      row.querySelector('input[type=checkbox]').checked=!!b.checked;
+      row.querySelector('.nb-text').value=b.text||'';
+    } else if(b.type==='text'){
+      row.querySelector('.nb-text').value=b.text||'';
+    } else if(b.type==='image'){
+      const input=row.querySelector('input[type=file]');
+      const label=row.querySelector('.nb-file');
+      if(label) label.textContent='Photo ajoutée ✓';
+      if(input&&b.src) input.dataset.data=b.src;
+    }
+  });
   document.querySelectorAll('.note-color').forEach(b=>b.classList.toggle('selected',b.dataset.noteColor===selectedNoteColor)); updateNoteEditorCardColor(); resetNoteDrawing(); if(drawingSrc)loadNoteDrawing(drawingSrc);
   $('note-delete-btn')?.classList.remove('hidden');
   const send=document.querySelector('#note-editor .primary'); send.textContent='Enregistrer';send.onclick=()=>saveEditedStructuredNote(id);
 }
-async function saveEditedStructuredNote(id){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; const title=$('note-editor-title').value.trim()||'Note'; const blocks=collectNoteBlocks(); if(!blocks.length){toast('Écris ou dessine quelque chose');return;} await roomRef.child('notesInbox/'+myRole+'/'+id).update({title,blocks,color:selectedNoteColor}); closeNoteEditor(); }
-async function deleteEditingNote(){ if(!editingNoteId||!roomRef)return; const id=editingNoteId; await roomRef.child('notesInbox/'+myRole+'/'+id).remove(); closeNoteEditor(); toast('Note supprimée'); }
+async function saveEditedStructuredNote(id){
+  const n=structuredNotes.find(x=>x.id===id); if(!n||!roomRef)return;
+  const title=$('note-editor-title').value.trim()||'Note'; const blocks=collectNoteBlocks();
+  if(!blocks.length){toast('Écris, ajoute une photo ou dessine quelque chose');return;}
+  const path=notePath(n); if(!path)return;
+  await roomRef.child(path).update({title,blocks,color:selectedNoteColor});
+  closeNoteEditor();
+}
+async function deleteEditingNote(){
+  if(!editingNoteId||!roomRef)return;
+  const n=structuredNotes.find(x=>x.id===editingNoteId); const path=notePath(n);
+  if(path) await roomRef.child(path).remove();
+  closeNoteEditor(); toast('Note supprimée');
+}
 function sendNote(){ sendStructuredNote(); }
-function sendDrawingNote(){ const text=$('note-word').value.trim(); if(!text&&!canvasDirty){toast('Dessine ou écris quelque chose');return;} if(!roomRef)return;const note={title:'Dessin',blocks:(text?[{type:'text',text}]:[]).concat(canvasDirty?[{type:'drawing',src:canvas.toDataURL('image/png')}]:[]),color:'#ffffff',from:myRole,ts:Date.now()};roomRef.child('notesInbox/'+otherRole).push().set(note);$('note-word').value='';clearCanvas();toast('Dessin envoyé à '+otherName); }
+function sendDrawingNote(){
+  const text=$('note-word').value.trim();
+  if(!text&&!canvasDirty){toast('Dessine ou écris quelque chose');return;}
+  if(!roomRef)return;
+  const note={title:'Dessin',blocks:(text?[{type:'text',text}]:[]).concat(canvasDirty?[{type:'drawing',src:canvas.toDataURL('image/png')}]:[]),color:'#ffffff',from:myRole,ts:Date.now(),favorite:false};
+  roomRef.child('notesInbox/'+otherRole).push().set(note);$('note-word').value='';clearCanvas();toast('Dessin envoyé à '+otherName);
+}
 
 setupNoteDrawing();
 document.querySelector('.notes-stack-wrap')?.addEventListener('click',e=>{if(e.target.closest('.notes-add,.note-fav,.stack-note'))return;toggleNotesStack();});

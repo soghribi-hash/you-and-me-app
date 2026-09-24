@@ -1133,3 +1133,62 @@ html,body{background:#121014!important}
   .little-note-copy span{display:none!important}
   #photos .live-widget{height:168px!important}
 }
+
+/* ---------- Dernières retouches : notes persistantes ---------- */
+#notes .notes-stack-wrap{min-height:500px!important}
+#notes .notes-stack{min-height:485px!important}
+#notes .stack-note{
+  min-height:440px!important;
+  padding:25px 22px 58px!important;
+}
+#notes .stack-note-body{min-height:255px!important}
+#notes .stack-note-origin{
+  position:absolute;left:22px;top:15px;font-size:9px;font-weight:900;
+  letter-spacing:.7px;text-transform:uppercase;color:#9a8992;
+}
+#notes .stack-note h3{margin-top:8px!important}
+#notes .note-footer{
+  position:absolute;left:22px;right:18px;bottom:13px;
+  display:flex;align-items:center;justify-content:space-between;gap:8px;
+}
+#notes .note-footer small{position:static!important;font-size:9.5px!important}
+#notes .note-comment-toggle{
+  border:0;background:rgba(255,255,255,.62);color:#7e6973;border-radius:999px;
+  padding:7px 10px;font-size:10px;font-weight:900;
+}
+#notes .note-comment-panel{
+  position:absolute;left:18px;right:18px;bottom:54px;
+  padding:10px;border-radius:16px;background:rgba(255,255,255,.82);
+  backdrop-filter:blur(10px);box-shadow:0 10px 24px rgba(45,27,39,.08);
+  z-index:30;
+}
+#notes .note-comments-list{display:grid;gap:5px;max-height:100px;overflow:auto;margin-bottom:7px}
+#notes .note-comment{font-size:11px;line-height:1.3;color:#463843}
+#notes .note-comment b{font-weight:900;margin-right:5px}
+#notes .note-comment-input-row{display:flex;gap:6px}
+#notes .note-comment-input-row input{
+  min-width:0;flex:1;height:34px;border:1px solid rgba(39,25,34,.08);
+  border-radius:999px;background:#fff;padding:0 11px;outline:0;font-size:11px;font-weight:600;
+}
+#notes .note-comment-input-row button{
+  width:34px;height:34px;border:0;border-radius:50%;background:#17131a;color:#fff;font-weight:900;
+}
+#notes .note-fav{z-index:31;bottom:12px!important;left:auto!important;right:118px!important}
+#notes .note-media{display:block;width:100%;max-height:190px;object-fit:cover}
+#notes .notes-empty{height:430px!important;border:0!important;background:transparent!important}
+#notes .notes-empty b{display:none!important}
+#notes .notes-empty span{font-size:14px!important}
+.note-block .nb-photo-btn{
+  position:relative;display:flex;align-items:center;gap:8px;min-height:38px;
+  flex:1;padding:8px 10px;border-radius:12px;background:#fbf7f8;
+  font-size:12px;font-weight:800;color:#5b4f57;overflow:hidden;
+}
+.note-block .nb-photo-input{position:absolute;inset:0;opacity:0;width:100%;height:100%;cursor:pointer}
+.note-block .nb-file{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+@media(max-width:430px){
+  #notes .notes-stack-wrap{min-height:500px!important}
+  #notes .notes-stack{min-height:485px!important}
+  #notes .stack-note{min-height:430px!important;padding:24px 18px 58px!important}
+  #notes .notes-stack-wrap.is-fanned{min-height:730px!important}
+}
+.nav-heart svg{width:42px!important;height:42px!important;stroke:none!important;fill:#fff!important}
