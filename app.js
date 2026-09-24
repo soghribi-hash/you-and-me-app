@@ -1300,7 +1300,7 @@ function saveAppName() {
 }
 applyAppName(appName);
 
-/* ---------- WIDGETS PERSONNALISABLES (appui long, façon iPhone) ---------- */
+/* ---------- WIDGETS PERSONNALISABLES (appui long + déplacement libre) ---------- */
 const FONT_OPTIONS = [
   { css: '', label: 'Par défaut' },
   { css: "'Figtree',sans-serif", label: 'Figtree' },
@@ -1313,47 +1313,62 @@ const COLOR_OPTIONS = ['#FFFFFF', '#000000', '#F0245B', '#FF9DB4', '#E6DDFF', '#
 let widgetConfigs = {};
 let editMode = false;
 let currentEditWid = null;
+let dragState = null;
 
+function defaultWidgetPosition(wid) {
+  if (wid === 'home-music') return { x: 0, y: 420 };
+  if (wid === 'home-live') return { x: 0, y: 92 };
+  return { x: 0, y: 0 };
+}
+function normalizedWidgetConfig(wid, cfg) {
+  const pos = defaultWidgetPosition(wid);
+  return Object.assign({ scale: 100, bg: '', font: '', x: pos.x, y: pos.y }, cfg || {});
+}
 function loadWidgetConfigs() {
   let all = {};
   try { all = JSON.parse(localStorage.getItem('yam_widget_cfg') || '{}'); } catch (e) {}
-  document.querySelectorAll('.widget[data-wid]').forEach(el => applyWidgetConfig(el, all[el.dataset.wid]));
+  document.querySelectorAll('.widget[data-wid]').forEach(el => applyWidgetConfig(el, all[el.dataset.wid], true));
   return all;
 }
-function applyWidgetConfig(el, cfg) {
-  if (!cfg) {
+function applyWidgetConfig(el, cfg, allowDefaults = false) {
+  const wid = el.dataset.wid;
+  if (!cfg && !allowDefaults) {
     el.style.removeProperty('--wscale');
+    el.style.removeProperty('--wx');
+    el.style.removeProperty('--wy');
     el.style.removeProperty('--live-color');
-    el.style.removeProperty('--live-y');
-    el.style.removeProperty('--live-x');
     el.style.background = '';
     el.style.fontFamily = '';
     return;
   }
-  el.style.setProperty('--wscale', String((cfg.scale || 100) / 100));
-  el.style.fontFamily = cfg.font || '';
-  if (el.dataset.wid === 'home-live') {
+  const c = normalizedWidgetConfig(wid, cfg);
+  el.style.setProperty('--wscale', String((Number(c.scale) || 100) / 100));
+  el.style.setProperty('--wx', String(Number(c.x) || 0) + 'px');
+  el.style.setProperty('--wy', String(Number(c.y) || 0) + 'px');
+  el.style.fontFamily = c.font || '';
+  if (wid === 'home-live') {
     el.style.removeProperty('background');
-    el.style.setProperty('--live-color', cfg.bg || '');
-    el.style.setProperty('--live-y', String(Number.isFinite(Number(cfg.y)) ? Number(cfg.y) : 92) + 'px');
-    el.style.setProperty('--live-x', String(Number.isFinite(Number(cfg.x)) ? Number(cfg.x) : 0) + 'px');
+    el.style.setProperty('--live-color', c.bg || '#171318');
   } else {
     el.style.removeProperty('--live-color');
-    el.style.removeProperty('--live-y');
-    el.style.removeProperty('--live-x');
-    el.style.background = cfg.bg || '';
+    if (c.bg) el.style.background = c.bg; else el.style.removeProperty('background');
   }
 }
 function saveWidgetConfig(wid, patch) {
-  widgetConfigs[wid] = Object.assign({ scale: 100, bg: '', font: '' }, widgetConfigs[wid] || {}, patch);
+  widgetConfigs[wid] = normalizedWidgetConfig(wid, Object.assign({}, widgetConfigs[wid] || {}, patch));
   try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
   const el = document.querySelector('.widget[data-wid="' + wid + '"]');
   if (el) applyWidgetConfig(el, widgetConfigs[wid]);
 }
-
-function groupKeyFor(container) {
-  return container.id || (container.className || 'grp').split(' ')[0];
+function clampWidgetPosition(wid, x, y) {
+  const isLive = wid === 'home-live';
+  return {
+    x: Math.max(isLive ? -180 : -220, Math.min(isLive ? 40 : 220, Number(x) || 0)),
+    y: Math.max(-520, Math.min(720, Number(y) || 0))
+  };
 }
+
+function groupKeyFor(container) { return container && (container.id || (container.className || 'grp').split(' ')[0]); }
 function initOrderGroup(container) {
   if (!container) return;
   const children = Array.from(container.children);
@@ -1362,10 +1377,7 @@ function initOrderGroup(container) {
   let seq;
   try { seq = JSON.parse(localStorage.getItem(key)); } catch (e) { seq = null; }
   if (!Array.isArray(seq) || seq.length !== children.length) seq = children.map((_, i) => i);
-  seq.forEach((origIdx, pos) => {
-    const el = children.find(c => Number(c.dataset.origIdx) === origIdx);
-    if (el) el.style.order = pos;
-  });
+  seq.forEach((origIdx, pos) => { const el = children.find(c => Number(c.dataset.origIdx) === origIdx); if (el) el.style.order = pos; });
 }
 function saveOrderGroup(container) {
   const children = Array.from(container.children).sort((a, b) => (parseInt(a.style.order || '0', 10) - parseInt(b.style.order || '0', 10)));
@@ -1373,139 +1385,108 @@ function saveOrderGroup(container) {
   try { localStorage.setItem(key, JSON.stringify(children.map(c => Number(c.dataset.origIdx)))); } catch (e) {}
 }
 function moveWidgetInGroup(el, dir) {
-  const container = el.parentElement;
-  if (!container) return false;
+  const container = el.parentElement; if (!container) return false;
   const children = Array.from(container.children).sort((a, b) => (parseInt(a.style.order || '0', 10) - parseInt(b.style.order || '0', 10)));
-  const idx = children.indexOf(el);
-  let t = idx + dir;
+  const idx = children.indexOf(el); let t = idx + dir;
   while (t >= 0 && t < children.length && children[t].dataset.pinned === 'true') t += dir;
   if (t < 0 || t >= children.length) return false;
-  const other = children[t];
-  const tmp = el.style.order; el.style.order = other.style.order; other.style.order = tmp;
-  saveOrderGroup(container);
-  return true;
+  const other = children[t], tmp = el.style.order; el.style.order = other.style.order; other.style.order = tmp; saveOrderGroup(container); return true;
 }
 
 function openWidgetEditor(el) {
   currentEditWid = el.dataset.wid;
-  const cfg = widgetConfigs[currentEditWid] || { scale: 100, bg: '', font: '' };
+  const cfg = normalizedWidgetConfig(currentEditWid, widgetConfigs[currentEditWid]);
   $('we-title').textContent = el.dataset.wname || 'Widget';
-  $('we-scale').value = cfg.scale || 100;
-  renderSwatches(cfg.bg || '');
-  renderFonts(cfg.font || '');
-  const isLive = currentEditWid === 'home-live';
-  $('we-standard-pos').classList.toggle('hidden', isLive);
-  $('we-live-pos').classList.toggle('hidden', !isLive);
+  $('we-scale').value = Math.max(60, Math.min(150, Number(cfg.scale) || 100));
+  $('we-x').value = Math.max(-220, Math.min(220, Number(cfg.x) || 0));
+  $('we-y').value = Math.max(-520, Math.min(720, Number(cfg.y) || 0));
+  renderSwatches(cfg.bg || ''); renderFonts(cfg.font || '');
   $('widget-editor').classList.remove('hidden');
 }
-function closeWidgetEditor() { $('widget-editor').classList.add('hidden'); }
-function onWidgetScaleInput(e) {
+function closeWidgetEditor() { $('widget-editor').classList.add('hidden'); currentEditWid = null; }
+function onWidgetScaleInput(e) { if (currentEditWid) saveWidgetConfig(currentEditWid, { scale: Number(e.target.value) }); }
+function onWidgetPositionInput(e, axis) {
   if (!currentEditWid) return;
-  saveWidgetConfig(currentEditWid, { scale: Number(e.target.value) });
+  const pos = clampWidgetPosition(currentEditWid, axis === 'x' ? Number(e.target.value) : (widgetConfigs[currentEditWid]?.x || 0), axis === 'y' ? Number(e.target.value) : (widgetConfigs[currentEditWid]?.y || 0));
+  saveWidgetConfig(currentEditWid, pos);
 }
 function renderSwatches(current) {
   const box = $('we-swatches');
-  let html = COLOR_OPTIONS.map(c =>
-    '<button type="button" class="we-swatch' + (current === c ? ' selected' : '') + '" style="background:' + c + (c === '#FFFFFF' ? ';box-shadow:0 0 0 1px var(--line)' : '') + '" data-c="' + c + '" aria-label="' + c + '"></button>').join('');
+  let html = COLOR_OPTIONS.map(c => '<button type="button" class="we-swatch' + (current === c ? ' selected' : '') + '" style="background:' + c + (c === '#FFFFFF' ? ';box-shadow:0 0 0 1px var(--line)' : '') + '" data-c="' + c + '" aria-label="' + c + '"></button>').join('');
   html += '<button type="button" class="we-swatch transp' + (current === 'transparent' ? ' selected' : '') + '" data-c="transparent" aria-label="Transparent"></button>';
-  html += '<label class="we-swatch custom" aria-label="Couleur personnalisée">\uD83C\uDFA8<input type="color" id="we-custom-color" value="' + (current && current.charAt(0) === '#' ? current : '#ffffff') + '"></label>';
+  html += '<label class="we-swatch custom" aria-label="Couleur personnalisée">🎨<input type="color" id="we-custom-color" value="' + (current && current.charAt(0) === '#' ? current : '#ffffff') + '"></label>';
   box.innerHTML = html;
 }
 function renderFonts(current) {
   const box = $('we-fonts');
-  box.innerHTML = FONT_OPTIONS.map((f, i) =>
-    '<button type="button" class="we-font' + (current === f.css ? ' selected' : '') + '" data-idx="' + i + '" style="' + (f.css ? 'font-family:' + f.css : '') + '">' + f.label + '</button>').join('');
+  box.innerHTML = FONT_OPTIONS.map((f, i) => '<button type="button" class="we-font' + (current === f.css ? ' selected' : '') + '" data-idx="' + i + '" style="' + (f.css ? 'font-family:' + f.css : '') + '">' + f.label + '</button>').join('');
 }
-function pickWidgetColor(c) {
-  if (!currentEditWid) return;
-  saveWidgetConfig(currentEditWid, { bg: c });
-  renderSwatches(c);
-}
-function pickWidgetFont(css) {
-  if (!currentEditWid) return;
-  saveWidgetConfig(currentEditWid, { font: css });
-  renderFonts(css);
-}
-
-function nudgeLiveRail(dx, dy) {
-  if (currentEditWid !== 'home-live') return;
-  const cfg = widgetConfigs[currentEditWid] || { scale: 100, bg: '', font: '', x: 0, y: 92 };
-  const x = Math.max(-34, Math.min(34, (Number(cfg.x) || 0) + dx));
-  const y = Math.max(54, Math.min(210, (Number(cfg.y) || 92) + dy));
-  saveWidgetConfig(currentEditWid, { x, y });
-}
-
-function moveCurrentWidget(dir) {
-  if (!currentEditWid) return;
-  const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]');
-  if (el) moveWidgetInGroup(el, dir);
-}
+function pickWidgetColor(c) { if (currentEditWid) { saveWidgetConfig(currentEditWid, { bg: c }); renderSwatches(c); } }
+function pickWidgetFont(css) { if (currentEditWid) { saveWidgetConfig(currentEditWid, { font: css }); renderFonts(css); } }
+function moveCurrentWidget(dir) { if (!currentEditWid) return; const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]'); if (el) moveWidgetInGroup(el, dir); }
 function resetCurrentWidget() {
   if (!currentEditWid) return;
   delete widgetConfigs[currentEditWid];
   try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
   const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]');
-  if (el) applyWidgetConfig(el, null);
+  if (el) applyWidgetConfig(el, null, true);
   closeWidgetEditor();
 }
 function enterEditMode() {
-  editMode = true;
-  document.body.classList.add('edit-mode');
-  if (!$('edit-done-btn')) {
-    const b = document.createElement('button');
-    b.id = 'edit-done-btn';
-    b.className = 'edit-done';
-    b.textContent = 'Terminé';
-    document.body.appendChild(b);
-  }
+  editMode = true; document.body.classList.add('edit-mode');
+  if (!$('edit-done-btn')) { const b = document.createElement('button'); b.id = 'edit-done-btn'; b.className = 'edit-done'; b.textContent = 'Terminé'; document.body.appendChild(b); }
 }
-function exitEditMode() {
-  if (!editMode) return;
-  editMode = false;
-  document.body.classList.remove('edit-mode');
-  closeWidgetEditor();
+function exitEditMode() { if (!editMode) return; editMode = false; dragState = null; document.body.classList.remove('edit-mode'); closeWidgetEditor(); }
+
+function startWidgetDrag(e, w) {
+  if (!editMode || !w || e.target.closest('#widget-editor') || e.target.closest('input,textarea,button,select,label')) return;
+  const wid = w.dataset.wid;
+  const cfg = normalizedWidgetConfig(wid, widgetConfigs[wid]);
+  dragState = { wid, startX: e.clientX, startY: e.clientY, x: Number(cfg.x) || 0, y: Number(cfg.y) || 0, moved: false };
+  w.setPointerCapture?.(e.pointerId);
+  e.preventDefault(); e.stopPropagation();
 }
+function moveWidgetDrag(e) {
+  if (!dragState) return;
+  const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
+  if (Math.abs(dx) + Math.abs(dy) > 4) dragState.moved = true;
+  const pos = clampWidgetPosition(dragState.wid, dragState.x + dx, dragState.y + dy);
+  saveWidgetConfig(dragState.wid, pos);
+  if (currentEditWid === dragState.wid) { $('we-x').value = pos.x; $('we-y').value = pos.y; }
+}
+function endWidgetDrag() { dragState = null; }
 
 function initWidgetSystem() {
   ['home', 'calendar', 'notes', 'photos'].forEach(id => initOrderGroup($(id)));
   initOrderGroup(document.querySelector('.bento'));
   widgetConfigs = loadWidgetConfigs();
 
-  $('we-swatches').addEventListener('click', e => {
-    const b = e.target.closest('.we-swatch'); if (!b || !b.dataset.c) return;
-    pickWidgetColor(b.dataset.c);
-  });
-  $('we-swatches').addEventListener('input', e => {
-    if (e.target.id === 'we-custom-color') pickWidgetColor(e.target.value);
-  });
-  $('we-fonts').addEventListener('click', e => {
-    const b = e.target.closest('.we-font'); if (!b) return;
-    pickWidgetFont(FONT_OPTIONS[Number(b.dataset.idx)].css);
-  });
+  $('we-swatches').addEventListener('click', e => { const b = e.target.closest('.we-swatch'); if (b && b.dataset.c) pickWidgetColor(b.dataset.c); });
+  $('we-swatches').addEventListener('input', e => { if (e.target.id === 'we-custom-color') pickWidgetColor(e.target.value); });
+  $('we-fonts').addEventListener('click', e => { const b = e.target.closest('.we-font'); if (b) pickWidgetFont(FONT_OPTIONS[Number(b.dataset.idx)].css); });
 
   let pressTimer = null, pressStart = null, suppressClickOn = null;
   const LONG_PRESS_MS = 480;
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
-    if (!w || editMode) { pressStart = null; return; }
+    if (editMode) { startWidgetDrag(e, w); return; }
+    if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    pressStart = { x: e.clientX, y: e.clientY };
+    pressStart = { x: e.clientX, y: e.clientY, w };
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => {
       if (!pressStart) return;
       enterEditMode();
       if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
-      suppressClickOn = w;
-      pressStart = null;
+      suppressClickOn = pressStart.w; pressStart = null;
     }, LONG_PRESS_MS);
-  }, { passive: true });
+  }, { passive: false });
   document.addEventListener('pointermove', e => {
-    if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) {
-      clearTimeout(pressTimer); pressStart = null;
-    }
-  }, { passive: true });
-  document.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressStart = null; }, { passive: true });
-  document.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressStart = null; }, { passive: true });
+    if (dragState) { moveWidgetDrag(e); return; }
+    if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) { clearTimeout(pressTimer); pressStart = null; }
+  }, { passive: false });
+  document.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
+  document.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
 
   document.addEventListener('click', e => {
     if (e.target.closest('#widget-editor')) return;
