@@ -697,3 +697,135 @@ h2.section-title{font-size:30px!important;letter-spacing:-1.7px!important;margin
 /* Ne pas toucher aux interactions de déplacement / zoom */
 .widget{will-change:transform}.widget:active{transition:none}
 @media(max-width:430px){.logo{font-size:29px!important}.screens{padding-left:12px!important;padding-right:12px!important}.live-rail{right:-2px!important}.nav-heart{width:80px!important;height:80px!important}}
+
+
+/* ============================================================
+   V17 — DA ÉBAUCHE FIDÈLE
+   La structure/fonctionnalités restent celles de V16.
+   Cette couche corrige uniquement la direction artistique.
+   ============================================================ */
+
+/* Palette douce, éditoriale, proche de la maquette */
+:root{
+  --ink:#17131a;
+  --paper:#fffdfd;
+  --cherry:#ef3f70;
+  --rose:#f6c6d4;
+  --lilac:#dcd2f5;
+  --cream:#fff3d9;
+  --soft-shadow:0 16px 38px rgba(31,19,29,.14);
+}
+
+html,body{background:#d9d4d5!important}
+#app{max-width:500px;background-color:#e9e3e2!important;background-size:cover!important;background-position:center!important}
+#app:before{background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,245,248,.10))!important}
+.topbar{padding-left:18px!important;padding-right:18px!important;padding-bottom:10px!important}
+.logo{font-size:30px!important;letter-spacing:-1.8px!important}
+.online-pill{height:42px!important;padding:4px 11px 4px 5px!important;font-size:11.5px!important;box-shadow:0 8px 18px rgba(30,20,26,.10)!important}
+.screens{padding:5px 14px calc(112px + var(--safe-b))!important}
+
+/* HOME : beaucoup d'air, petites bulles, pile En direct à droite */
+#home{min-height:100%;position:relative!important;padding-top:3px!important}
+.note-duo{margin:8px 0 18px!important;gap:24px!important}
+.note-bubble{width:145px!important;min-height:40px!important;border-radius:22px!important;box-shadow:0 8px 20px rgba(35,20,30,.10)!important}
+.note-bubble textarea,.note-bubble span{font-size:12px!important;font-weight:800!important}
+.avatar-stage{margin-top:22px!important}
+.note-avatar{width:62px!important;height:62px!important}
+
+.live-rail{top:132px!important;right:-8px!important;width:166px!important;height:200px!important;z-index:16!important}
+.live-peek-stack{right:0!important;top:0!important;width:72px!important;height:108px!important;border-radius:22px 0 0 22px!important;background:linear-gradient(145deg,#f4c2d3,#dcd1f2)!important;box-shadow:0 14px 30px rgba(45,22,39,.17)!important}
+.live-peek-stack .peek-card{width:58px!important;height:84px!important;border-radius:17px!important;right:0!important;top:13px!important}
+.live-peek-stack .peek-label{font-size:9px!important;letter-spacing:1.5px!important}
+.live-drawer{width:310px!important;border-radius:24px 0 0 24px!important;background:rgba(255,252,253,.97)!important;box-shadow:0 24px 55px rgba(38,21,33,.22)!important}
+
+/* Musique : exactement le langage de la carte noire de la maquette */
+.w-music{margin-top:12px!important;margin-bottom:18px!important;padding:10px 12px!important;border-radius:23px!important;background:#18151b!important;box-shadow:0 17px 35px rgba(24,15,21,.24)!important}
+.w-music:after{background:radial-gradient(circle,rgba(255,74,126,.18),transparent 68%)!important}
+.music-top{gap:9px!important}
+.turntable{--v:54px!important;width:62px!important;height:58px!important}
+.vinyl{box-shadow:0 7px 15px rgba(0,0,0,.42)!important}
+.music-cover-wrap,.music-cover{width:46px!important;height:46px!important}
+.music-info .title{font-size:13px!important;margin-top:2px!important}
+.music-info .subtitle{font-size:10.5px!important}
+.m-eyebrow{display:flex!important;align-items:center!important;justify-content:space-between!important;gap:8px!important;font-size:8.5px!important;letter-spacing:1.1px!important;text-transform:uppercase!important;opacity:.60!important}
+.spotify-connect{border:0;background:rgba(255,255,255,.08);color:#d7cfd4;border-radius:999px;padding:3px 7px;font-size:8px;font-weight:900;letter-spacing:.3px}
+.music-input-row{margin-top:8px!important}
+.music-input{height:38px!important;border-radius:15px!important;background:#29242b!important;border-color:rgba(255,255,255,.08)!important}
+.send-btn.light{width:38px!important;height:38px!important;border-radius:14px!important;background:#ef3f70!important;color:#fff!important}
+.music-results{bottom:46px!important;border-radius:17px!important;background:#1d191f!important}
+
+/* CALENDRIER : carte anniversaire propre, aucun emoji rouge géant */
+#calendar{padding-top:3px!important}
+#calendar .section-title{margin-top:10px!important;margin-bottom:7px!important}
+#calendar .screen-subtitle{margin-bottom:12px!important}
+.cal-deco{display:none!important}
+.countdown-card{position:relative!important;background:linear-gradient(145deg,#f22f68 0%,#f34a78 54%,#ff7899 100%)!important;border-radius:28px!important;padding:17px!important;box-shadow:0 18px 38px rgba(214,48,91,.18)!important}
+.countdown-top{gap:13px!important}
+.ring-wrap{width:92px!important;height:92px!important}
+.ring-center .num{font-size:28px!important}
+.countdown-info .date{font-size:17px!important}
+.countdown-info .sub{font-size:11px!important}
+.since-pill{font-size:10px!important;padding:6px 10px!important}
+.anniv-row{margin-top:12px!important;padding-top:11px!important;font-size:12px!important}
+.anniv-row input{height:34px!important;width:135px!important;border-radius:999px!important;background:rgba(255,255,255,.13)!important}
+
+/* Le souvenir reste un petit bouton-photo en forme de coeur, pas un gros coeur rouge */
+.throwback-heart{left:auto!important;right:12px!important;top:11px!important;bottom:auto!important;width:46px!important;height:46px!important;padding:0!important;z-index:4!important}
+.throwback-photo{inset:3px!important;border-radius:0!important;background-color:rgba(255,255,255,.12)!important;clip-path:path('M 50 92 C 20 68 3 51 3 28 C 3 12 15 3 28 3 C 38 3 46 8 50 17 C 54 8 62 3 72 3 C 85 3 97 12 97 28 C 97 51 80 68 50 92 Z')!important;transform:none!important;box-shadow:none!important;border:0!important}
+.throwback-heart-glyph{display:none!important}
+.throwback-add{left:auto!important;right:7px!important;bottom:auto!important;top:53px!important;width:20px!important;height:20px!important;border:1px solid rgba(255,255,255,.65)!important;background:rgba(255,255,255,.22)!important;font-size:13px!important;line-height:18px!important}
+.throwback-viewer{background:#fffafa!important;border-radius:30px!important}
+
+.card.widget[data-wname="Calendrier du mois"]{padding:14px!important;border-radius:28px!important;box-shadow:0 15px 34px rgba(39,25,35,.10)!important}
+.cal-nav .month{font-size:16px!important}
+.cal-arrow{width:42px!important;height:42px!important;background:#fff!important;border:1px solid #f0dfe5!important}
+
+/* PHOTOS : la grande carte noire de l'ébauche */
+#photos .section-title{margin-top:10px!important;margin-bottom:12px!important}
+.live-widget{height:196px!important;border-radius:28px!important;background:radial-gradient(90% 90% at 100% 100%,rgba(240,36,91,.55),transparent 62%),radial-gradient(70% 60% at 0% 0%,rgba(150,120,255,.18),transparent 65%),#09080b!important;box-shadow:0 18px 35px rgba(28,17,25,.20)!important}
+.live-txt{left:31px!important;bottom:30px!important}
+.live-txt b{font-size:37px!important}
+.live-inset{right:30px!important;top:28px!important}
+.live-shutter{right:30px!important;bottom:27px!important}
+.gal-btn{height:48px!important;border-radius:999px!important;box-shadow:0 8px 18px rgba(30,20,28,.07)!important}
+
+/* JOURNAL : vraie pile, avec cartes décalées derrière */
+#notes .section-title{margin-top:10px!important;margin-bottom:12px!important}
+.notes-stack-wrap{min-height:355px!important;margin:7px 0 18px!important}
+.notes-stack{min-height:340px!important;padding:10px 4px!important}
+.stack-note{inset:14px 8px auto 8px!important;min-height:285px!important;border-radius:26px!important;padding:20px 18px 16px!important;box-shadow:0 18px 36px rgba(48,25,41,.15)!important}
+.stack-note:nth-child(1){background:#fff!important}
+.stack-note:nth-child(2){background:#ffdfe8!important}
+.stack-note:nth-child(3){background:#e8e0fb!important}
+.stack-note:nth-child(4){background:#fff0cf!important}
+.stack-note h3{font-size:19px!important}
+.stack-note-body p,.stack-note-body label{font-size:12.5px!important}
+.note-fav{background:rgba(255,255,255,.72)!important}
+.notes-add{background:#17131a!important;box-shadow:0 12px 25px rgba(20,12,18,.20)!important}
+
+/* DESSIN : deuxième pile séparée, gomme conservée */
+.draw-stack{margin-top:4px!important}
+.draw-card-back{border-radius:27px!important;background:#e9e0fb!important}
+.draw-card-back.two{background:#ffdfe8!important}
+.draw-stack .canvas-area{border-radius:27px!important;background:#17131a!important;box-shadow:0 18px 36px rgba(31,18,27,.20)!important}
+.eraser-btn{background:#fff!important;color:#4a3e46!important;box-shadow:0 6px 15px rgba(0,0,0,.12)!important}
+.eraser-btn.active{background:#ef3f70!important;color:#fff!important}
+
+/* Navigation de la maquette */
+.bottomnav{background:#17131a!important;border-radius:31px!important;box-shadow:0 18px 38px rgba(22,13,20,.30)!important}
+.nav-btn{color:#9b949b!important}
+.nav-btn.active{background:#fff!important;color:#17131a!important}
+.nav-heart{width:82px!important;height:82px!important;margin-top:-24px!important;background:#17131a!important;color:#fff!important;border:5px solid rgba(255,255,255,.74)!important;border-radius:50%!important;box-shadow:0 12px 28px rgba(20,13,18,.35)!important}
+
+/* Éditeurs : même langage que les cartes de la maquette */
+.modal-overlay{background:rgba(24,17,22,.32)!important;backdrop-filter:blur(12px)!important}
+.comp-sheet,.widget-sheet{background:#fffafa!important;border-radius:30px!important;box-shadow:0 28px 80px rgba(34,19,30,.28)!important}
+
+@media(max-width:430px){
+  .logo{font-size:29px!important}
+  .screens{padding-left:12px!important;padding-right:12px!important}
+  .note-duo{gap:18px!important}
+  .note-bubble{width:138px!important}
+  .live-rail{right:-7px!important}
+  .nav-heart{width:80px!important;height:80px!important}
+}
