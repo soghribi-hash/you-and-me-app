@@ -9,27 +9,39 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="theme-color" content="#D62E63">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Unbounded:wght@500;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
+<div id="banners" aria-live="polite"></div>
+<div id="fx" aria-hidden="true"></div>
+<div id="toast" role="status"></div>
+
 <div id="app">
+
+  <!-- LECTEUR DE NOTE -->
+  <div class="modal-overlay hidden" id="note-viewer" onclick="closeNote()">
+    <div class="modal note-card" onclick="event.stopPropagation()">
+      <div class="nv-head" id="nv-head"></div>
+      <img id="nv-img" alt="Dessin de la note">
+      <div class="nv-text" id="nv-text"></div>
+      <button class="primary" onclick="closeNote()">Fermer</button>
+    </div>
+  </div>
 
   <!-- ONBOARDING -->
   <div class="modal-overlay" id="onboarding">
     <div class="modal">
       <h3>Bienvenue sur You & Me.</h3>
-      <p>La première fois, vous entrez chacun le même code secret pour vous connecter en couple. Choisissez aussi qui est qui.</p>
-      <label>Ton prénom</label>
-      <input id="ob-name" placeholder="Sof">
+      <p>La première fois, choisis qui tu es, puis entrez chacun le même code secret pour vous connecter.</p>
       <label>Qui es-tu ?</label>
       <div class="role-pick">
-        <button id="role-a" onclick="pickRole('a')">Moi</button>
-        <button id="role-b" onclick="pickRole('b')">Elle</button>
+        <button id="role-a" onclick="pickRole('a')">Soso</button>
+        <button id="role-b" onclick="pickRole('b')">Nono</button>
       </div>
       <label>Code secret du couple</label>
-      <input id="ob-room" placeholder="ex: sofia-2025">
+      <input id="ob-room" placeholder="un code long, connu de vous deux seulement">
       <button class="primary" onclick="finishOnboarding()">C'est parti</button>
     </div>
   </div>
@@ -43,12 +55,14 @@
 
     <!-- HOME -->
     <div class="screen active" id="home">
+      <div class="home-kicker">NOTRE PETIT MONDE <span>•</span> AUJOURD’HUI</div>
       <div class="stories-row">
         <div class="story" onclick="showScreen('notes')">
           <div class="ring"><div class="inner" id="my-note-preview-icon">✏️</div></div>
           <div class="label">Ta note</div>
+          <div class="preview" id="my-note-preview"></div>
         </div>
-        <div class="story" onclick="showScreen('notes')">
+        <div class="story" onclick="openNote(otherRole)">
           <div class="ring"><div class="inner" id="her-note-preview-icon">💌</div></div>
           <div class="label" id="her-note-label">Sa note</div>
           <div class="preview" id="her-note-preview"></div>
@@ -56,32 +70,33 @@
       </div>
 
       <div class="mood-row" id="mood-row">
-        <div class="mood-bubble" data-mood="😊">😊</div>
-        <div class="mood-bubble" data-mood="😠">😠</div>
-        <div class="mood-bubble" data-mood="🤔">🤔</div>
-        <div class="mood-bubble" data-mood="😢">😢</div>
-        <div class="mood-bubble" data-mood="😭">😭</div>
-        <div class="mood-bubble" data-mood="🥰">🥰</div>
+        <button class="mood-bubble" data-mood="😊" title="Heureuse" aria-label="Heureuse">😊</button>
+        <button class="mood-bubble" data-mood="😠" title="Énervé" aria-label="Énervé">😠</button>
+        <button class="mood-bubble" data-mood="🤔" title="Pensive" aria-label="Pensive">🤔</button>
+        <button class="mood-bubble" data-mood="😢" title="Triste" aria-label="Triste">😢</button>
+        <button class="mood-bubble" data-mood="🥵" title="Horny" aria-label="Horny">🥵</button>
+        <button class="mood-bubble" data-mood="🥰" title="Amoureuse" aria-label="Amoureuse">🥰</button>
       </div>
 
       <div class="status-row" id="status-row">
-        <div class="status-chip" data-status="Au taf">Au taf</div>
-        <div class="status-chip" data-status="En route">En route</div>
-        <div class="status-chip" data-status="Dodo">Dodo</div>
-        <div class="status-chip" data-status="Yomb">Yomb</div>
+        <button class="status-chip" data-status="Au taf">Au taf</button>
+        <button class="status-chip" data-status="En route">En route</button>
+        <button class="status-chip" data-status="Dodo">Dodo</button>
+        <button class="status-chip" data-status="Yomb">Yomb</button>
       </div>
 
       <div class="two-col">
-        <div class="heart-card">&lt;3</div>
+        <button class="heart-card" id="heart-btn" onclick="sendHeart()" aria-label="Envoyer un cœur">&lt;3</button>
         <div class="mood-card">
           <div class="eyebrow" id="partner-name-label">SON MOOD</div>
           <div class="big-emoji" id="partner-mood">🤍</div>
+          <div class="mood-status" id="partner-status-chip"></div>
           <div class="time" id="partner-mood-time"></div>
         </div>
       </div>
 
       <div class="music-card">
-        <div class="music-top">
+        <div class="music-top" onclick="openMusic()">
           <div class="vinyl-wrap">
             <svg class="vinyl" id="vinyl" viewBox="0 0 100 100">
               <circle cx="50" cy="50" r="49" fill="#0c0c0e"/>
@@ -110,6 +125,7 @@
     <!-- CALENDAR -->
     <div class="screen" id="calendar">
       <h2 class="section-title">Calendrier</h2>
+      <div class="screen-subtitle">Les dates qui comptent, les petites choses à ne pas oublier.</div>
       <div class="countdown-card">
         <div class="countdown-top">
           <div class="ring-wrap">
@@ -143,9 +159,14 @@
         <div class="cal-grid" id="cal-grid"></div>
         <div class="day-detail">
           <div class="d-title" id="day-detail-title"></div>
+          <div id="day-events"></div>
+          <div class="kind-row">
+            <button class="kind on" data-kind="ev" onclick="setKind('ev')">Événement</button>
+            <button class="kind" data-kind="ac" onclick="setKind('ac')">Activité</button>
+          </div>
           <div class="annot-row">
-            <input class="annot-input" id="annot-input" placeholder="Annoter">
-            <button class="plus-btn" onclick="saveAnnotation()">+</button>
+            <input class="annot-input" id="annot-input" placeholder="Annoter cette date">
+            <button class="plus-btn" onclick="saveAnnotation()" aria-label="Ajouter">+</button>
           </div>
         </div>
       </div>
@@ -154,6 +175,7 @@
     <!-- NOTES -->
     <div class="screen" id="notes">
       <h2 class="section-title">Notes</h2>
+      <div class="screen-subtitle">Un coin pour laisser une trace, même toute petite.</div>
       <div class="canvas-area">
         <button class="trash" onclick="clearCanvas()">🗑</button>
         <canvas id="draw-canvas"></canvas>
@@ -186,6 +208,7 @@
     <!-- CHAT -->
     <div class="screen" id="chat">
       <h2 class="section-title">Chat</h2>
+      <div class="screen-subtitle">Juste vous deux. Pas de bruit autour.</div>
       <div class="chat-scroll" id="chat-scroll"></div>
       <div class="chat-input-row">
         <input id="chat-input" placeholder="Ton message">
@@ -196,6 +219,7 @@
     <!-- PHOTOS -->
     <div class="screen" id="photos">
       <h2 class="section-title">Photos</h2>
+      <div class="screen-subtitle">Vos moments, comme un petit journal à deux.</div>
       <div class="camera-row">
         <label class="camera-btn">📸 Prendre une photo
           <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
@@ -209,7 +233,14 @@
 
     <!-- SETTINGS -->
     <div class="screen" id="settings">
-      <h2 class="section-title">Paramètres</h2>
+      <h2 class="section-title">Réglages</h2>
+      <div class="screen-subtitle">Votre espace, vos photos, votre ambiance.</div>
+      <div class="card">
+        <div class="settings-row">
+          <div class="settings-name" id="me-profile-name"></div>
+          <button class="btn-small" onclick="resetIdentity()">Changer</button>
+        </div>
+      </div>
       <div class="card">
         <div class="settings-row">
           <div class="settings-left">
@@ -221,7 +252,7 @@
         <div class="settings-row">
           <div class="settings-left">
             <div class="settings-avatar her" id="her-avatar-preview"></div>
-            <div class="settings-name">Sa photo</div>
+            <div class="settings-name" id="other-photo-label">Sa photo</div>
           </div>
         </div>
       </div>
@@ -240,7 +271,7 @@
           <button class="toggle off" id="notif-toggle" onclick="toggleNotifications()"></button>
         </div>
         <div style="font-size:11.5px;color:var(--ink-soft);padding-top:6px;">
-          Alerte à chaque interaction (mood, note, chat, photo) — tant que l'app est ouverte sur ton téléphone.
+          Chaque interaction de l'autre (cœur, mood, note, musique, chat, photo, calendrier) s'affiche en bannière dans l'app, et en notification quand l'app est en arrière-plan sur ton téléphone.
         </div>
       </div>
     </div>

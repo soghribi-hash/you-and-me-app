@@ -41,7 +41,7 @@ Retourne dans Realtime Database > onglet "Règles", et remplace par :
 ## 3. Se connecter à deux
 
 1. Toi et ta copine ouvrez ce lien chacun sur votre iPhone.
-2. Au premier lancement, chacun renseigne son prénom, choisit "Moi" ou "Elle", et **entre le même code secret** (ex: `sofia2025`) — c'est ce code qui vous connecte tous les deux à la même appli.
+2. Au premier lancement, chacun choisit **Soso** ou **Nono**, et **entre le même code secret** — un code long et difficile à deviner (ex: `soso-nono-x7k2-2025`), car c'est lui qui protège vos photos et votre chat. Si tu t'es trompé de profil : Réglages > "Changer".
 3. Pour l'installer comme une vraie app : dans Safari, appuyez sur le bouton Partager (le carré avec la flèche) > "Sur l'écran d'accueil". L'icône apparaît comme une app normale.
 
 ## 4. Modifier l'app plus tard
@@ -49,5 +49,5 @@ Retourne dans Realtime Database > onglet "Règles", et remplace par :
 C'est ton code, dans ton repo GitHub : tu peux revenir ici, me montrer ce que tu veux changer, je te redonne les fichiers mis à jour, et tu les ré-uploades sur GitHub (ça écrase l'ancienne version, l'app se met à jour automatiquement pour vous deux).
 
 ## Limites à connaître (honnêtement)
-- **Notifications** : elles marchent seulement si l'app est ouverte (même en arrière-plan) sur le téléphone. De vraies notifications push quand l'app est totalement fermée demandent une config plus poussée (Firebase Cloud Messaging) — possible plus tard si tu veux, mais plus de boulot.
+- **Notifications** : chaque interaction de l'autre (cœur, mood, statut, note, musique, message, réaction, photo, like, commentaire, calendrier) s'affiche en **bannière dans l'app** quand elle est ouverte, et en **notification système** quand elle est en arrière-plan (active-les dans Réglages > Notifications ; sur iPhone, l'app doit d'abord être ajoutée à l'écran d'accueil). Si l'app est **totalement fermée**, la notif ne peut pas partir : il faudrait des notifications push (Firebase Cloud Messaging + un petit serveur). En attendant, un cœur reçu pendant que l'app était fermée s'affiche à l'ouverture suivante.
 - **Photos/notes** : elles sont stockées en base64 directement dans la base de données (pas de vrai espace de stockage fichiers), ça marche très bien à l'usage d'un couple mais évite les photos en HD à outrance — le plan gratuit Firebase a un quota (1 Go de data, largement suffisant pour ce genre d'usage).
