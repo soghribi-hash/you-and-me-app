@@ -189,12 +189,9 @@
       </div>
 
       <div class="home-mini-row home-love-row">
-        <button class="home-mini-anniv widget home-love-count" data-wid="home-anniv" data-wname="Compteur" onclick="showScreen('calendar')" aria-label="Ouvrir le calendrier">
-          <span class="mini-heart-shape"><span id="home-countdown-days">--</span><small>jours</small></span>
-        </button>
-        <button class="home-memory widget" data-wid="home-memory" data-wname="Memory" onclick="openThrowback()" aria-label="Souvenir d'il y a un an">
+        <button class="home-memory widget" data-wid="home-memory" data-wname="Throwback" onclick="openThrowback()" aria-label="Ouvrir le throwback">
           <span class="memory-thumb" id="home-memory-thumb"></span>
-          <span class="memory-copy"><b>Il y a 1 an</b><span>jour pour jour</span></span>
+          <span class="memory-copy"><b>Throwback</b><span>Il y a 1 an jour pour jour</span></span>
           <span class="memory-arrow">›</span>
         </button>
         <span class="throwback-photo" id="throwback-photo" aria-hidden="true"></span>
@@ -355,23 +352,12 @@
         <button class="notes-add" onclick="openNoteEditor()" aria-label="Nouvelle note">+</button>
       </div>
 
-      <div class="draw-stack widget" data-wid="notes-canvas" data-wname="Dessin">
-        <div class="draw-card-back"></div><div class="draw-card-back two"></div>
-        <div class="canvas-area">
-          <button class="eraser-btn" id="eraser-btn" onclick="toggleEraser()" aria-label="Gomme">⌫</button>
-          <button class="trash" onclick="clearCanvas()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button>
-          <canvas id="draw-canvas"></canvas>
+      <div class="little-note-panel" aria-label="Petit mot éphémère">
+        <div class="little-note-copy"><b>Un petit mot</b><span>Un message d’amour qui disparaît après l’envoi.</span></div>
+        <div class="little-note-send-row">
+          <input id="little-note-input" maxlength="180" placeholder="Écris-lui un petit mot…" autocomplete="off">
+          <button class="little-note-send" onclick="sendLittleNote()" aria-label="Envoyer le petit mot"><svg><use href="#i-send"/></svg></button>
         </div>
-        <div class="tool-row" id="tool-row">
-          <button class="tool active" data-width="2" data-alpha="1"><i style="--w:2px"></i><span class="name">Feutre fin</span></button>
-          <button class="tool" data-width="6" data-alpha="1"><i style="--w:6px"></i><span class="name">Pinceau</span></button>
-          <button class="tool" data-width="10" data-alpha="1"><i style="--w:10px"></i><span class="name">Marqueur</span></button>
-          <button class="tool" data-width="16" data-alpha="0.35"><i style="--w:16px;opacity:.4"></i><span class="name">Surligneur</span></button>
-        </div>
-        <div class="color-row" id="color-row">
-          <button class="swatch selected" style="background:#F0245B" data-color="#F0245B"></button><button class="swatch" style="background:#FF9DB4" data-color="#FF9DB4"></button><button class="swatch" style="background:#FF9A55" data-color="#FF9A55"></button><button class="swatch" style="background:#F5CB4F" data-color="#F5CB4F"></button><button class="swatch" style="background:#3FA774" data-color="#3FA774"></button><button class="swatch" style="background:#3FB8C4" data-color="#3FB8C4"></button><button class="swatch" style="background:#5B8CE0" data-color="#5B8CE0"></button><button class="swatch" style="background:#8A6FE0" data-color="#8A6FE0"></button><button class="swatch" style="background:#16121A" data-color="#16121A"></button>
-        </div>
-        <div class="note-input-row"><input id="note-word" placeholder="Écris un petit mot"><button class="send-btn" onclick="sendDrawingNote()" aria-label="Envoyer le dessin"><svg><use href="#i-send"/></svg></button></div>
       </div>
     </div>
 
@@ -402,6 +388,15 @@
         </div>
         <div class="note-editor-tools"><button onclick="addNoteBlock('text')">Aa</button><button onclick="addNoteBlock('check')">☑</button><button onclick="addNoteBlock('image')">▧</button></div>
         <div class="comp-actions note-editor-actions"><button class="ghost note-delete-btn hidden" id="note-delete-btn" onclick="deleteEditingNote()">Supprimer</button><button class="ghost" onclick="closeNoteEditor()">Annuler</button><button class="primary" onclick="sendStructuredNote()">Envoyer</button></div>
+      </div>
+    </div>
+
+    <div class="little-note-pop hidden" id="little-note-pop" onclick="closeLittleNotePop()">
+      <div class="little-note-letter" onclick="event.stopPropagation()">
+        <button class="little-note-close" onclick="closeLittleNotePop()" aria-label="Fermer">×</button>
+        <div class="little-note-envelope">♡</div>
+        <div class="little-note-pop-label" id="little-note-pop-label">Un petit mot pour toi</div>
+        <div class="little-note-pop-text" id="little-note-pop-text"></div>
       </div>
     </div>
 
@@ -515,6 +510,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="spotify-config.js"></script>
-<script src="app.js?v=21"></script>
+<script src="app.js?v=22"></script>
 </body>
 </html>

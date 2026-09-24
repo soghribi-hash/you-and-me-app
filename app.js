@@ -210,6 +210,7 @@ function initFirebase() {
   listenSharedAppearance();
   listenCalendar();
   listenNotes();
+  listenLittleNotes();
   listenBubbles();
   listenChat();
   listenPhotos();
@@ -768,7 +769,7 @@ function openNoteEditor(){
   document.querySelectorAll('.note-color').forEach((b,i)=>b.classList.toggle('selected',i===0));
   resetNoteDrawing(); updateNoteEditorCardColor();
   $('note-delete-btn')?.classList.add('hidden');
-  const send=document.querySelector('#note-editor .primary'); send.textContent='Envoyer'; send.onclick=sendStructuredNote;
+  const send=document.querySelector('#note-editor .primary'); send.textContent='Ajouter à la pile'; send.onclick=sendStructuredNote;
   requestAnimationFrame(()=>{ const r=noteDrawCanvas?.getBoundingClientRect(); if(r?.width){} });
 }
 function closeNoteEditor(){ $('note-editor').classList.add('hidden'); editingNoteId=null; }
@@ -796,19 +797,52 @@ let structuredNotes=[];
 function renderStructuredNotes(){
   const box=$('notes-stack'); if(!box)return;
   const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  if(!notes.length){box.innerHTML='<div class="notes-empty">+</div>';return;}
+  if(!notes.length){box.innerHTML='<div class="notes-empty"><b>+</b><span>Crée votre première note</span></div>';return;}
   box.innerHTML=notes.map((n,i)=>{
     const bg=n.color||(['#ffffff','#ffdfe9','#e9e0fb','#dff3e8','#dcecfb'][i%5]);
     const body=(n.blocks||[]).slice(0,5).map(b=>b.type==='check'
       ? '<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\',this.checked,this)"><span>'+escapeHtml(b.text)+'</span></label>'
       : (b.type==='image'||b.type==='drawing') ? '<img src="'+b.src+'" alt="" class="note-media">'
       : '<p>'+escapeHtml(b.text)+'</p>').join('');
-    return '<article class="stack-note" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="openStructuredNote(\''+n.id+'\')">'+
+    return '<article class="stack-note" data-note-index="'+i+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="openStructuredNote(\''+n.id+'\')">'+
       '<button class="note-fav '+(n.favorite?'on':'')+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')">♥</button>'+
       '<h3>'+escapeHtml(n.title)+'</h3><div class="stack-note-body">'+body+'</div><small>'+relativeTime(n.ts)+'</small></article>';
   }).join('');
 }
+function toggleNotesStack(force){ const wrap=document.querySelector('.notes-stack-wrap'); if(!wrap)return; const next=typeof force==='boolean'?force:!wrap.classList.contains('is-fanned'); wrap.classList.toggle('is-fanned',next); }
 function listenNotes(){ onValue(roomRef.child('notesInbox/'+myRole),snap=>{const v=snap.val()||{};structuredNotes=Object.keys(v).map(id=>Object.assign({id},v[id])).filter(n=>n);renderStructuredNotes();}); }
+function showLittleNotePop(text, senderLabel){
+  const pop=$('little-note-pop'), body=$('little-note-pop-text');
+  if(!pop||!body)return;
+  const label=$('little-note-pop-label'); if(label) label.textContent=senderLabel||'Un petit mot pour toi';
+  body.textContent=text||'';
+  pop.classList.remove('hidden');
+  clearTimeout(window._littleNotePopTimer);
+  window._littleNotePopTimer=setTimeout(closeLittleNotePop,5000);
+}
+function closeLittleNotePop(){ $('little-note-pop')?.classList.add('hidden'); }
+async function sendLittleNote(){
+  const input=$('little-note-input'); const text=(input?.value||'').trim();
+  if(!text||!roomRef)return;
+  const ref=roomRef.child('littleNotesInbox/'+otherRole).push();
+  await ref.set({text,from:myRole,ts:firebase.database.ServerValue.TIMESTAMP,expiresAt:Date.now()+7000});
+  input.value='';
+  showLittleNotePop(text,'Envoyé à '+otherName+' ♡');
+  toast('Petit mot envoyé');
+  setTimeout(()=>ref.remove().catch(()=>{}),7500);
+}
+function listenLittleNotes(){
+  const ref=roomRef.child('littleNotesInbox/'+myRole);
+  ref.on('child_added', snap=>{
+    const d=snap.val(); if(!d)return;
+    if(d.expiresAt && d.expiresAt < Date.now()){ snap.ref.remove(); return; }
+    if(d.from===myRole)return;
+    showLittleNotePop(d.text,nameOf(d.from)+' t’a écrit un petit mot ♡');
+    if(document.hidden) systemNotify(nameOf(d.from)+' t’a envoyé un petit mot');
+    setTimeout(()=>snap.ref.remove().catch(()=>{}),1800);
+  }, dbError);
+}
+
 function updateNote(id,patch){ const idx=structuredNotes.findIndex(n=>n.id===id); if(idx<0)return; const next=Object.assign({},structuredNotes[idx],patch); structuredNotes[idx]=next; roomRef.child('notesInbox/'+myRole+'/'+id).update(patch); renderStructuredNotes(); }
 function toggleNoteFavorite(id){const n=structuredNotes.find(x=>x.id===id);if(n)updateNote(id,{favorite:!n.favorite});}
 function toggleNoteCheck(id,checked,el){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; let ix=0; const blocks=(n.blocks||[]).map(b=>{const x=Object.assign({},b); if(x.type==='check'){ if(el){ const labels=[...el.closest('.stack-note').querySelectorAll('input[type=checkbox]')]; if(labels[ix]===el)x.checked=checked; ix++; } } return x; }); updateNote(id,{blocks}); }
@@ -827,6 +861,7 @@ function sendNote(){ sendStructuredNote(); }
 function sendDrawingNote(){ const text=$('note-word').value.trim(); if(!text&&!canvasDirty){toast('Dessine ou écris quelque chose');return;} if(!roomRef)return;const note={title:'Dessin',blocks:(text?[{type:'text',text}]:[]).concat(canvasDirty?[{type:'drawing',src:canvas.toDataURL('image/png')}]:[]),color:'#ffffff',from:myRole,ts:Date.now()};roomRef.child('notesInbox/'+otherRole).push().set(note);$('note-word').value='';clearCanvas();toast('Dessin envoyé à '+otherName); }
 
 setupNoteDrawing();
+document.querySelector('.notes-stack-wrap')?.addEventListener('click',e=>{if(e.target.closest('.notes-add,.note-fav,.stack-note'))return;toggleNotesStack();});
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
 const NOTE_TTL = 24 * 3600 * 1000;

@@ -1001,3 +1001,135 @@ html,body{background:#121014!important}
   #notes .stack-note{min-height:305px!important;padding:20px 17px 17px!important}
   .note-drawing-canvas-wrap{height:170px!important}
 }
+
+/* ============================================================
+   V22 — corrections DA demandées
+   ============================================================ */
+/* Accueil : le compteur en coeur noir disparaît complètement. */
+#home .home-love-count{display:none!important}
+#home .home-love-row{grid-template-columns:minmax(0,1fr)!important;margin:12px 0 18px!important;gap:0!important}
+#home .home-memory{width:100%!important;border:0!important;box-shadow:0 12px 30px rgba(42,25,35,.09)!important;background:rgba(255,250,251,.68)!important;backdrop-filter:blur(16px)!important}
+#home .widget{border:0!important}
+#home .note-bubble,#home .w-music,#home .live-rail{border:0!important}
+#home .memory-copy b{font-size:14px!important;letter-spacing:-.25px!important}
+#home .memory-copy span{font-size:10px!important;color:#8f818a!important}
+#home .memory-thumb{background:rgba(247,206,220,.55)!important;box-shadow:none!important}
+#home .memory-thumb:before{color:#ef7899!important}
+
+/* Throwback : coeur photo sans contour rose/rouge. */
+.throwback-viewer{background:rgba(20,17,21,.88)!important;border:0!important}
+.throwback-big-heart{background:transparent!important;box-shadow:none!important;filter:none!important}
+.throwback-big-heart img{clip-path:inherit!important}
+.throwback-caption{color:#fff!important}
+
+/* Calendrier : on retire le côté "calendrier à coeurs" et les décorations. */
+#calendar .cal-deco{display:none!important}
+#calendar .cal-grid .day:after{display:none!important}
+#calendar .cal-grid .day.anniv:before{display:none!important}
+#calendar .countdown-card{
+  background:linear-gradient(135deg,rgba(255,186,207,.72),rgba(246,205,220,.48))!important;
+  color:#2a1e25!important;border:0!important;border-radius:30px!important;
+  box-shadow:0 18px 38px rgba(86,48,65,.11)!important;
+  backdrop-filter:blur(18px)!important;
+  padding:18px!important;
+}
+#calendar .countdown-card:after{background:rgba(255,255,255,.18)!important}
+#calendar .ring-wrap svg path:first-child{stroke:rgba(255,255,255,.34)!important}
+#calendar .ring-wrap svg path:last-child{stroke:#fff!important}
+#calendar .ring-center .num{font-size:30px!important;color:#fff!important;text-shadow:0 1px 5px rgba(94,45,64,.12)!important}
+#calendar .ring-center .lbl{color:rgba(255,255,255,.9)!important}
+#calendar .countdown-info .date{color:#2a1e25!important;font-size:18px!important}
+#calendar .countdown-info .sub{color:#695761!important}
+#calendar .since-pill{background:rgba(255,255,255,.42)!important;color:#4a3942!important;border:0!important}
+#calendar .anniv-row{border-top:1px solid rgba(255,255,255,.45)!important;color:#4b3842!important}
+#calendar .anniv-row input{color:#4b3842!important;background:rgba(255,255,255,.36)!important;border:0!important}
+#calendar .card.widget[data-wname="Calendrier du mois"]{border:0!important;background:rgba(255,252,253,.76)!important;box-shadow:0 15px 32px rgba(55,34,44,.08)!important}
+#calendar .cal-grid .day.selected{outline:0!important;background:#17131a!important;color:#fff!important;box-shadow:0 5px 13px rgba(25,18,23,.15)!important}
+#calendar .cal-grid .day.today:not(.selected){background:rgba(246,188,207,.5)!important;color:#30232a!important}
+#calendar .cal-grid .day.anniv{color:#df557d!important}
+
+/* Notes : la pile devient le vrai espace de travail, pas une grosse carte plate. */
+#notes{padding-bottom:130px!important}
+#notes .notes-stack-wrap{
+  min-height:410px!important;margin:8px 0 14px!important;padding:0!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+  overflow:visible!important;cursor:pointer!important;
+}
+#notes .notes-stack{min-height:395px!important;padding:8px 2px!important;overflow:visible!important}
+#notes .stack-note{
+  inset:10px 5px auto 5px!important;min-height:340px!important;
+  padding:24px 21px 45px!important;border-radius:27px!important;
+  border:0!important;box-shadow:0 22px 44px rgba(48,27,40,.13)!important;
+  transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 7px))!important;
+  transition:transform .34s cubic-bezier(.2,.8,.2,1),box-shadow .25s ease!important;
+  overflow:hidden!important;
+}
+#notes .stack-note:nth-child(1){background:var(--note-bg,#fff)!important}
+#notes .stack-note:nth-child(2){background:var(--note-bg,#ffdfe9)!important}
+#notes .stack-note:nth-child(3){background:var(--note-bg,#dff3e8)!important}
+#notes .stack-note:nth-child(4){background:var(--note-bg,#e9e0fb)!important}
+#notes .stack-note:nth-child(5){background:var(--note-bg,#dcecfb)!important}
+#notes .notes-stack-wrap.is-fanned .stack-note{transform:translateY(calc(var(--stack) * 82px)) rotate(calc(var(--note-rot) * 2))!important}
+#notes .stack-note h3{font-size:23px!important;margin:0 48px 17px 0!important;color:#211820!important}
+#notes .stack-note-body{gap:12px!important}
+#notes .stack-note-body p,#notes .stack-note-body label{font-size:14px!important;line-height:1.46!important;color:#40343c!important}
+#notes .stack-note-body label{padding:5px 0!important}
+#notes .stack-note-body input[type=checkbox]{width:19px!important;height:19px!important;accent-color:#ef6f91!important}
+#notes .stack-note-body .note-media{max-height:205px!important;border-radius:19px!important}
+#notes .stack-note small{left:21px!important;bottom:17px!important;font-size:10px!important;color:#9a8992!important}
+#notes .note-fav{left:19px!important;right:auto!important;top:auto!important;bottom:10px!important;width:34px!important;height:34px!important;border-radius:50%!important;background:rgba(255,255,255,.62)!important;color:#b9aab2!important;box-shadow:none!important;font-size:17px!important}
+#notes .note-fav.on{color:#ed6487!important;background:rgba(255,255,255,.88)!important}
+#notes .notes-add{right:8px!important;bottom:5px!important;width:52px!important;height:52px!important;background:#17131a!important;box-shadow:0 12px 25px rgba(20,13,18,.22)!important}
+#notes .notes-empty{height:330px!important;border:1px dashed rgba(50,30,42,.12)!important;background:rgba(255,255,255,.28)!important;display:grid!important;align-content:center!important;gap:5px!important;color:#9b8b94!important}
+#notes .notes-empty b{font-size:34px!important;color:#17131a!important}
+#notes .notes-empty span{font-size:12px!important;font-weight:800!important}
+
+/* Petit mot : très compact, distinct de la pile persistante. */
+.little-note-panel{margin:4px 2px 0!important;padding:12px!important;border:0!important;border-radius:20px!important;background:rgba(255,250,252,.64)!important;box-shadow:0 10px 24px rgba(45,27,39,.06)!important;backdrop-filter:blur(12px)!important}
+.little-note-copy{display:flex!important;align-items:baseline!important;justify-content:space-between!important;gap:8px!important;margin:0 2px 8px!important}
+.little-note-copy b{font-size:13px!important;letter-spacing:-.15px!important;color:#271c23!important}
+.little-note-copy span{font-size:9px!important;color:#9b8b94!important}
+.little-note-send-row{display:flex!important;gap:7px!important}
+#little-note-input{min-width:0!important;flex:1!important;height:40px!important;border:0!important;border-radius:14px!important;background:rgba(255,255,255,.82)!important;padding:0 12px!important;outline:0!important;font:600 12px Figtree,sans-serif!important;color:#30232b!important}
+#little-note-input::placeholder{color:#a99ba3!important}
+.little-note-send{width:40px!important;height:40px!important;border:0!important;border-radius:14px!important;background:#17131a!important;color:#fff!important;display:grid!important;place-items:center!important}
+.little-note-send svg{width:16px!important;height:16px!important}
+
+/* Petite lettre à l'envoi/réception. */
+.little-note-pop{position:fixed!important;inset:0!important;z-index:120!important;display:grid!important;place-items:center!important;padding:22px!important;background:rgba(19,15,18,.34)!important;backdrop-filter:blur(13px)!important}
+.little-note-pop.hidden{display:none!important}
+.little-note-letter{position:relative!important;width:min(82vw,310px)!important;padding:28px 22px 24px!important;border-radius:25px!important;background:#fffafc!important;box-shadow:0 28px 70px rgba(24,13,20,.25)!important;text-align:center!important;animation:littleNoteIn .28s cubic-bezier(.2,.8,.2,1)!important}
+.little-note-close{position:absolute!important;right:9px!important;top:8px!important;width:31px!important;height:31px!important;border:0!important;border-radius:50%!important;background:#f3ebef!important;color:#6e5b64!important;font-size:20px!important}
+.little-note-envelope{width:58px!important;height:44px!important;margin:3px auto 14px!important;border-radius:12px!important;background:#ffdce7!important;color:#ef6a8d!important;display:grid!important;place-items:center!important;font-size:27px!important;box-shadow:0 8px 18px rgba(222,93,126,.13)!important}
+.little-note-pop-label{font-size:12px!important;font-weight:900!important;color:#392b33!important}
+.little-note-pop-text{margin-top:10px!important;font-size:16px!important;line-height:1.4!important;font-weight:700!important;color:#211820!important;white-space:pre-wrap!important;word-break:break-word!important}
+@keyframes littleNoteIn{from{opacity:0;transform:translateY(12px) scale(.96)}to{opacity:1;transform:none}}
+
+/* Photos : widget "En direct" plus brut, type BeReal / Instants. */
+#photos .live-widget{
+  height:178px!important;border-radius:28px!important;background:rgba(16,14,18,.94)!important;
+  border:1px solid rgba(255,255,255,.08)!important;box-shadow:0 18px 35px rgba(23,14,20,.18)!important;
+  overflow:hidden!important;
+}
+#photos .live-widget:before{display:none!important}
+#photos .live-txt{left:27px!important;bottom:29px!important;font-size:30px!important;color:#fff!important;letter-spacing:-1.2px!important}
+#photos .live-txt .rec{width:9px!important;height:9px!important;background:#f05f84!important;box-shadow:none!important}
+#photos .live-inset{top:17px!important;right:18px!important;width:42px!important;height:42px!important;border:1.5px solid rgba(255,255,255,.92)!important;background:rgba(255,255,255,.06)!important;color:#fff!important}
+#photos .live-inset svg{width:18px!important;height:18px!important}
+#photos .live-shutter{right:25px!important;bottom:29px!important;width:50px!important;height:50px!important;border:3px solid #fff!important;background:transparent!important}
+#photos .live-shutter span{width:37px!important;height:37px!important;background:#fff!important}
+#photos .vf{opacity:.65!important}
+
+/* Bouton Send Love : coeur blanc un peu plus gros et plus franc. */
+.nav-heart svg{width:38px!important;height:38px!important;stroke:none!important;fill:#fff!important}
+.nav-heart span{font-weight:950!important}
+
+@media(max-width:430px){
+  #notes .notes-stack-wrap{min-height:390px!important}
+  #notes .notes-stack{min-height:375px!important}
+  #notes .stack-note{min-height:320px!important;padding:21px 18px 44px!important}
+  #notes .notes-stack-wrap.is-fanned{min-height:620px!important}
+  #notes .notes-stack-wrap.is-fanned .stack-note{transform:translateY(calc(var(--stack) * 76px)) rotate(calc(var(--note-rot) * 2))!important}
+  .little-note-copy span{display:none!important}
+  #photos .live-widget{height:168px!important}
+}
