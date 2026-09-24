@@ -772,32 +772,74 @@ function setupNoteDrawing(){
     document.querySelectorAll('.note-color').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); selectedNoteColor=btn.dataset.noteColor; updateNoteEditorCardColor();
   }));
 }
-function updateNoteEditorCardColor(){ const sheet=document.querySelector('.note-editor-sheet'); if(sheet) sheet.style.setProperty('--editor-note-color',selectedNoteColor); }
+function updateNoteEditorCardColor(){
+  const sheet=document.querySelector('.note-editor-sheet');
+  if(sheet) sheet.style.setProperty('--editor-note-color',selectedNoteColor);
+}
+function toggleNoteDrawingPanel(force){
+  const panel=$('note-drawing-panel'), card=$('note-drawing-card');
+  if(!panel) return;
+  const open=typeof force==='boolean' ? force : panel.hidden;
+  panel.hidden=!open;
+  card?.setAttribute('aria-expanded',open?'true':'false');
+  card?.classList.toggle('is-open',open);
+  if(open){
+    requestAnimationFrame(()=>{
+      if(noteDrawCanvas){
+        const r=noteDrawCanvas.getBoundingClientRect();
+        if(r.width && r.height) window.dispatchEvent(new Event('resize'));
+      }
+    });
+  }
+}
 function clearNoteDrawing(){ if(!noteDrawCtx||!noteDrawCanvas)return; const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.setTransform(2,0,0,2,0,0); noteDrawCtx.clearRect(0,0,r.width,r.height); noteCanvasDirty=false; }
 function toggleNoteEraser(){ noteDrawEraser=!noteDrawEraser; $('note-draw-eraser')?.classList.toggle('active',noteDrawEraser); }
-function loadNoteDrawing(src){ clearNoteDrawing(); if(!src||!noteDrawCanvas)return; const img=new Image(); img.onload=()=>{const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.drawImage(img,0,0,r.width,r.height); noteCanvasDirty=true;}; img.src=src; }
-function resetNoteDrawing(){ clearNoteDrawing(); noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active'); }
+function loadNoteDrawing(src){
+  clearNoteDrawing();
+  if(!src||!noteDrawCanvas)return;
+  const img=new Image();
+  img.onload=()=>{const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.drawImage(img,0,0,r.width,r.height); noteCanvasDirty=true;};
+  img.src=src;
+}
+function resetNoteDrawing(){ clearNoteDrawing(); noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active'); toggleNoteDrawingPanel(false); }
 
+function resetNoteEditorBlocks(){
+  const box=$('note-editor-blocks');
+  if(!box)return;
+  box.innerHTML=`<div class="note-write-card note-block" data-main-text="true">
+    <textarea class="nb-text note-main-text" id="note-main-text" rows="4" placeholder="Écris ici…" aria-label="Contenu de la note"></textarea>
+    <div class="note-inline-tools" aria-label="Ajouter à la note">
+      <button type="button" class="note-inline-tool" onclick="addNoteBlock('image')" aria-label="Ajouter une photo"><span class="note-inline-icon">◫</span><span>Photo</span></button>
+      <button type="button" class="note-inline-tool" onclick="addNoteBlock('text')" aria-label="Ajouter du texte"><span class="note-inline-icon">Aa</span><span>Texte</span></button>
+      <button type="button" class="note-inline-tool" onclick="addNoteBlock('check')" aria-label="Ajouter une liste"><span class="note-inline-icon">☑</span><span>Liste</span></button>
+    </div>
+  </div>`;
+}
 function openNoteEditor(){
   editingNoteId=null; selectedNoteColor='#ffffff';
-  $('note-editor').classList.remove('hidden'); $('note-editor-title').value=''; $('note-editor-blocks').innerHTML=''; addNoteBlock('text');
+  $('note-editor').classList.remove('hidden');
+  $('note-editor-title').value='';
+  resetNoteEditorBlocks();
   document.querySelectorAll('.note-color').forEach((b,i)=>b.classList.toggle('selected',i===0));
   resetNoteDrawing(); updateNoteEditorCardColor();
   $('note-delete-btn')?.classList.add('hidden');
   const send=document.querySelector('#note-editor .primary'); send.textContent='Ajouter à la pile'; send.onclick=sendStructuredNote;
-  requestAnimationFrame(()=>{ const r=noteDrawCanvas?.getBoundingClientRect(); if(r?.width){} });
 }
 function closeNoteEditor(){ $('note-editor').classList.add('hidden'); editingNoteId=null; }
-function addNoteBlock(type){
-  const box=$('note-editor-blocks'); const row=document.createElement('div'); row.className='note-block';
+function addNoteBlock(type, autoOpenPhoto=true){
+  const box=$('note-editor-blocks'); if(!box)return;
+  const row=document.createElement('div'); row.className='note-block note-extra-block';
   if(type==='check'){
-    row.innerHTML='<input type="checkbox" aria-label="Cocher"><input class="nb-text" placeholder="À faire…"><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+    row.innerHTML='<span class="nb-check-wrap"><input type="checkbox" aria-label="Cocher"></span><input class="nb-text" placeholder="À faire…"><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
   } else if(type==='image'){
-    row.innerHTML='<label class="nb-photo-btn"><span class="nb-photo-icon">＋</span><span class="nb-file">Ajouter une photo</span><input class="nb-photo-input" type="file" accept="image/*" multiple onchange="noteImagePreview(event)"></label><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+    row.innerHTML='<label class="nb-photo-btn"><span class="nb-photo-icon">◫</span><span class="nb-file">Ajouter une photo</span><input class="nb-photo-input" type="file" accept="image/*" multiple onchange="noteImagePreview(event)"></label><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
   } else {
     row.innerHTML='<textarea class="nb-text" rows="2" placeholder="Écris ici…"></textarea><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
   }
   box.appendChild(row);
+  if(type==='image' && autoOpenPhoto){
+    row.querySelector('.nb-photo-input')?.click();
+  }
 }
 function noteImagePreview(e){
   const files=[...(e.target.files||[])].filter(f=>f.type.startsWith('image/'));
@@ -976,12 +1018,24 @@ async function addNoteComment(id,text){
   noteCommentsOpen[id]=true;
 }
 function openStructuredNote(id){
-  const n=structuredNotes.find(x=>x.id===id); if(!n)return; editingNoteId=id; selectedNoteColor=n.color||'#ffffff';
-  $('note-editor').classList.remove('hidden'); $('note-editor-title').value=n.title||'Note'; const box=$('note-editor-blocks');box.innerHTML='';
+  const n=structuredNotes.find(x=>x.id===id);
+  if(!n)return;
+  editingNoteId=id; selectedNoteColor=n.color||'#ffffff';
+  $('note-editor').classList.remove('hidden');
+  $('note-editor-title').value=n.title||'Note';
+  resetNoteEditorBlocks();
+  const box=$('note-editor-blocks');
   let drawingSrc=null;
+  let mainTextUsed=false;
   (n.blocks||[]).forEach(b=>{
     if(b.type==='drawing'){drawingSrc=b.src;return;}
-    addNoteBlock(b.type);
+    if(b.type==='text' && !mainTextUsed){
+      const main=$('note-main-text');
+      if(main) main.value=b.text||'';
+      mainTextUsed=true;
+      return;
+    }
+    addNoteBlock(b.type,false);
     const row=box.lastElementChild;
     if(b.type==='check'){
       row.querySelector('input[type=checkbox]').checked=!!b.checked;
@@ -993,12 +1047,22 @@ function openStructuredNote(id){
       const label=row.querySelector('.nb-file');
       if(label) label.textContent='Photo ajoutée ✓';
       if(input&&b.src) input.dataset.data=b.src;
+      row.classList.add('has-photo');
     }
   });
-  document.querySelectorAll('.note-color').forEach(b=>b.classList.toggle('selected',b.dataset.noteColor===selectedNoteColor)); updateNoteEditorCardColor(); resetNoteDrawing(); if(drawingSrc)loadNoteDrawing(drawingSrc);
+  document.querySelectorAll('.note-color').forEach(b=>b.classList.toggle('selected',b.dataset.noteColor===selectedNoteColor));
+  updateNoteEditorCardColor();
+  resetNoteDrawing();
+  if(drawingSrc){
+    toggleNoteDrawingPanel(true);
+    requestAnimationFrame(()=>loadNoteDrawing(drawingSrc));
+  }
   $('note-delete-btn')?.classList.remove('hidden');
-  const send=document.querySelector('#note-editor .primary'); send.textContent='Enregistrer';send.onclick=()=>saveEditedStructuredNote(id);
+  const send=document.querySelector('#note-editor .primary');
+  send.textContent='Enregistrer';
+  send.onclick=()=>saveEditedStructuredNote(id);
 }
+
 async function saveEditedStructuredNote(id){
   const n=structuredNotes.find(x=>x.id===id); if(!n||!roomRef)return;
   const title=$('note-editor-title').value.trim()||'Note'; const blocks=collectNoteBlocks();

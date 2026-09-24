@@ -372,24 +372,40 @@
           <button class="note-color" data-note-color="#e9e0fb" style="background:#e9e0fb" aria-label="Lilas pastel"></button>
           <button class="note-color" data-note-color="#dcecfb" style="background:#dcecfb" aria-label="Bleu pastel"></button>
         </div>
-        <div id="note-editor-blocks" class="note-editor-blocks"></div>
-        <div class="note-drawing-editor">
-          <div class="note-drawing-head"><b>Dessiner sur la carte</b></div>
-          <div class="note-drawing-canvas-wrap"><canvas id="note-draw-canvas" aria-label="Zone de dessin de la note"></canvas><button class="note-draw-clear" id="note-draw-clear" onclick="clearNoteDrawing()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button><button class="note-draw-eraser" id="note-draw-eraser" onclick="toggleNoteEraser()" aria-label="Gomme">⌫</button></div>
-          <div class="note-drawing-tools" id="note-drawing-tools">
-            <button class="note-tool active" data-width="2" data-alpha="1"><i></i><span>Feutre fin</span></button>
-            <button class="note-tool" data-width="6" data-alpha="1"><i></i><span>Pinceau</span></button>
-            <button class="note-tool" data-width="10" data-alpha="1"><i></i><span>Marqueur</span></button>
-            <button class="note-tool" data-width="16" data-alpha=".35"><i></i><span>Surligneur</span></button>
-          </div>
-          <div class="note-drawing-colors" id="note-drawing-colors">
-            <button class="note-draw-color selected" data-color="#f0245b" style="background:#f0245b"></button><button class="note-draw-color" data-color="#ff9db4" style="background:#ff9db4"></button><button class="note-draw-color" data-color="#ff9a55" style="background:#ff9a55"></button><button class="note-draw-color" data-color="#f5cb4f" style="background:#f5cb4f"></button><button class="note-draw-color" data-color="#3fa774" style="background:#3fa774"></button><button class="note-draw-color" data-color="#3fb8c4" style="background:#3fb8c4"></button><button class="note-draw-color" data-color="#5b8ce0" style="background:#5b8ce0"></button><button class="note-draw-color" data-color="#8a6fe0" style="background:#8a6fe0"></button><button class="note-draw-color" data-color="#17131a" style="background:#17131a"></button>
+        <div id="note-editor-blocks" class="note-editor-blocks">
+          <div class="note-write-card note-block" data-main-text="true">
+            <textarea class="nb-text note-main-text" id="note-main-text" rows="4" placeholder="Écris ici…" aria-label="Contenu de la note"></textarea>
+            <div class="note-inline-tools" aria-label="Ajouter à la note">
+              <button type="button" class="note-inline-tool" onclick="addNoteBlock('image')" aria-label="Ajouter une photo"><span class="note-inline-icon">◫</span><span>Photo</span></button>
+              <button type="button" class="note-inline-tool" onclick="addNoteBlock('text')" aria-label="Ajouter du texte"><span class="note-inline-icon">Aa</span><span>Texte</span></button>
+              <button type="button" class="note-inline-tool" onclick="addNoteBlock('check')" aria-label="Ajouter une liste"><span class="note-inline-icon">☑</span><span>Liste</span></button>
+            </div>
           </div>
         </div>
-        <div class="note-editor-tools" aria-label="Ajouter un élément à la note">
-          <button type="button" onclick="addNoteBlock('text')"><strong>Aa</strong><span>Texte</span></button>
-          <button type="button" onclick="addNoteBlock('check')"><strong>☑</strong><span>Liste</span></button>
-          <button type="button" onclick="addNoteBlock('image')"><strong>▧</strong><span>Photo</span></button>
+
+        <button type="button" class="note-drawing-card" id="note-drawing-card" onclick="toggleNoteDrawingPanel()" aria-expanded="false">
+          <span class="note-drawing-card-copy">
+            <span class="note-drawing-eyebrow">CRÉATION</span>
+            <strong>Dessiner sur la carte</strong>
+            <span>Ajoute un dessin à ta note, quand tu veux.</span>
+          </span>
+          <span class="note-drawing-chevron" aria-hidden="true">⌄</span>
+        </button>
+
+        <div class="note-drawing-panel" id="note-drawing-panel" hidden>
+          <div class="note-drawing-editor">
+            <div class="note-drawing-head"><b>Dessiner sur la carte</b><span>Ta création reste dans la note.</span></div>
+            <div class="note-drawing-canvas-wrap"><canvas id="note-draw-canvas" aria-label="Zone de dessin de la note"></canvas><button class="note-draw-clear" id="note-draw-clear" onclick="clearNoteDrawing()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button><button class="note-draw-eraser" id="note-draw-eraser" onclick="toggleNoteEraser()" aria-label="Gomme">⌫</button></div>
+            <div class="note-drawing-tools" id="note-drawing-tools">
+              <button class="note-tool active" data-width="2" data-alpha="1"><i></i><span>Feutre fin</span></button>
+              <button class="note-tool" data-width="6" data-alpha="1"><i></i><span>Pinceau</span></button>
+              <button class="note-tool" data-width="10" data-alpha="1"><i></i><span>Marqueur</span></button>
+              <button class="note-tool" data-width="16" data-alpha=".35"><i></i><span>Surligneur</span></button>
+            </div>
+            <div class="note-drawing-colors" id="note-drawing-colors">
+              <button class="note-draw-color selected" data-color="#f0245b" style="background:#f0245b"></button><button class="note-draw-color" data-color="#ff9db4" style="background:#ff9db4"></button><button class="note-draw-color" data-color="#ff9a55" style="background:#ff9a55"></button><button class="note-draw-color" data-color="#f5cb4f" style="background:#f5cb4f"></button><button class="note-draw-color" data-color="#3fa774" style="background:#3fa774"></button><button class="note-draw-color" data-color="#3fb8c4" style="background:#3fb8c4"></button><button class="note-draw-color" data-color="#5b8ce0" style="background:#5b8ce0"></button><button class="note-draw-color" data-color="#8a6fe0" style="background:#8a6fe0"></button><button class="note-draw-color" data-color="#17131a" style="background:#17131a"></button>
+            </div>
+          </div>
         </div>
         <div class="comp-actions note-editor-actions"><button class="ghost note-delete-btn hidden" id="note-delete-btn" onclick="deleteEditingNote()">Supprimer</button><button class="ghost" onclick="closeNoteEditor()">Annuler</button><button class="primary" onclick="sendStructuredNote()">Envoyer</button></div>
       </div>
