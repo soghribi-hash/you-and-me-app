@@ -116,7 +116,7 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 .w-mood .time{font-size:11px;font-weight:600;color:#6e6389}
 .w-mood .time:empty{display:none}
 
-.w-music{border-radius:24px;padding:12px;background:linear-gradient(135deg,#F0245B 0%,#F84F7C 55%,#FF7FA0 100%);color:#fff;margin-bottom:14px;position:relative;overflow:hidden}
+.w-music{border-radius:24px;padding:12px;background:linear-gradient(135deg,#F0245B 0%,#F84F7C 55%,#FF7FA0 100%);color:#fff;margin-top:210px;margin-bottom:28px;position:relative;overflow:hidden;z-index:4}
 .w-music:after{content:'';position:absolute;width:190px;height:190px;border-radius:50%;left:-70px;bottom:-110px;background:radial-gradient(circle,rgba(255,255,255,.22),transparent 68%);pointer-events:none}
 .music-top{display:flex;align-items:center;gap:12px;position:relative;z-index:1}
 .music-info{min-width:0;flex:1}
