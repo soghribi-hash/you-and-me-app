@@ -1,5 +1,5 @@
-const CACHE = "you-and-me-v3";
-const FILES = ["./", "./index.html", "./style.css", "./app.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "you-and-me-v7";
+const FILES = ["./", "./index.html", "./style.css", "./app.js", "./firebase-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();
@@ -14,12 +14,13 @@ self.addEventListener("activate", (e) => {
   );
 });
 
-// Réseau d'abord (les mises à jour arrivent tout de suite), cache en secours hors ligne.
+// Réseau d'abord : GitHub Pages fournit toujours la version publiée la plus récente.
+// Le cache ne sert que de secours si le réseau est indisponible.
 self.addEventListener("fetch", (e) => {
   if (e.request.method !== "GET") return;
   const sameOrigin = new URL(e.request.url).origin === self.location.origin;
   e.respondWith(
-    fetch(e.request)
+    fetch(e.request, { cache: "no-store" })
       .then((res) => {
         if (sameOrigin && res.ok) {
           const copy = res.clone();
@@ -31,7 +32,6 @@ self.addEventListener("fetch", (e) => {
   );
 });
 
-// Toucher une notification ramène dans l'app
 self.addEventListener("notificationclick", (e) => {
   e.notification.close();
   e.waitUntil(
