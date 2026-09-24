@@ -17,7 +17,7 @@ let myName = myRole ? NAMES[myRole] : '';
 let otherName = NAMES[otherRole];
 
 let app, db, roomRef;
-let selectedRole = null;
+let selectedRole = 'a';
 let currentMonthDate = new Date();
 let selectedDateKey = null;
 let selectedKind = 'ev';
@@ -219,15 +219,30 @@ function initFirebase() {
 
 /* ---------- ONBOARDING ---------- */
 function pickRole(r) {
+  if (r !== 'a' && r !== 'b') return;
   selectedRole = r;
-  $('role-a').classList.toggle('selected', r === 'a');
-  $('role-b').classList.toggle('selected', r === 'b');
+  const a = $('role-a'), b = $('role-b');
+  if (a) {
+    a.classList.toggle('selected', r === 'a');
+    a.setAttribute('aria-pressed', r === 'a' ? 'true' : 'false');
+  }
+  if (b) {
+    b.classList.toggle('selected', r === 'b');
+    b.setAttribute('aria-pressed', r === 'b' ? 'true' : 'false');
+  }
 }
-function finishOnboarding() {
-  const roomVal = $('ob-room').value.trim().toLowerCase();
-  if (!selectedRole || !roomVal) {
-    showBanner('Choisis qui tu es (Soso ou Nono) et entre le code secret.');
-    return;
+function finishOnboarding(e) {
+  if (e && e.preventDefault) e.preventDefault();
+  const roomInput = $('ob-room');
+  const roomVal = roomInput ? roomInput.value.trim().toLowerCase() : '';
+  // Soso est le profil initial affiché dans l'écran de connexion.
+  // Cela évite qu'un tap iOS sur « C'est parti » soit bloqué simplement
+  // parce que le bouton Soso n'a pas encore déclenché son handler.
+  if (!selectedRole) selectedRole = 'a';
+  if (!roomVal) {
+    showBanner('Entre le code secret.');
+    if (roomInput) roomInput.focus();
+    return false;
   }
   localStorage.setItem('yam_role', selectedRole);
   localStorage.setItem('yam_room', roomVal);
@@ -637,7 +652,7 @@ function deleteEvent(key, id) {
 }
 
 /* ---------- NOTES (dessin) ---------- */
-const canvas = $('draw-canvas');
+const canvas = $('draw-canvas') || document.createElement('canvas');
 const ctx = canvas.getContext('2d');
 
 function paintWhite(w, h) {
@@ -688,7 +703,7 @@ canvas.addEventListener('pointermove', e => { if (drawing) strokeTo(getPos(e)); 
 window.addEventListener('pointerup', () => { drawing = false; });
 window.addEventListener('pointercancel', () => { drawing = false; });
 
-$('tool-row').addEventListener('click', e => {
+$('tool-row')?.addEventListener('click', e => {
   const btn = e.target.closest('.tool');
   if (!btn) return;
   document.querySelectorAll('.tool').forEach(t => t.classList.remove('active'));
@@ -696,7 +711,7 @@ $('tool-row').addEventListener('click', e => {
   currentWidth = parseFloat(btn.dataset.width);
   currentAlpha = parseFloat(btn.dataset.alpha);
 });
-$('color-row').addEventListener('click', e => {
+$('color-row')?.addEventListener('click', e => {
   const btn = e.target.closest('.swatch');
   if (!btn) return;
   document.querySelectorAll('.swatch').forEach(s => s.classList.remove('selected'));
@@ -1734,6 +1749,17 @@ initWidgetSystem();
 /* ---------- DÉMARRAGE ---------- */
 const obRoomInput = $('ob-room');
 if (obRoomInput && !obRoomInput.value) obRoomInput.value = '18052025';
+
+// Le profil Soso est celui affiché par défaut sur l'écran de connexion.
+// Les handlers sont attachés en JS en plus des onclick HTML pour être robustes
+// sur Safari/iOS et éviter un clic « mort » après une restauration de page.
+const obRoleA = $('role-a');
+const obRoleB = $('role-b');
+const obStart = document.querySelector('#onboarding button.primary');
+if (obRoleA) obRoleA.addEventListener('click', () => pickRole('a'));
+if (obRoleB) obRoleB.addEventListener('click', () => pickRole('b'));
+if (obStart) obStart.addEventListener('click', finishOnboarding);
+pickRole(selectedRole || 'a');
 
 applyNames();
 if (myRole && room) {

@@ -146,10 +146,10 @@
       <input id="ob-room" value="18052025" inputmode="numeric" autocomplete="off" placeholder="notre code secret, connu de nous deux seulement">
       <label>Qui es-tu ?</label>
       <div class="role-pick">
-        <button id="role-a" onclick="pickRole('a')">Soso</button>
-        <button id="role-b" onclick="pickRole('b')">Nono</button>
+        <button type="button" id="role-a" onclick="pickRole('a')" aria-pressed="true">Soso</button>
+        <button type="button" id="role-b" onclick="pickRole('b')" aria-pressed="false">Nono</button>
       </div>
-      <button class="primary" onclick="finishOnboarding()">C'est parti</button>
+      <button type="button" class="primary" onclick="finishOnboarding(event)">C'est parti</button>
     </div>
   </div>
 
@@ -510,6 +510,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="spotify-config.js"></script>
-<script src="app.js?v=22"></script>
+<script src="app.js?v=25"></script>
 </body>
 </html>
