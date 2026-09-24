@@ -205,6 +205,7 @@ function initFirebase() {
   listenHeart();
   listenMusic();
   listenAnniversary();
+  listenSharedAppearance();
   listenCalendar();
   listenNotes();
   listenBubbles();
@@ -1252,23 +1253,145 @@ function saveAvatarCrop() {
   toast('Photo de profil mise à jour');
   closeAvatarCropper();
 }
+function setLocalWallpaper(dataURL) {
+  if (dataURL) {
+    try { localStorage.setItem('yam_wallpaper', dataURL); } catch (e) {}
+  } else {
+    try { localStorage.removeItem('yam_wallpaper'); } catch (e) {}
+  }
+}
 function handleWallpaper(event) {
   const file = event.target.files[0];
   if (!file) return;
   fileToCompressedDataURL(file, 1200, 0.7).then(dataURL => {
-    try { localStorage.setItem('yam_wallpaper', dataURL); } catch (e) { showBanner('Image trop lourde pour le fond d\u2019écran, essaie une plus petite.'); return; }
-    applyWallpaper();
+    try {
+      localStorage.setItem('yam_wallpaper', dataURL);
+    } catch (e) {
+      showBanner('Image trop lourde pour le fond d\u2019écran, essaie une plus petite.');
+      return;
+    }
+    applyWallpaper(dataURL);
+    if (roomRef) {
+      roomRef.child('settings').update({ wallpaper: dataURL, wallpaperBy: myRole });
+    }
   });
 }
 function resetWallpaper() {
-  localStorage.removeItem('yam_wallpaper');
-  applyWallpaper();
+  setLocalWallpaper(null);
+  applyWallpaper(null);
+  if (roomRef) roomRef.child('settings').update({ wallpaper: null, wallpaperBy: myRole });
 }
-function applyWallpaper() {
-  const wp = localStorage.getItem('yam_wallpaper');
+function applyWallpaper(dataURL) {
+  const wp = dataURL !== undefined ? dataURL : localStorage.getItem('yam_wallpaper');
   $('app').style.backgroundImage = wp ? 'url(' + wp + ')' : 'none';
 }
 applyWallpaper();
+
+/* ---------- APPARENCE PARTAGÉE : fond + widgets + ordre ---------- */
+function readLocalWidgetConfigs() {
+  let all = {};
+  try { all = JSON.parse(localStorage.getItem('yam_widget_cfg') || '{}'); } catch (e) {}
+  return all && typeof all === 'object' ? all : {};
+}
+function persistWidgetConfigsLocal() {
+  try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
+}
+function applyAllWidgetConfigs() {
+  document.querySelectorAll('.widget[data-wid]').forEach(el => {
+    const cfg = widgetConfigs[el.dataset.wid];
+    applyWidgetConfig(el, cfg, true);
+  });
+}
+function orderGroupData(container) {
+  if (!container) return [];
+  return Array.from(container.children)
+    .sort((a, b) => (parseInt(a.style.order || '0', 10) - parseInt(b.style.order || '0', 10)))
+    .map(c => Number(c.dataset.origIdx));
+}
+function applyOrderGroup(container, seq) {
+  if (!container || !Array.isArray(seq)) return;
+  const children = Array.from(container.children);
+  seq.forEach((origIdx, pos) => {
+    const el = children.find(c => Number(c.dataset.origIdx) === Number(origIdx));
+    if (el) el.style.order = pos;
+  });
+}
+function collectLocalOrders() {
+  const out = {};
+  ['home', 'calendar', 'notes', 'photos'].forEach(id => {
+    const el = $(id);
+    if (el) out[groupKeyFor(el)] = orderGroupData(el);
+  });
+  const bento = document.querySelector('.bento');
+  if (bento) out[groupKeyFor(bento)] = orderGroupData(bento);
+  return out;
+}
+function applyAllOrders(orders) {
+  if (!orders || typeof orders !== 'object') return;
+  ['home', 'calendar', 'notes', 'photos'].forEach(id => {
+    const el = $(id);
+    const key = el && groupKeyFor(el);
+    if (el && key && Array.isArray(orders[key])) applyOrderGroup(el, orders[key]);
+  });
+  const bento = document.querySelector('.bento');
+  const key = bento && groupKeyFor(bento);
+  if (bento && key && Array.isArray(orders[key])) applyOrderGroup(bento, orders[key]);
+}
+function seedLocalAppearanceIfNeeded() {
+  if (!roomRef) return;
+  const localWallpaper = localStorage.getItem('yam_wallpaper');
+  if (localWallpaper) {
+    roomRef.child('settings/wallpaper').once('value').then(snap => {
+      if (!snap.exists()) roomRef.child('settings').update({ wallpaper: localWallpaper, wallpaperBy: myRole });
+    }).catch(() => {});
+  }
+  const localConfigs = readLocalWidgetConfigs();
+  roomRef.child('widgetConfigs').once('value').then(snap => {
+    if (!snap.exists() && Object.keys(localConfigs).length) roomRef.child('widgetConfigs').set(localConfigs);
+  }).catch(() => {});
+  const localOrders = collectLocalOrders();
+  roomRef.child('widgetOrders').once('value').then(snap => {
+    if (!snap.exists() && Object.keys(localOrders).length) roomRef.child('widgetOrders').set(localOrders);
+  }).catch(() => {});
+}
+let sharedWallpaperReady = false;
+function listenSharedAppearance() {
+  onValue(roomRef.child('settings/wallpaper'), snap => {
+    const remote = snap.val();
+    if (typeof remote === 'string' && remote) {
+      setLocalWallpaper(remote);
+      applyWallpaper(remote);
+    } else if (!remote) {
+      // Au tout premier chargement, on conserve un éventuel fond local le temps
+      // que seedLocalAppearanceIfNeeded() puisse le publier dans la room.
+      if (sharedWallpaperReady) {
+        setLocalWallpaper(null);
+        applyWallpaper(null);
+      } else {
+        applyWallpaper();
+      }
+    }
+    sharedWallpaperReady = true;
+  });
+  onValue(roomRef.child('widgetConfigs'), snap => {
+    const remote = snap.val();
+    if (remote && typeof remote === 'object') {
+      widgetConfigs = remote;
+      persistWidgetConfigsLocal();
+      applyAllWidgetConfigs();
+    }
+  });
+  onValue(roomRef.child('widgetOrders'), snap => {
+    const remote = snap.val();
+    if (remote && typeof remote === 'object') {
+      applyAllOrders(remote);
+      Object.keys(remote).forEach(key => {
+        try { localStorage.setItem('yam_order_' + key, JSON.stringify(remote[key])); } catch (e) {}
+      });
+    }
+  });
+  seedLocalAppearanceIfNeeded();
+}
 
 /* ---------- NOM DE L'APPLICATION (éditable) ---------- */
 function applyAppName(name) {
@@ -1356,9 +1479,10 @@ function applyWidgetConfig(el, cfg, allowDefaults = false) {
 }
 function saveWidgetConfig(wid, patch) {
   widgetConfigs[wid] = normalizedWidgetConfig(wid, Object.assign({}, widgetConfigs[wid] || {}, patch));
-  try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
+  persistWidgetConfigsLocal();
   const el = document.querySelector('.widget[data-wid="' + wid + '"]');
   if (el) applyWidgetConfig(el, widgetConfigs[wid]);
+  if (roomRef) roomRef.child('widgetConfigs/' + wid).set(widgetConfigs[wid]);
 }
 function clampWidgetPosition(wid, x, y) {
   const isLive = wid === 'home-live';
@@ -1382,7 +1506,9 @@ function initOrderGroup(container) {
 function saveOrderGroup(container) {
   const children = Array.from(container.children).sort((a, b) => (parseInt(a.style.order || '0', 10) - parseInt(b.style.order || '0', 10)));
   const key = 'yam_order_' + groupKeyFor(container);
-  try { localStorage.setItem(key, JSON.stringify(children.map(c => Number(c.dataset.origIdx)))); } catch (e) {}
+  const seq = children.map(c => Number(c.dataset.origIdx));
+  try { localStorage.setItem(key, JSON.stringify(seq)); } catch (e) {}
+  if (roomRef && key) roomRef.child('widgetOrders/' + groupKeyFor(container)).set(seq);
 }
 function moveWidgetInGroup(el, dir) {
   const container = el.parentElement; if (!container) return false;
@@ -1426,10 +1552,12 @@ function pickWidgetFont(css) { if (currentEditWid) { saveWidgetConfig(currentEdi
 function moveCurrentWidget(dir) { if (!currentEditWid) return; const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]'); if (el) moveWidgetInGroup(el, dir); }
 function resetCurrentWidget() {
   if (!currentEditWid) return;
-  delete widgetConfigs[currentEditWid];
-  try { localStorage.setItem('yam_widget_cfg', JSON.stringify(widgetConfigs)); } catch (e) {}
-  const el = document.querySelector('.widget[data-wid="' + currentEditWid + '"]');
+  const wid = currentEditWid;
+  delete widgetConfigs[wid];
+  persistWidgetConfigsLocal();
+  const el = document.querySelector('.widget[data-wid="' + wid + '"]');
   if (el) applyWidgetConfig(el, null, true);
+  if (roomRef) roomRef.child('widgetConfigs/' + wid).remove();
   closeWidgetEditor();
 }
 function enterEditMode() {

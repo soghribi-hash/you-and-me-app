@@ -1,5 +1,7 @@
-# You & Me — v12
+# You & Me — v13
 
-Cette version conserve la v10 et place le widget « Musique du moment » en bas de l'accueil, avec suffisamment d'espace pour ne plus chevaucher la pile « En direct » ni les autres éléments visuels.
+Cette version synchronise aussi l’apparence partagée du couple : fond d’écran, position/taille/couleur/police des widgets et ordre des widgets. Les changements sont enregistrés dans Firebase Realtime Database et sont répercutés sur l’autre appareil connecté à la même room.
 
-Version du cache Service Worker : v12.
+Le stockage local reste utilisé comme cache pour accélérer l’affichage. Les préférences propres à chaque téléphone (par exemple les notifications) restent locales.
+
+Version du cache Service Worker : v13.
