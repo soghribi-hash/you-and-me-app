@@ -278,10 +278,9 @@ function listenPartnerProfile() {
     avatars[otherRole] = data.photo || '';
     $('partner-status').textContent = data.online ? otherName + ' est en ligne' : otherName + ' \u00b7 hors ligne';
 
-    $('partner-mood').textContent = data.mood || '\u{1F90D}';
+    $('partner-mood-display').textContent = data.mood || '\u{1F90D}';
     partnerMoodTs = data.moodTs || 0;
-    $('partner-mood-time').textContent = partnerMoodTs ? relativeTime(partnerMoodTs) : '';
-    $('partner-status-chip').textContent = data.status || '';
+    $('partner-status-display').textContent = data.status || '';
     refreshAvatars();
 
     const photoSig = data.photo ? data.photo.length + ':' + data.photo.slice(-24) : '';
@@ -300,11 +299,24 @@ function listenPartnerProfile() {
     const data = snap.val() || {};
     document.querySelectorAll('.mood-bubble').forEach(b => b.classList.toggle('selected', b.dataset.mood === data.mood));
     document.querySelectorAll('.status-chip').forEach(c => c.classList.toggle('active', c.dataset.status === data.status));
+    $('my-mood-display').textContent = data.mood || '\u{1F90D}';
+    $('my-status-display').textContent = data.status || '';
     avatars[myRole] = data.photo || '';
     refreshAvatars();
   });
 }
 
+function toggleMoodPicker(e) {
+  if (e) e.stopPropagation();
+  const p = $('mood-popover');
+  if (!p) return;
+  p.hidden = !p.hidden;
+}
+document.addEventListener('click', e => {
+  const p = $('mood-popover');
+  if (!p || p.hidden) return;
+  if (!e.target.closest('#mood-popover') && !e.target.closest('#my-mood-display') && !e.target.closest('#my-status-display')) p.hidden = true;
+});
 let controlsBound = false;
 function bindMyControls() {
   if (controlsBound) return;
@@ -434,7 +446,6 @@ function listenMusic() {
   });
 }
 setInterval(() => {
-  if (partnerMoodTs) $('partner-mood-time').textContent = relativeTime(partnerMoodTs);
   if (currentMusic) renderMusic();
 }, 30000);
 
@@ -994,6 +1005,7 @@ function listenPhotos() {
     items.reverse();
     photoItems = items;
     renderPhotos(items);
+    renderHomeSnapshots(items);
     if (photosBase) {
       items.forEach(p => {
         const prev = photoState[p.id];
@@ -1013,6 +1025,19 @@ function listenPhotos() {
     items.forEach(p => { photoState[p.id] = { likeOther: !!(p.likes && p.likes[otherRole]), comments: normalizeComments(p.comments).length }; });
     photosBase = true;
   });
+}
+function renderHomeSnapshots(items) {
+  const box = $('home-snapshots');
+  if (!box) return;
+  if (!items.length) {
+    box.innerHTML = '<button class="snapshot-card placeholder" onclick="showScreen(\'photos\')">Vos prochains instants apparaîtront ici.</button>';
+    return;
+  }
+  box.innerHTML = items.slice(0, 5).map(p => {
+    const who = p.from === myRole ? 'Toi' : nameOf(p.from);
+    const live = p.src === 'live';
+    return '<button class="snapshot-card" onclick="showScreen(\'photos\')" aria-label="Ouvrir les photos"><img src="' + p.img + '" alt="" draggable="false"><span class="snapshot-meta"><b>' + (live ? 'En direct' : who) + '</b>' + relativeTime(p.ts || Date.now()) + '</span></button>';
+  }).join('');
 }
 function renderPhotos(items) {
   const feed = $('photos-feed');
@@ -1187,7 +1212,16 @@ function applyAppName(name) {
   const val = (name || '').trim();
   const display = val || 'You & Me.';
   const el = $('app-logo');
-  if (el) el.textContent = display;
+  if (el) {
+    el.textContent = '';
+    [...display].forEach(ch => {
+      const s = document.createElement('span');
+      s.textContent = ch;
+      if (ch === '&') s.className = 'logo-accent';
+      if (ch === '.') s.className = 'logo-dot';
+      el.appendChild(s);
+    });
+  }
   document.title = display;
   const input = $('appname-input');
   if (input && document.activeElement !== input) input.value = val;
@@ -1393,17 +1427,6 @@ function initWidgetSystem() {
 initWidgetSystem();
 
 /* ---------- DÉMARRAGE ---------- */
-/* ---------- DATE DU JOUR (accueil) ---------- */
-function renderToday() {
-  const t = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
-  const txt = t.charAt(0).toUpperCase() + t.slice(1);
-  const el = $('home-date');
-  if (el && el.textContent !== txt) el.textContent = txt;
-}
-renderToday();
-setInterval(renderToday, 60000);
-document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderToday(); if (calendarBase) renderCalendar(); } });
-
 applyNames();
 if (myRole && room) {
   $('onboarding').classList.add('hidden');

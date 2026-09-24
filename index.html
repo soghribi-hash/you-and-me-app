@@ -151,8 +151,6 @@
 
     <!-- HOME -->
     <div class="screen active" id="home">
-      <div class="home-date" id="home-date" data-pinned="true"></div>
-
       <!-- Notes façon Instagram : on écrit directement dans la bulle -->
       <div class="note-duo widget" data-wid="home-notes" data-wname="Vos petites notes">
         <div class="note-cell">
@@ -161,27 +159,37 @@
             <button class="note-share" id="my-note-share" onclick="saveBubble()" aria-label="Partager ma note"><svg><use href="#i-send"/></svg></button>
             <button class="note-clear" id="my-note-clear" onclick="clearBubble()" aria-label="Supprimer ma note"><svg><use href="#i-close"/></svg></button>
           </div>
-          <div class="note-avatar" id="my-note-avatar"></div>
-          <div class="note-label">Ta note</div>
+          <div class="avatar-stage">
+            <div class="note-avatar" id="my-note-avatar"></div>
+            <button class="profile-mood self" id="my-mood-display" onclick="toggleMoodPicker(event)" aria-label="Modifier ton mood">🤍</button>
+            <button class="profile-status self" id="my-status-display" onclick="toggleMoodPicker(event)" aria-label="Modifier ton statut"></button>
+          </div>
+          <div class="note-label">Toi</div>
         </div>
         <div class="note-cell">
           <div class="note-bubble empty" id="her-note-bubble"><span id="her-note-text">…</span></div>
-          <div class="note-avatar" id="her-note-avatar"></div>
+          <div class="avatar-stage">
+            <div class="note-avatar" id="her-note-avatar"></div>
+            <span class="profile-mood partner" id="partner-mood-display">🤍</span>
+            <span class="profile-status partner" id="partner-status-display"></span>
+          </div>
           <div class="note-label" id="her-note-label">Note de Nono</div>
         </div>
       </div>
 
-      <div class="panel your-mood widget" data-wid="home-mood" data-wname="Ton mood">
-        <div class="panel-title">Ton mood</div>
-        <div class="mood-row" id="mood-row">
+      <div class="mood-popover" id="mood-popover" hidden>
+        <div class="mood-popover-head">
+          <span>Mon mood</span>
+          <button onclick="toggleMoodPicker()" aria-label="Fermer">×</button>
+        </div>
+        <div class="mood-row compact" id="mood-row">
           <button class="mood-bubble" data-mood="😊" title="Heureuse" aria-label="Heureuse">😊</button>
           <button class="mood-bubble" data-mood="😠" title="Énervé" aria-label="Énervé">😠</button>
           <button class="mood-bubble" data-mood="🤔" title="Pensive" aria-label="Pensive">🤔</button>
           <button class="mood-bubble" data-mood="😢" title="Triste" aria-label="Triste">😢</button>
-          <button class="mood-bubble" data-mood="🥵" title="Horny" aria-label="Horny">🥵</button>
+          <button class="mood-bubble" data-mood="🥵" title="Hot" aria-label="Hot">🥵</button>
           <button class="mood-bubble" data-mood="🥰" title="Amoureuse" aria-label="Amoureuse">🥰</button>
         </div>
-        <div class="status-divider"></div>
         <div class="status-label">Statut</div>
         <div class="status-row" id="status-row">
           <button class="status-chip" data-status="Au taf">Au taf</button>
@@ -191,41 +199,17 @@
         </div>
       </div>
 
-      <div class="bento">
-        <button class="w-heart widget" id="heart-btn" data-wid="bento-heart" data-wname="Envoyer un cœur" onclick="sendHeart()" aria-label="Envoyer un cœur">
-          <span class="lbl">SEND LOVE</span>
-          <svg class="heart-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg>
-          <svg class="cupid" viewBox="0 0 72 44" aria-hidden="true">
-            <defs>
-              <linearGradient id="bowg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".6" stop-color="#fff"/><stop offset="1" stop-color="#e6d6dc"/></linearGradient>
-            </defs>
-            <!-- corde tendue -->
-            <path d="M25 3.500 10 22l15 18.500" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1" stroke-linejoin="round"/>
-            <!-- arc -->
-            <path d="M25 2.500C44 12 44 32 25 41.500 34.500 32 34.500 12 25 2.500Z" fill="url(#bowg)"/>
-            <rect x="35.200" y="18" width="2.600" height="8" rx="1.200" fill="#F0245B"/>
-            <!-- flèche -->
-            <path d="M10 22H60" stroke="#fff" stroke-width="1.700" stroke-linecap="round"/>
-            <!-- plumes -->
-            <path d="M8 16.500h6.500L19 22h-6.500z" fill="#F0245B"/>
-            <path d="M8 27.500h6.500L19 22h-6.500z" fill="#F0245B"/>
-            <path d="M12.500 22H19l-2.400-2.900h-3.800z" fill="#fff" fill-opacity=".9"/>
-            <path d="M12.500 22H19l-2.400 2.900h-3.800z" fill="#fff" fill-opacity=".9"/>
-            <circle cx="9.800" cy="22" r="1.700" fill="#fff"/>
-            <!-- pointe en cœur -->
-            <g transform="translate(58.500 22) rotate(-90) scale(.78)"><path d="M0 9.500C-6.500 4-9 1.200-9-2.200c0-2.700 2-4.700 4.500-4.700 1.800 0 3.600 1 4.500 2.800.9-1.800 2.700-2.800 4.500-2.800 2.500 0 4.500 2 4.500 4.700 0 3.400-2.500 6.200-9 11.700z" fill="#F0245B"/></g>
-          </svg>
-        </button>
-
-        <div class="w-mood widget" data-wid="bento-mood" data-wname="Mood de l'autre">
-          <div class="w-title" id="partner-name-label">Mood de Nono</div>
-          <div class="big-emoji" id="partner-mood">🤍</div>
-          <div class="w-foot">
-            <div class="mood-status" id="partner-status-chip"></div>
-            <div class="time" id="partner-mood-time"></div>
+      <!-- Instantanés : aperçu léger de l'onglet Photos -->
+      <section class="snapshots-home" aria-label="Instantanés">
+        <div class="snapshots-head">
+          <div>
+            <span class="eyebrow">INSTANTANÉS</span>
+            <h3>Quelques moments à nous</h3>
           </div>
+          <button onclick="showScreen('photos')">Voir tout</button>
         </div>
-      </div>
+        <div class="snapshot-strip" id="home-snapshots"></div>
+      </section>
 
       <div class="w-music widget" data-wid="home-music" data-wname="Musique du moment">
         <div class="music-top" onclick="openMusic()">
@@ -458,6 +442,10 @@
     <button class="nav-btn active" data-screen="home" onclick="showScreen('home')" aria-label="Accueil"><svg><use href="#i-home"/></svg></button>
     <button class="nav-btn" data-screen="calendar" onclick="showScreen('calendar')" aria-label="Calendrier"><svg><use href="#i-cal"/></svg></button>
     <button class="nav-btn" data-screen="notes" onclick="showScreen('notes')" aria-label="Notes"><svg><use href="#i-note"/></svg></button>
+    <button class="nav-heart widget" id="heart-btn" data-wid="send-love" data-wname="Send love" onclick="sendHeart()" aria-label="Envoyer un cœur">
+      <svg viewBox="0 0 24 24"><use href="#i-heart"/></svg>
+      <span>Send love</span>
+    </button>
     <button class="nav-btn" data-screen="chat" onclick="showScreen('chat')" aria-label="Chat"><svg><use href="#i-chat"/></svg></button>
     <button class="nav-btn" data-screen="photos" onclick="showScreen('photos')" aria-label="Photos"><svg><use href="#i-cam"/></svg></button>
     <button class="nav-btn" data-screen="settings" onclick="showScreen('settings')" aria-label="Réglages"><svg><use href="#i-gear"/></svg></button>
