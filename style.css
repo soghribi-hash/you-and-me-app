@@ -937,3 +937,67 @@ html,body{background:#121014!important}
 /* keep drag/pinch editing visuals invisible until edit mode */
 .widget{will-change:transform}
 @media(max-width:430px){.logo{font-size:29px!important}.screens{padding-left:11px!important;padding-right:11px!important}.home-mini-row{grid-template-columns:108px 1fr!important}.live-rail{right:-8px!important}.w-music{margin-left:40px!important;margin-right:40px!important}.nav-heart{width:80px!important;height:80px!important}}
+
+/* ============================================================
+   V20 — DA finale « cartes en pile / love memory »
+   ============================================================ */
+.home-love-row{grid-template-columns:112px minmax(0,1fr)!important;align-items:center!important;min-height:104px!important;margin:10px 2px 16px!important;gap:12px!important}
+.home-love-count{height:104px!important;width:112px!important;border:0!important;background:transparent!important;box-shadow:none!important;padding:0!important;display:grid!important;place-items:center!important;cursor:pointer!important;position:relative!important}
+.home-love-count:active{transform:scale(.96)}
+.home-love-count .mini-heart-shape{width:104px!important;height:96px!important;display:grid!important;place-items:center!important;filter:drop-shadow(0 9px 16px rgba(94,31,54,.10))!important;font-size:25px!important;color:#17131a!important;position:relative!important}
+.home-love-count .mini-heart-shape:before{content:"♡"!important;position:absolute!important;inset:-2px 0 0 -1px!important;font-family:Arial,sans-serif!important;font-size:106px!important;font-weight:300!important;line-height:.92!important;color:#17131a!important;text-shadow:0 1px 0 rgba(255,255,255,.7)!important}
+.home-love-count .mini-heart-shape span{position:relative!important;z-index:2!important;font-size:24px!important;font-weight:950!important;letter-spacing:-1.4px!important;line-height:1!important;margin-top:3px!important}
+.home-love-count .mini-heart-shape small{position:absolute!important;z-index:2!important;left:0!important;right:0!important;top:53px!important;margin:0!important;font-size:8px!important;letter-spacing:.8px!important;text-transform:uppercase!important;font-weight:900!important;color:#8d7e87!important}
+.home-memory{height:92px!important;border-radius:25px!important;background:rgba(255,255,255,.72)!important;border:1px solid rgba(255,255,255,.84)!important;box-shadow:0 16px 34px rgba(48,25,40,.10)!important;padding:9px!important;gap:10px!important;backdrop-filter:blur(14px)!important}
+.home-memory:active{transform:scale(.985)}
+.memory-thumb{width:72px!important;height:74px!important;border-radius:19px!important;background:linear-gradient(145deg,#f7dfe8,#e7def7)!important}
+.memory-thumb:before{font-size:36px!important;color:#ed5d86!important}
+.memory-copy b{font-size:13px!important;letter-spacing:-.2px!important}.memory-copy span{font-size:10px!important}.memory-arrow{font-size:27px!important}
+
+/* cartes de notes : vraie pile pastel, comme l'ébauche */
+#notes .notes-stack-wrap{min-height:382px!important;margin:8px 0 18px!important}
+#notes .notes-stack{min-height:365px!important;padding:8px 4px!important;overflow:visible!important}
+#notes .stack-note{inset:12px 7px auto 7px!important;min-height:320px!important;padding:22px 20px 18px!important;background:var(--note-bg,#fff)!important;border:1px solid rgba(255,255,255,.72)!important;border-radius:28px!important;box-shadow:0 20px 42px rgba(49,25,42,.14)!important;transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 9px))!important;transition:transform .22s ease,box-shadow .22s ease!important}
+#notes .stack-note:nth-child(2),#notes .stack-note:nth-child(3),#notes .stack-note:nth-child(4){background:var(--note-bg)!important}
+#notes .stack-note:hover{box-shadow:0 24px 48px rgba(49,25,42,.18)!important}
+#notes .stack-note h3{font-size:22px!important;letter-spacing:-.8px!important;margin:0 42px 15px 0!important;color:#211820!important}
+#notes .stack-note-body{gap:11px!important}.stack-note-body p,.stack-note-body label{font-size:14px!important;line-height:1.42!important;color:#443741!important}
+#notes .stack-note-body label{padding:7px 0!important}.stack-note-body input[type=checkbox]{width:18px;height:18px;margin:1px 0 0!important}
+#notes .stack-note-body .note-media{width:100%!important;max-height:190px!important;object-fit:cover!important;border-radius:18px!important;display:block!important;box-shadow:0 8px 18px rgba(35,20,30,.08)!important}
+#notes .stack-note small{font-size:10px!important;color:#9a8992!important}
+#notes .note-fav{width:38px!important;height:38px!important;right:14px!important;top:13px!important;border-radius:50%!important;background:rgba(255,255,255,.62)!important;box-shadow:0 5px 13px rgba(35,20,30,.07)!important}
+#notes .note-fav.on{color:#ee5f86!important;background:rgba(255,255,255,.9)!important}
+#notes .notes-add{width:52px!important;height:52px!important;right:8px!important;bottom:-2px!important;font-size:29px!important;background:#17131a!important}
+#notes .notes-empty{height:320px!important;border:1px dashed rgba(54,31,44,.13)!important;border-radius:28px!important;background:rgba(255,255,255,.35)!important}
+#notes .draw-stack{display:none!important}
+
+/* éditeur : une carte avec son atelier de dessin intégré */
+.note-editor-sheet{--editor-note-color:#fff!important;width:min(92vw,520px)!important;max-height:min(88vh,760px)!important;overflow:auto!important;padding:18px!important;background:rgba(255,250,252,.97)!important}
+.note-editor-head{padding:4px 2px 8px!important}.note-editor-head input{font-size:23px!important;letter-spacing:-.7px!important;color:#211820!important}
+.note-editor-palette{display:flex!important;gap:8px!important;align-items:center!important;margin:4px 0 12px!important}
+.note-color{width:29px!important;height:29px!important;border-radius:50%!important;border:2px solid rgba(255,255,255,.95)!important;box-shadow:0 3px 9px rgba(40,20,32,.12)!important;padding:0!important;position:relative!important}
+.note-color.selected:after{content:"✓";position:absolute;inset:0;display:grid;place-items:center;font-size:12px;font-weight:950;color:#17131a}
+.note-editor-blocks{gap:8px!important;margin:8px 0 13px!important;max-height:26vh!important}
+.note-block{background:var(--editor-note-color)!important;border:1px solid rgba(48,27,42,.07)!important;border-radius:16px!important;padding:10px!important}
+.note-drawing-editor{border-radius:22px!important;padding:10px!important;background:var(--editor-note-color)!important;border:1px solid rgba(48,27,42,.08)!important;box-shadow:0 12px 24px rgba(42,21,35,.07)!important;margin:10px 0!important}
+.note-drawing-head{display:flex;align-items:baseline;justify-content:space-between;gap:8px;padding:2px 2px 8px!important}.note-drawing-head b{font-size:13px!important}.note-drawing-head span{font-size:9px!important;color:#9a8992!important}
+.note-drawing-canvas-wrap{height:190px!important;border-radius:17px!important;background:rgba(255,255,255,.72)!important;border:1px solid rgba(44,27,38,.07)!important;position:relative!important;overflow:hidden!important}
+#note-draw-canvas{display:block!important;width:100%!important;height:100%!important;touch-action:none!important;cursor:crosshair!important}
+.note-draw-clear,.note-draw-eraser{position:absolute!important;top:8px!important;width:34px!important;height:34px!important;border:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;background:rgba(255,255,255,.9)!important;color:#4e4149!important;box-shadow:0 4px 10px rgba(40,20,32,.10)!important;z-index:2!important}
+.note-draw-clear{right:8px!important}.note-draw-eraser{right:48px!important;font-weight:900!important}.note-draw-eraser.active{background:#f13f72!important;color:#fff!important}.note-draw-clear svg{width:14px;height:14px}
+.note-drawing-tools{display:grid!important;grid-template-columns:repeat(4,1fr)!important;gap:6px!important;margin-top:8px!important}.note-tool{border:1px solid rgba(45,27,38,.07)!important;background:rgba(255,255,255,.72)!important;border-radius:12px!important;padding:7px 4px!important;color:#493b44!important;font-size:8px!important;font-weight:850!important}.note-tool i{display:block;width:24px;height:3px;background:#17131a;border-radius:99px;margin:0 auto 5px!important}.note-tool:nth-child(2) i{height:6px}.note-tool:nth-child(3) i{height:9px}.note-tool:nth-child(4) i{height:11px;opacity:.35}.note-tool.active{background:#17131a!important;color:#fff!important}.note-tool.active i{background:#fff!important}
+.note-drawing-colors{display:flex!important;gap:7px!important;align-items:center!important;overflow:auto!important;padding:9px 1px 2px!important}.note-drawing-colors::-webkit-scrollbar{display:none}.note-draw-color{flex:0 0 auto!important;width:21px!important;height:21px!important;border:2px solid rgba(255,255,255,.9)!important;border-radius:50%!important;padding:0!important;box-shadow:0 2px 6px rgba(30,18,25,.12)!important}.note-draw-color.selected{outline:2px solid #17131a;outline-offset:2px}
+.note-editor-tools{border-top:0!important;padding-top:0!important;gap:7px!important}.note-editor-tools button{border:0!important;background:#f4edf1!important;border-radius:13px!important;padding:9px 13px!important}.note-editor-actions{gap:8px!important;align-items:center!important}.note-editor-actions .primary{min-width:110px!important}.note-delete-btn{margin-right:auto!important;color:#c94369!important}.note-editor-sheet::-webkit-scrollbar{width:0}
+
+/* bouton central : plus gros, cœur blanc simple */
+.nav-heart{width:94px!important;height:94px!important;margin-top:-28px!important;border-radius:50%!important;background:#17131a!important;border:5px solid rgba(255,250,252,.96)!important;box-shadow:0 15px 34px rgba(20,12,18,.30)!important}
+.nav-heart svg{width:34px!important;height:34px!important;fill:#fff!important;stroke:none!important;filter:none!important}.nav-heart span{font-size:9.5px!important;letter-spacing:.35px!important;color:#fff!important}
+.nav-heart:active{transform:scale(.94) translateY(2px)!important}
+
+@media(max-width:430px){
+  .home-love-row{grid-template-columns:96px minmax(0,1fr)!important;gap:9px!important}
+  .home-love-count{width:96px!important}.home-love-count .mini-heart-shape{width:94px!important}.home-love-count .mini-heart-shape:before{font-size:98px!important}.home-love-count .mini-heart-shape span{font-size:22px!important}.home-love-count .mini-heart-shape small{top:52px!important}
+  .memory-thumb{width:64px!important;height:68px!important}.memory-copy b{font-size:12px!important}
+  #notes .stack-note{min-height:305px!important;padding:20px 17px 17px!important}
+  .note-drawing-canvas-wrap{height:170px!important}
+}

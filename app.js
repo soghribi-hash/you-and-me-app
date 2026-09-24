@@ -413,7 +413,7 @@ function listenHeart() {
       if (d && d.from !== myRole && d.ts > seen && Date.now() - d.ts < 86400000) {
         localStorage.setItem('yam_heart_ts', String(d.ts));
         burstHearts($('heart-btn'), 12);
-        showBanner(nameOf(d.from) + ' vous a envoyé un cœur', 'home');
+        showBanner(nameOf(d.from) + ' t’a envoyé un cœur', 'home');
       }
       return;
     }
@@ -422,7 +422,7 @@ function listenHeart() {
     localStorage.setItem('yam_heart_ts', String(d.ts));
     burstHearts($('heart-btn'), 12);
     if (navigator.vibrate) navigator.vibrate([40, 60, 40]);
-    notify(nameOf(d.from) + ' vous a envoyé un cœur', 'home');
+    notify(nameOf(d.from) + ' t’a envoyé un cœur', 'home');
   });
 }
 
@@ -710,21 +710,123 @@ function clearCanvas() {
   canvasDirty = false;
 }
 
-function openNoteEditor(){ $('note-editor').classList.remove('hidden'); $('note-editor-title').value=''; $('note-editor-blocks').innerHTML=''; addNoteBlock('text'); const send=document.querySelector('#note-editor .primary'); send.textContent='Envoyer'; send.onclick=sendStructuredNote; }
-function closeNoteEditor(){ $('note-editor').classList.add('hidden'); }
+let editingNoteId = null;
+let selectedNoteColor = '#ffffff';
+let noteDrawCanvas = null, noteDrawCtx = null;
+let noteDrawing = false, noteLastX = 0, noteLastY = 0, noteCanvasDirty = false;
+let noteDrawWidth = 2, noteDrawAlpha = 1, noteDrawColor = '#f0245b', noteDrawEraser = false;
+
+function setupNoteDrawing(){
+  noteDrawCanvas = $('note-draw-canvas');
+  if(!noteDrawCanvas) return;
+  noteDrawCtx = noteDrawCanvas.getContext('2d');
+  const resize = () => {
+    const r = noteDrawCanvas.getBoundingClientRect();
+    if(!r.width || !r.height) return;
+    const old = noteCanvasDirty && noteDrawCanvas.width ? noteDrawCanvas.toDataURL('image/png') : null;
+    noteDrawCanvas.width = Math.round(r.width * 2);
+    noteDrawCanvas.height = Math.round(r.height * 2);
+    noteDrawCtx.setTransform(2,0,0,2,0,0);
+    noteDrawCtx.clearRect(0,0,r.width,r.height);
+    if(old){ const img=new Image(); img.onload=()=>noteDrawCtx.drawImage(img,0,0,r.width,r.height); img.src=old; }
+  };
+  const pos = e => { const r=noteDrawCanvas.getBoundingClientRect(); return {x:e.clientX-r.left,y:e.clientY-r.top}; };
+  noteDrawCanvas.addEventListener('pointerdown', e=>{
+    resize(); noteDrawing=true; try{noteDrawCanvas.setPointerCapture(e.pointerId);}catch(_){ }
+    const q=pos(e); noteLastX=q.x; noteLastY=q.y;
+    noteDrawCtx.globalCompositeOperation=noteDrawEraser?'destination-out':'source-over';
+    noteDrawCtx.globalAlpha=noteDrawEraser?1:noteDrawAlpha; noteDrawCtx.strokeStyle=noteDrawColor; noteDrawCtx.lineWidth=noteDrawWidth; noteDrawCtx.lineCap='round';
+    noteDrawCtx.beginPath(); noteDrawCtx.moveTo(q.x,q.y); noteDrawCtx.lineTo(q.x+.01,q.y); noteDrawCtx.stroke(); noteCanvasDirty=true;
+  });
+  noteDrawCanvas.addEventListener('pointermove', e=>{
+    if(!noteDrawing) return; const q=pos(e);
+    noteDrawCtx.globalCompositeOperation=noteDrawEraser?'destination-out':'source-over'; noteDrawCtx.globalAlpha=noteDrawEraser?1:noteDrawAlpha; noteDrawCtx.strokeStyle=noteDrawColor; noteDrawCtx.lineWidth=noteDrawWidth; noteDrawCtx.lineCap='round';
+    noteDrawCtx.beginPath(); noteDrawCtx.moveTo(noteLastX,noteLastY); noteDrawCtx.lineTo(q.x,q.y); noteDrawCtx.stroke(); noteLastX=q.x; noteLastY=q.y; noteCanvasDirty=true;
+  });
+  window.addEventListener('pointerup',()=>noteDrawing=false); window.addEventListener('pointercancel',()=>noteDrawing=false);
+  window.addEventListener('resize',resize);
+  document.querySelectorAll('.note-tool').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.note-tool').forEach(x=>x.classList.remove('active')); btn.classList.add('active');
+    noteDrawWidth=parseFloat(btn.dataset.width); noteDrawAlpha=parseFloat(btn.dataset.alpha); noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active');
+  }));
+  document.querySelectorAll('.note-draw-color').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.note-draw-color').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); noteDrawColor=btn.dataset.color; noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active');
+  }));
+  document.querySelectorAll('.note-color').forEach(btn=>btn.addEventListener('click',()=>{
+    document.querySelectorAll('.note-color').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); selectedNoteColor=btn.dataset.noteColor; updateNoteEditorCardColor();
+  }));
+}
+function updateNoteEditorCardColor(){ const sheet=document.querySelector('.note-editor-sheet'); if(sheet) sheet.style.setProperty('--editor-note-color',selectedNoteColor); }
+function clearNoteDrawing(){ if(!noteDrawCtx||!noteDrawCanvas)return; const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.setTransform(2,0,0,2,0,0); noteDrawCtx.clearRect(0,0,r.width,r.height); noteCanvasDirty=false; }
+function toggleNoteEraser(){ noteDrawEraser=!noteDrawEraser; $('note-draw-eraser')?.classList.toggle('active',noteDrawEraser); }
+function loadNoteDrawing(src){ clearNoteDrawing(); if(!src||!noteDrawCanvas)return; const img=new Image(); img.onload=()=>{const r=noteDrawCanvas.getBoundingClientRect(); noteDrawCtx.drawImage(img,0,0,r.width,r.height); noteCanvasDirty=true;}; img.src=src; }
+function resetNoteDrawing(){ clearNoteDrawing(); noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active'); }
+
+function openNoteEditor(){
+  editingNoteId=null; selectedNoteColor='#ffffff';
+  $('note-editor').classList.remove('hidden'); $('note-editor-title').value=''; $('note-editor-blocks').innerHTML=''; addNoteBlock('text');
+  document.querySelectorAll('.note-color').forEach((b,i)=>b.classList.toggle('selected',i===0));
+  resetNoteDrawing(); updateNoteEditorCardColor();
+  $('note-delete-btn')?.classList.add('hidden');
+  const send=document.querySelector('#note-editor .primary'); send.textContent='Envoyer'; send.onclick=sendStructuredNote;
+  requestAnimationFrame(()=>{ const r=noteDrawCanvas?.getBoundingClientRect(); if(r?.width){} });
+}
+function closeNoteEditor(){ $('note-editor').classList.add('hidden'); editingNoteId=null; }
 function addNoteBlock(type){ const box=$('note-editor-blocks'); const row=document.createElement('div'); row.className='note-block'; if(type==='check') row.innerHTML='<input type="checkbox"><input class="nb-text" placeholder="À faire…"><button onclick="this.parentElement.remove()">×</button>'; else if(type==='image') row.innerHTML='<input type="file" accept="image/*" onchange="noteImagePreview(event)"><span class="nb-file">Photo</span><button onclick="this.parentElement.remove()">×</button>'; else row.innerHTML='<textarea class="nb-text" rows="2" placeholder="Écris ici…"></textarea><button onclick="this.parentElement.remove()">×</button>'; box.appendChild(row); }
 function noteImagePreview(e){ const f=e.target.files?.[0]; if(f){const r=new FileReader();r.onload=()=>{e.target.dataset.data=r.result;};r.readAsDataURL(f);} }
-async function sendStructuredNote(){ if(!roomRef)return; const title=$('note-editor-title').value.trim()||'Note'; const blocks=[]; for(const row of document.querySelectorAll('#note-editor-blocks .note-block')){ const cb=row.querySelector('input[type=checkbox]'); const text=row.querySelector('.nb-text'); const file=row.querySelector('input[type=file]'); if(cb||text){ const val=(text?.value||'').trim(); if(val)blocks.push({type:cb?'check':'text',text:val,checked:!!cb?.checked}); } else if(file?.dataset.data) blocks.push({type:'image',src:file.dataset.data}); } if(!blocks.length){toast('Écris quelque chose');return;} const ref=roomRef.child('notesInbox/'+otherRole).push(); await ref.set({title,blocks,from:myRole,ts:Date.now(),favorite:false}); closeNoteEditor(); toast('Note envoyée à '+otherName); }
+function collectNoteBlocks(){
+  const blocks=[];
+  document.querySelectorAll('#note-editor-blocks .note-block').forEach(row=>{
+    const cb=row.querySelector('input[type=checkbox]'), text=row.querySelector('.nb-text'), file=row.querySelector('input[type=file]');
+    if(cb||text){ const val=(text?.value||'').trim(); if(val) blocks.push({type:cb?'check':'text',text:val,checked:!!cb?.checked}); }
+    else if(file?.dataset.data) blocks.push({type:'image',src:file.dataset.data});
+  });
+  if(noteCanvasDirty && noteDrawCanvas) blocks.push({type:'drawing',src:noteDrawCanvas.toDataURL('image/png')});
+  return blocks;
+}
+async function sendStructuredNote(){
+  if(!roomRef)return;
+  const title=$('note-editor-title').value.trim()||'Note'; const blocks=collectNoteBlocks();
+  if(!blocks.length){toast('Écris ou dessine quelque chose');return;}
+  const ref=roomRef.child('notesInbox/'+otherRole).push();
+  await ref.set({title,blocks,color:selectedNoteColor,from:myRole,ts:Date.now(),favorite:false});
+  closeNoteEditor(); toast('Note envoyée à '+otherName);
+}
 let structuredNotes=[];
-function renderStructuredNotes(){ const box=$('notes-stack'); if(!box)return; const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)); if(!notes.length){box.innerHTML='<div class="notes-empty">+</div>';return;} box.innerHTML=notes.map((n,i)=>'<article class="stack-note" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg" onclick="openStructuredNote(\''+n.id+'\')"><button class="note-fav '+(n.favorite?'on':'')+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')">♥</button><h3>'+escapeHtml(n.title)+'</h3><div class="stack-note-body">'+n.blocks.slice(0,5).map(b=>b.type==='check'?'<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\',this.checked,this)"><span>'+escapeHtml(b.text)+'</span></label>':b.type==='image'?'<img src="'+b.src+'">':'<p>'+escapeHtml(b.text)+'</p>').join('')+'</div><small>'+relativeTime(n.ts)+'</small></article>').join(''); }
+function renderStructuredNotes(){
+  const box=$('notes-stack'); if(!box)return;
+  const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(!notes.length){box.innerHTML='<div class="notes-empty">+</div>';return;}
+  box.innerHTML=notes.map((n,i)=>{
+    const bg=n.color||(['#ffffff','#ffdfe9','#e9e0fb','#dff3e8','#dcecfb'][i%5]);
+    const body=(n.blocks||[]).slice(0,5).map(b=>b.type==='check'
+      ? '<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\',this.checked,this)"><span>'+escapeHtml(b.text)+'</span></label>'
+      : (b.type==='image'||b.type==='drawing') ? '<img src="'+b.src+'" alt="" class="note-media">'
+      : '<p>'+escapeHtml(b.text)+'</p>').join('');
+    return '<article class="stack-note" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="openStructuredNote(\''+n.id+'\')">'+
+      '<button class="note-fav '+(n.favorite?'on':'')+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')">♥</button>'+
+      '<h3>'+escapeHtml(n.title)+'</h3><div class="stack-note-body">'+body+'</div><small>'+relativeTime(n.ts)+'</small></article>';
+  }).join('');
+}
 function listenNotes(){ onValue(roomRef.child('notesInbox/'+myRole),snap=>{const v=snap.val()||{};structuredNotes=Object.keys(v).map(id=>Object.assign({id},v[id])).filter(n=>n);renderStructuredNotes();}); }
 function updateNote(id,patch){ const idx=structuredNotes.findIndex(n=>n.id===id); if(idx<0)return; const next=Object.assign({},structuredNotes[idx],patch); structuredNotes[idx]=next; roomRef.child('notesInbox/'+myRole+'/'+id).update(patch); renderStructuredNotes(); }
 function toggleNoteFavorite(id){const n=structuredNotes.find(x=>x.id===id);if(n)updateNote(id,{favorite:!n.favorite});}
 function toggleNoteCheck(id,checked,el){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; let ix=0; const blocks=(n.blocks||[]).map(b=>{const x=Object.assign({},b); if(x.type==='check'){ if(el){ const labels=[...el.closest('.stack-note').querySelectorAll('input[type=checkbox]')]; if(labels[ix]===el)x.checked=checked; ix++; } } return x; }); updateNote(id,{blocks}); }
-function openStructuredNote(id){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; $('note-editor').classList.remove('hidden'); $('note-editor-title').value=n.title||''; const box=$('note-editor-blocks');box.innerHTML='';(n.blocks||[]).forEach(b=>{addNoteBlock(b.type);const row=box.lastElementChild;if(b.type==='check'){row.querySelector('input[type=checkbox]').checked=!!b.checked;row.querySelector('.nb-text').value=b.text||'';}else if(b.type==='text')row.querySelector('.nb-text').value=b.text||'';else if(b.type==='image')row.querySelector('.nb-file').textContent='Photo ajoutée';}); const send=document.querySelector('#note-editor .primary'); send.textContent='Enregistrer';send.onclick=()=>saveEditedStructuredNote(id); }
-async function saveEditedStructuredNote(id){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; const title=$('note-editor-title').value.trim()||'Note'; const blocks=[];document.querySelectorAll('#note-editor-blocks .note-block').forEach(row=>{const cb=row.querySelector('input[type=checkbox]'),text=row.querySelector('.nb-text'),file=row.querySelector('input[type=file]');if(cb||text){const val=(text?.value||'').trim();if(val)blocks.push({type:cb?'check':'text',text:val,checked:!!cb?.checked});}else if(file?.dataset.data)blocks.push({type:'image',src:file.dataset.data});}); await roomRef.child('notesInbox/'+myRole+'/'+id).update({title,blocks});closeNoteEditor();document.querySelector('#note-editor .primary').textContent='Envoyer';document.querySelector('#note-editor .primary').onclick=sendStructuredNote;}
+function openStructuredNote(id){
+  const n=structuredNotes.find(x=>x.id===id); if(!n)return; editingNoteId=id; selectedNoteColor=n.color||'#ffffff';
+  $('note-editor').classList.remove('hidden'); $('note-editor-title').value=n.title||'Note'; const box=$('note-editor-blocks');box.innerHTML='';
+  let drawingSrc=null;
+  (n.blocks||[]).forEach(b=>{ if(b.type==='drawing'){drawingSrc=b.src;return;} addNoteBlock(b.type); const row=box.lastElementChild; if(b.type==='check'){row.querySelector('input[type=checkbox]').checked=!!b.checked;row.querySelector('.nb-text').value=b.text||'';} else if(b.type==='text')row.querySelector('.nb-text').value=b.text||''; else if(b.type==='image'){row.querySelector('.nb-file').textContent='Photo ajoutée'; if(b.src)row.querySelector('input[type=file]').dataset.data=b.src;} });
+  document.querySelectorAll('.note-color').forEach(b=>b.classList.toggle('selected',b.dataset.noteColor===selectedNoteColor)); updateNoteEditorCardColor(); resetNoteDrawing(); if(drawingSrc)loadNoteDrawing(drawingSrc);
+  $('note-delete-btn')?.classList.remove('hidden');
+  const send=document.querySelector('#note-editor .primary'); send.textContent='Enregistrer';send.onclick=()=>saveEditedStructuredNote(id);
+}
+async function saveEditedStructuredNote(id){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; const title=$('note-editor-title').value.trim()||'Note'; const blocks=collectNoteBlocks(); if(!blocks.length){toast('Écris ou dessine quelque chose');return;} await roomRef.child('notesInbox/'+myRole+'/'+id).update({title,blocks,color:selectedNoteColor}); closeNoteEditor(); }
+async function deleteEditingNote(){ if(!editingNoteId||!roomRef)return; const id=editingNoteId; await roomRef.child('notesInbox/'+myRole+'/'+id).remove(); closeNoteEditor(); toast('Note supprimée'); }
 function sendNote(){ sendStructuredNote(); }
-function sendDrawingNote(){ const text=$('note-word').value.trim(); if(!text&&!canvasDirty){toast('Dessine ou écris quelque chose');return;} if(!roomRef)return;const note={title:'Dessin',blocks:(text?[{type:'text',text}]:[]).concat(canvasDirty?[{type:'image',src:canvas.toDataURL('image/jpeg',0.6)}]:[]),from:myRole,ts:Date.now()};roomRef.child('notesInbox/'+otherRole).push().set(note);$('note-word').value='';clearCanvas();toast('Dessin envoyé à '+otherName); }
+function sendDrawingNote(){ const text=$('note-word').value.trim(); if(!text&&!canvasDirty){toast('Dessine ou écris quelque chose');return;} if(!roomRef)return;const note={title:'Dessin',blocks:(text?[{type:'text',text}]:[]).concat(canvasDirty?[{type:'drawing',src:canvas.toDataURL('image/png')}]:[]),color:'#ffffff',from:myRole,ts:Date.now()};roomRef.child('notesInbox/'+otherRole).push().set(note);$('note-word').value='';clearCanvas();toast('Dessin envoyé à '+otherName); }
+
+setupNoteDrawing();
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
 const NOTE_TTL = 24 * 3600 * 1000;

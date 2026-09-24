@@ -188,12 +188,10 @@
         </div>
       </div>
 
-      <div class="home-mini-row">
-        <div class="home-mini-anniv widget" data-wid="home-anniv" data-wname="Compteur">
-          <div class="mini-heart-shape"><span id="home-countdown-days">--</span><small>jours</small></div>
-          <div class="mini-anniv-copy"><strong id="home-anniv-date">18 mai</strong><span>notre anniversaire</span></div>
-          <span class="mini-fav">♡</span>
-        </div>
+      <div class="home-mini-row home-love-row">
+        <button class="home-mini-anniv widget home-love-count" data-wid="home-anniv" data-wname="Compteur" onclick="showScreen('calendar')" aria-label="Ouvrir le calendrier">
+          <span class="mini-heart-shape"><span id="home-countdown-days">--</span><small>jours</small></span>
+        </button>
         <button class="home-memory widget" data-wid="home-memory" data-wname="Memory" onclick="openThrowback()" aria-label="Souvenir d'il y a un an">
           <span class="memory-thumb" id="home-memory-thumb"></span>
           <span class="memory-copy"><b>Il y a 1 an</b><span>jour pour jour</span></span>
@@ -380,10 +378,30 @@
     <!-- ÉDITEUR DE NOTE -->
     <div class="modal-overlay hidden" id="note-editor" onclick="if(event.target===this)closeNoteEditor()">
       <div class="comp-sheet note-editor-sheet" onclick="event.stopPropagation()">
-        <div class="note-editor-head"><input id="note-editor-title" placeholder="Titre" maxlength="50"><button onclick="closeNoteEditor()">×</button></div>
+        <div class="note-editor-head"><input id="note-editor-title" placeholder="Notre petite note" maxlength="50"><button onclick="closeNoteEditor()">×</button></div>
+        <div class="note-editor-palette" id="note-editor-palette" aria-label="Couleur de la carte">
+          <button class="note-color selected" data-note-color="#ffffff" style="background:#ffffff" aria-label="Blanc"></button>
+          <button class="note-color" data-note-color="#ffdfe9" style="background:#ffdfe9" aria-label="Rose pastel"></button>
+          <button class="note-color" data-note-color="#dff3e8" style="background:#dff3e8" aria-label="Vert pastel"></button>
+          <button class="note-color" data-note-color="#e9e0fb" style="background:#e9e0fb" aria-label="Lilas pastel"></button>
+          <button class="note-color" data-note-color="#dcecfb" style="background:#dcecfb" aria-label="Bleu pastel"></button>
+        </div>
         <div id="note-editor-blocks" class="note-editor-blocks"></div>
+        <div class="note-drawing-editor">
+          <div class="note-drawing-head"><b>Dessiner sur la carte</b><span>comme au feutre, mais en mieux</span></div>
+          <div class="note-drawing-canvas-wrap"><canvas id="note-draw-canvas" aria-label="Zone de dessin de la note"></canvas><button class="note-draw-clear" id="note-draw-clear" onclick="clearNoteDrawing()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button><button class="note-draw-eraser" id="note-draw-eraser" onclick="toggleNoteEraser()" aria-label="Gomme">⌫</button></div>
+          <div class="note-drawing-tools" id="note-drawing-tools">
+            <button class="note-tool active" data-width="2" data-alpha="1"><i></i><span>Feutre fin</span></button>
+            <button class="note-tool" data-width="6" data-alpha="1"><i></i><span>Pinceau</span></button>
+            <button class="note-tool" data-width="10" data-alpha="1"><i></i><span>Marqueur</span></button>
+            <button class="note-tool" data-width="16" data-alpha=".35"><i></i><span>Surligneur</span></button>
+          </div>
+          <div class="note-drawing-colors" id="note-drawing-colors">
+            <button class="note-draw-color selected" data-color="#f0245b" style="background:#f0245b"></button><button class="note-draw-color" data-color="#ff9db4" style="background:#ff9db4"></button><button class="note-draw-color" data-color="#ff9a55" style="background:#ff9a55"></button><button class="note-draw-color" data-color="#f5cb4f" style="background:#f5cb4f"></button><button class="note-draw-color" data-color="#3fa774" style="background:#3fa774"></button><button class="note-draw-color" data-color="#3fb8c4" style="background:#3fb8c4"></button><button class="note-draw-color" data-color="#5b8ce0" style="background:#5b8ce0"></button><button class="note-draw-color" data-color="#8a6fe0" style="background:#8a6fe0"></button><button class="note-draw-color" data-color="#17131a" style="background:#17131a"></button>
+          </div>
+        </div>
         <div class="note-editor-tools"><button onclick="addNoteBlock('text')">Aa</button><button onclick="addNoteBlock('check')">☑</button><button onclick="addNoteBlock('image')">▧</button></div>
-        <div class="comp-actions"><button class="ghost" onclick="closeNoteEditor()">Annuler</button><button class="primary" onclick="sendStructuredNote()">Envoyer</button></div>
+        <div class="comp-actions note-editor-actions"><button class="ghost note-delete-btn hidden" id="note-delete-btn" onclick="deleteEditingNote()">Supprimer</button><button class="ghost" onclick="closeNoteEditor()">Annuler</button><button class="primary" onclick="sendStructuredNote()">Envoyer</button></div>
       </div>
     </div>
 
@@ -497,6 +515,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="spotify-config.js"></script>
-<script src="app.js?v=20"></script>
+<script src="app.js?v=21"></script>
 </body>
 </html>
