@@ -523,9 +523,11 @@ body.edit-mode .live-rail.widget:before{right:0;top:-12px}
 
 /* ---------- V14 : throwback / pile de notes / Spotify ---------- */
 .throwback-heart{position:absolute;left:20px;bottom:54px;width:86px;height:78px;border:0;background:transparent;padding:0;z-index:3;cursor:pointer}
-.throwback-photo{position:absolute;inset:9px 13px 13px 13px;border-radius:38% 42% 44% 40%;background:rgba(255,255,255,.15) center/cover no-repeat;overflow:hidden;transform:rotate(-3deg);box-shadow:0 5px 14px rgba(90,0,25,.12)}
-.throwback-photo.has{border:2px solid rgba(255,255,255,.45)}
-.throwback-heart-glyph{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:70px;line-height:1;text-shadow:0 4px 10px rgba(80,0,25,.18);pointer-events:none}
+/* Le souvenir est réellement contenu dans la forme du cœur. Aucun gros cœur rouge de secours. */
+.throwback-photo{position:absolute;inset:3px 7px 4px 7px;background:rgba(255,255,255,.08) center/cover no-repeat;overflow:hidden;transform:rotate(-2deg);filter:drop-shadow(0 5px 10px rgba(90,0,25,.12));clip-path:path('M 50 94 C 20 70 4 53 4 31 C 4 13 16 3 30 3 C 39 3 46 8 50 17 C 54 8 61 3 70 3 C 84 3 96 13 96 31 C 96 53 80 70 50 94 Z')}
+.throwback-photo.has{border:0}
+.throwback-heart-empty{position:absolute;inset:4px 8px 5px 8px;border:2px solid rgba(255,255,255,.46);clip-path:path('M 50 94 C 20 70 4 53 4 31 C 4 13 16 3 30 3 C 39 3 46 8 50 17 C 54 8 61 3 70 3 C 84 3 96 13 96 31 C 96 53 80 70 50 94 Z');opacity:.65;pointer-events:none}
+.throwback-photo.has + .throwback-heart-empty{display:none}
 .throwback-add{position:absolute;left:87px;bottom:47px;width:25px;height:25px;border:1px solid rgba(255,255,255,.55);border-radius:50%;background:rgba(255,255,255,.18);color:#fff;font-size:19px;line-height:20px;z-index:4}
 .throwback-viewer{width:min(88vw,420px);background:rgba(255,255,255,.94);border-radius:30px;padding:14px;position:relative;text-align:center;box-shadow:0 24px 60px rgba(40,0,20,.22)}
 .throwback-viewer>button{position:absolute;right:10px;top:10px;width:34px;height:34px;border:0;border-radius:50%;background:rgba(20,10,18,.72);color:#fff;font-size:22px;z-index:2}
@@ -567,7 +569,7 @@ h2.section-title{font-size:31px;letter-spacing:-1.8px;margin:12px 4px 10px}.scre
 .music-results{background:rgba(29,21,27,.96);border-radius:18px}
 /* calendar */
 .countdown-card{background:linear-gradient(145deg,rgba(255,224,233,.92),rgba(232,222,250,.88));border:0;box-shadow:0 20px 48px rgba(69,40,58,.14)!important;overflow:hidden}
-.countdown-card .count-num{letter-spacing:-4px}.throwback-heart{filter:drop-shadow(0 8px 15px rgba(110,30,65,.18))}
+.countdown-card .count-num{letter-spacing:-4px}.throwback-heart{filter:drop-shadow(0 8px 15px rgba(110,30,65,.12))}
 .throwback-viewer{background:rgba(255,250,252,.97);box-shadow:0 28px 70px rgba(44,22,37,.28)}
 /* notes: the stack is the visual hero */
 .notes-stack-wrap{min-height:350px;margin:12px -2px 24px}.notes-stack{min-height:330px;padding:8px 7px}
@@ -659,7 +661,7 @@ h2.section-title{font-size:30px!important;letter-spacing:-1.7px!important;margin
 .ring-center .num{font-size:28px!important}.countdown-info .date{font-size:17px!important}.countdown-info .sub{font-size:11px!important}.since-pill{font-size:10px!important;padding:6px 9px!important;background:rgba(255,255,255,.20)!important}
 .anniv-row{font-size:12px!important;margin-top:12px!important;padding-top:11px!important}
 .anniv-row input{height:34px!important;width:135px!important;border-radius:999px!important;background:rgba(255,255,255,.14)!important}
-.throwback-heart{width:43px!important;height:43px!important;right:12px!important;top:12px!important}
+.throwback-heart{width:72px!important;height:66px!important;left:12px!important;bottom:46px!important;right:auto!important;top:auto!important}
 .throwback-add{width:32px!important;height:32px!important;font-size:18px!important}
 .card.widget[data-wname="Calendrier du mois"]{padding:15px!important}
 .cal-nav .month{font-size:16px!important}
@@ -829,3 +831,109 @@ html,body{background:#d9d4d5!important}
   .live-rail{right:-7px!important}
   .nav-heart{width:80px!important;height:80px!important}
 }
+
+/* ============================================================
+   V20 — VISUAL MASTER / exact mockup direction
+   Keep functionality; replace the visual language with the mockup.
+   ============================================================ */
+:root{
+  --ink:#17141b!important;
+  --paper:#fffdfd!important;
+  --mock-pink:#f13f72;
+  --mock-pink-soft:#f7c8d7;
+  --mock-lilac:#d8cdf2;
+  --mock-cream:#fff2d7;
+  --mock-line:rgba(34,22,30,.09);
+}
+html,body{background:#121014!important}
+#app{max-width:500px!important;background-color:#aaa3a0!important;background-size:cover!important;background-position:center!important;}
+#app:before{background:linear-gradient(180deg,rgba(255,255,255,.06),rgba(20,14,18,.08) 82%,rgba(15,11,15,.16))!important}
+.topbar{padding:calc(17px + env(safe-area-inset-top)) 18px 10px!important}
+.logo{font-size:30px!important;font-weight:950!important;letter-spacing:-1.9px!important;color:#050407!important}
+.online-pill{height:40px!important;background:#fff!important;border:0!important;border-radius:999px!important;padding:4px 12px 4px 5px!important;box-shadow:0 8px 24px rgba(25,15,21,.13)!important;color:#574d57!important;font-size:11px!important}
+.online-pill .avatar{width:29px!important;height:29px!important}
+.screens{padding:3px 12px calc(114px + var(--safe-b))!important}
+.screen{min-height:100%!important}
+
+/* HOME */
+#home{padding-top:0!important;min-height:calc(100dvh - 100px)!important}
+.note-duo{margin:4px 0 7px!important;gap:24px!important}
+.note-bubble{width:142px!important;min-height:38px!important;border:0!important;border-radius:22px!important;background:#fff!important;box-shadow:0 7px 20px rgba(34,22,30,.10)!important;padding:8px 12px!important}
+.note-bubble textarea,.note-bubble span{font-size:11.5px!important;font-weight:800!important}
+.note-bubble:before,.note-bubble:after{border:0!important;box-shadow:none!important}
+.avatar-stage{margin-top:16px!important;width:80px!important;height:73px!important}
+.note-avatar{width:60px!important;height:60px!important;padding:3px!important}
+.profile-mood{width:27px!important;height:27px!important;font-size:14px!important;right:-1px!important;top:-1px!important}
+.note-label{display:none!important}
+
+.home-mini-row{display:grid!important;grid-template-columns:112px 1fr!important;gap:10px!important;align-items:center!important;margin:10px 4px 13px!important;position:relative!important;z-index:8!important}
+.home-mini-anniv{height:88px!important;border-radius:20px!important;background:linear-gradient(145deg,#f33d70,#f86c93)!important;box-shadow:0 16px 30px rgba(89,23,45,.18)!important;display:flex!important;align-items:center!important;padding:10px!important;color:#fff!important;position:relative!important;overflow:hidden!important}
+.home-mini-anniv:before{content:"";position:absolute;inset:auto -20px -34px auto;width:90px;height:90px;border-radius:50%;background:rgba(255,255,255,.12)}
+.mini-heart-shape{width:58px;height:58px;position:relative;display:grid;place-items:center;font-weight:950;font-size:20px;line-height:.8;flex:0 0 auto;filter:drop-shadow(0 3px 5px rgba(80,0,30,.12))}
+.mini-heart-shape:before{content:"♡";position:absolute;inset:-6px 0 0 -1px;font-size:68px;line-height:58px;color:#fff}
+.mini-heart-shape span,.mini-heart-shape small{position:relative;z-index:2;text-align:center}
+.mini-heart-shape small{font-size:7px;font-weight:800;margin-top:24px;position:absolute;left:0;right:0}
+.mini-anniv-copy{display:flex;flex-direction:column;gap:2px;min-width:0;position:relative;z-index:2}
+.mini-anniv-copy strong{font-size:10px;white-space:nowrap}
+.mini-anniv-copy span{font-size:8px;opacity:.82}
+.mini-fav{position:absolute;right:9px;top:10px;font-size:18px;color:#fff;z-index:3}
+.home-memory{height:88px!important;border:0!important;border-radius:20px!important;background:rgba(255,249,250,.92)!important;box-shadow:0 14px 28px rgba(38,25,32,.12)!important;display:flex!important;align-items:center!important;padding:9px!important;gap:9px!important;text-align:left!important;overflow:hidden!important;position:relative!important;backdrop-filter:blur(10px)!important}
+.memory-thumb{width:62px!important;height:68px!important;border-radius:15px!important;background:linear-gradient(145deg,#f5dbe4,#ddd4ee)!important;background-size:cover!important;background-position:center!important;flex:0 0 auto!important;position:relative!important;overflow:hidden!important}
+.memory-thumb:before{content:"♡";position:absolute;inset:0;display:grid;place-items:center;font-size:35px;color:#ef3f70;font-weight:800}
+.memory-thumb.has:before{display:none}
+.memory-copy{display:flex;flex-direction:column;gap:2px;min-width:0}
+.memory-copy b{font-size:11px;line-height:1.1;color:#1d1720}
+.memory-copy span{font-size:9px;color:#8c7d87}
+.memory-arrow{margin-left:auto;font-size:24px;color:#b2a2ac;line-height:1}
+.throwback-photo,.throwback-heart-empty,.throwback-add{display:none!important}
+
+.live-rail{top:148px!important;right:-7px!important;width:178px!important;height:210px!important;z-index:18!important}
+.live-peek-stack{width:78px!important;height:116px!important;right:0!important;top:0!important;border-radius:24px 0 0 24px!important;background:linear-gradient(145deg,#f7c7d8,#d9cff0)!important;box-shadow:0 16px 30px rgba(40,22,37,.18)!important}
+.live-peek-stack .peek-card{width:62px!important;height:88px!important;border-radius:17px!important;right:0!important;top:13px!important}
+.live-peek-stack .peek-label{background:#18141b!important;border-radius:20px 0 0 20px!important;padding:8px 9px!important;writing-mode:vertical-rl!important;transform:rotate(180deg)!important;right:0!important;bottom:0!important;top:30px!important;font-size:8px!important;letter-spacing:1.2px!important;box-shadow:none!important}
+.live-drawer{background:rgba(21,18,22,.97)!important;color:#fff!important;border:1px solid rgba(255,255,255,.08)!important;box-shadow:-20px 24px 60px rgba(0,0,0,.35)!important}
+.live-drawer-head h3,.live-drawer-head p{color:#fff!important}.live-drawer-head p{opacity:.58!important}.live-drawer-head .eyebrow{color:#ff7da1!important}.live-drawer-head>button{background:#29232b!important;color:#fff!important}.live-drawer-tab{background:#17131a!important}
+
+.w-music{margin:28px 42px 20px!important;padding:10px 12px!important;border-radius:21px!important;background:#17141a!important;color:#fff!important;box-shadow:0 18px 36px rgba(25,15,22,.28)!important;border:1px solid rgba(255,255,255,.04)!important}
+.w-music:after{background:radial-gradient(circle,rgba(255,72,126,.19),transparent 68%)!important}
+.music-top{min-height:58px!important}.turntable{width:62px!important;height:62px!important}.vinyl{box-shadow:0 8px 18px rgba(0,0,0,.45)!important}.music-cover-wrap,.music-cover{width:48px!important;height:48px!important}.music-info .title{font-size:12.5px!important}.music-info .subtitle{font-size:10px!important}.m-eyebrow{font-size:8px!important;letter-spacing:1.1px!important;text-transform:uppercase!important;opacity:.65!important}.spotify-connect{background:transparent!important;color:#fff!important;border:0!important;padding:0!important;font-size:8px!important}.music-input-row{margin-top:8px!important}.music-input{height:38px!important;background:#29242b!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:14px!important;color:#fff!important;font-size:12px!important}.send-btn.light{width:38px!important;height:38px!important;border-radius:14px!important;background:#f13f72!important;color:#fff!important}.music-results{bottom:46px!important;background:#1b171d!important;border:1px solid rgba(255,255,255,.08)!important;border-radius:16px!important}
+
+/* CALENDAR: large pink anniversary card, clean white month card */
+#calendar .section-title{font-size:31px!important;margin:9px 3px 5px!important;color:#17141b!important}
+#calendar .screen-subtitle{font-size:12px!important;margin:0 3px 10px!important;color:#b5a9b1!important}
+.countdown-card{position:relative!important;background:linear-gradient(145deg,#f23b70,#f54c79 58%,#ff7e9d)!important;border:0!important;border-radius:27px!important;padding:17px!important;box-shadow:0 20px 42px rgba(209,44,86,.20)!important;color:#fff!important;overflow:hidden!important}
+.countdown-card:after{content:"";position:absolute;inset:auto -45px -60px auto;width:180px;height:180px;border-radius:50%;background:rgba(255,255,255,.09)}
+.countdown-top{gap:10px!important;position:relative;z-index:2}.ring-wrap{width:92px!important;height:92px!important}.ring-center .num{font-size:27px!important}.ring-center .lbl{font-size:8px!important}.countdown-info .date{font-size:17px!important;font-weight:950!important}.countdown-info .sub{font-size:10px!important}.since-pill{font-size:9px!important;padding:6px 9px!important;background:rgba(255,255,255,.20)!important}.anniv-row{position:relative;z-index:2;border-color:rgba(255,255,255,.38)!important;margin-top:10px!important;padding-top:10px!important;font-size:11px!important}.anniv-row input{height:33px!important;width:126px!important;border-radius:999px!important;background:rgba(255,255,255,.10)!important;border:1px solid rgba(255,255,255,.52)!important;color:#fff!important}
+/* calendar no memory controls */
+.throwback-heart,.throwback-add{display:none!important}
+.card.widget[data-wname="Calendrier du mois"]{background:rgba(255,255,255,.94)!important;border:1px solid rgba(255,255,255,.85)!important;border-radius:28px!important;padding:14px!important;box-shadow:0 18px 38px rgba(45,30,39,.12)!important;backdrop-filter:blur(12px)!important}
+.cal-nav .month{font-size:16px!important;font-weight:950!important}.cal-arrow{width:42px!important;height:42px!important;background:#fff!important;border:1px solid #f0dfe5!important}.cal-grid{font-size:13px!important}.day-detail{margin-top:10px!important;border-top:1px solid #f2e6eb!important;padding-top:12px!important}
+
+/* NOTES: the exact stacked-card language */
+#notes .section-title{font-size:31px!important;margin:8px 3px 8px!important}
+.notes-stack-wrap{min-height:390px!important;margin:8px 0 20px!important}
+.notes-stack{min-height:370px!important;padding:7px 3px!important}
+.stack-note{inset:16px 10px auto 10px!important;min-height:300px!important;border-radius:26px!important;padding:19px 17px 15px!important;box-shadow:0 18px 34px rgba(34,22,30,.15)!important;border:1px solid rgba(255,255,255,.72)!important}
+.stack-note:nth-child(1){background:linear-gradient(145deg,#fff8fa,#ffdbe5)!important}.stack-note:nth-child(2){background:#ffe0e9!important}.stack-note:nth-child(3){background:#dcd1f2!important}.stack-note:nth-child(4){background:#fff0cb!important}
+.stack-note h3{font-size:17px!important;margin-bottom:12px!important}.stack-note-body{gap:8px!important}.stack-note-body label,.stack-note-body p{font-size:12px!important}.note-fav{width:32px!important;height:32px!important;background:rgba(255,255,255,.62)!important;color:#a99ba4!important}.note-fav.on{color:#ef3f70!important;background:#fff!important}.notes-add{width:46px!important;height:46px!important;background:#17141b!important}
+
+/* DRAWING: dark canvas exactly like mockup */
+.draw-stack{margin-top:8px!important}.draw-stack .canvas-area{border-radius:25px!important;background:#0f0e12!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 18px 38px rgba(0,0,0,.30)!important;min-height:440px!important}.draw-card-back{background:#dcd1f2!important;opacity:.75!important}.draw-card-back.two{background:#ffdfe8!important}.eraser-btn{background:#fff!important;color:#4b414a!important}.eraser-btn.active{background:#f13f72!important;color:#fff!important}
+
+/* PHOTOS / En direct */
+#photos .section-title{font-size:31px!important;margin:8px 3px 10px!important}.live-widget{height:178px!important;border-radius:28px!important;background:radial-gradient(circle at 75% 90%,rgba(222,21,85,.58),transparent 40%),linear-gradient(145deg,#17131d,#08080b)!important;border:0!important;box-shadow:0 18px 36px rgba(20,12,18,.28)!important}.live-txt{font-size:31px!important;left:28px!important;bottom:34px!important}.live-inset{top:18px!important;right:20px!important;background:transparent!important;border:2px solid #fff!important;color:#fff!important}.live-shutter{right:26px!important;bottom:36px!important;border:3px solid #fff!important}.gal-btn{height:48px!important;border-radius:25px!important;background:#fff!important;border:1px solid #eadfe4!important;box-shadow:0 9px 22px rgba(30,20,27,.10)!important;font-size:13px!important}
+
+/* MODALS / THROWBACK viewer */
+.modal-overlay{background:rgba(11,9,12,.52)!important;backdrop-filter:blur(14px)!important}.throwback-viewer{background:rgba(20,17,21,.82)!important;color:#fff!important;border:1px solid rgba(255,255,255,.12)!important;box-shadow:0 28px 80px rgba(0,0,0,.5)!important;backdrop-filter:blur(22px)!important}.throwback-big-heart{background:#211b21!important}.throwback-caption{color:#fff!important}.throwback-viewer>button{background:transparent!important;color:#fff!important}
+.comp-sheet,.widget-sheet{background:#fffafa!important;border-radius:30px!important;box-shadow:0 28px 80px rgba(15,9,13,.30)!important}.primary{background:#f13f72!important;border-radius:16px!important}.ghost{border-radius:16px!important}
+
+/* WIDGET EDITOR */
+.widget-sheet{max-width:390px!important}.widget-sheet .comp-head{font-weight:950!important}.we-color-row button,.we-swatch{border-radius:50%!important}.we-scale{accent-color:#f13f72!important}
+
+/* NAV: black floating pill + protruding love button */
+.bottomnav{position:fixed!important;left:50%!important;bottom:max(12px,var(--safe-b))!important;transform:translateX(-50%)!important;width:calc(100% - 24px)!important;max-width:470px!important;background:#17141b!important;border:0!important;border-radius:29px!important;padding:5px!important;display:grid!important;grid-template-columns:repeat(3,1fr) 1.3fr repeat(3,1fr)!important;gap:2px!important;box-shadow:0 18px 40px rgba(17,11,15,.34)!important;overflow:visible!important}
+.nav-btn{height:47px!important;color:#9d989e!important;border-radius:18px!important}.nav-btn svg{width:22px!important;height:22px!important}.nav-btn.active{background:#fff!important;color:#17141b!important}.nav-heart{width:82px!important;height:82px!important;margin-top:-25px!important;background:#17141b!important;border:5px solid rgba(255,255,255,.72)!important;color:#fff!important;border-radius:50%!important;box-shadow:0 12px 28px rgba(18,11,16,.38)!important}.nav-heart svg{width:30px!important;height:30px!important;fill:#fff!important}.nav-heart span{font-size:8.5px!important}
+
+/* keep drag/pinch editing visuals invisible until edit mode */
+.widget{will-change:transform}
+@media(max-width:430px){.logo{font-size:29px!important}.screens{padding-left:11px!important;padding-right:11px!important}.home-mini-row{grid-template-columns:108px 1fr!important}.live-rail{right:-8px!important}.w-music{margin-left:40px!important;margin-right:40px!important}.nav-heart{width:80px!important;height:80px!important}}

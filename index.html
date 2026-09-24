@@ -188,6 +188,23 @@
         </div>
       </div>
 
+      <div class="home-mini-row">
+        <div class="home-mini-anniv widget" data-wid="home-anniv" data-wname="Compteur">
+          <div class="mini-heart-shape"><span id="home-countdown-days">--</span><small>jours</small></div>
+          <div class="mini-anniv-copy"><strong id="home-anniv-date">18 mai</strong><span>notre anniversaire</span></div>
+          <span class="mini-fav">♡</span>
+        </div>
+        <button class="home-memory widget" data-wid="home-memory" data-wname="Memory" onclick="openThrowback()" aria-label="Souvenir d'il y a un an">
+          <span class="memory-thumb" id="home-memory-thumb"></span>
+          <span class="memory-copy"><b>Il y a 1 an</b><span>jour pour jour</span></span>
+          <span class="memory-arrow">›</span>
+        </button>
+        <span class="throwback-photo" id="throwback-photo" aria-hidden="true"></span>
+        <span class="throwback-heart-empty" aria-hidden="true"></span>
+        <input type="file" id="throwback-file" accept="image/*" hidden onchange="saveThrowback(event)">
+        <button class="throwback-add" onclick="$('throwback-file').click()" aria-label="Ajouter un souvenir">+</button>
+      </div>
+
       <div class="mood-popover" id="mood-popover" hidden>
         <div class="mood-popover-head">
           <span>Mon mood</span>
@@ -305,12 +322,6 @@
             <div class="since-pill" id="since-pill"></div>
           </div>
         </div>
-        <button class="throwback-heart" id="throwback-heart" onclick="openThrowback()" aria-label="Ouvrir le souvenir">
-          <span class="throwback-photo" id="throwback-photo"></span>
-          <span class="throwback-heart-glyph">♥</span>
-        </button>
-        <input type="file" id="throwback-file" accept="image/*" hidden onchange="saveThrowback(event)">
-        <button class="throwback-add" onclick="$('throwback-file').click()" aria-label="Ajouter un souvenir">+</button>
         <div class="anniv-row">
           <span>Notre anniversaire <span class="mini-heart" aria-hidden="true">♥</span></span>
           <input type="date" id="anniversary-date">
@@ -486,6 +497,6 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
 <script src="spotify-config.js"></script>
-<script src="app.js?v=16"></script>
+<script src="app.js?v=20"></script>
 </body>
 </html>
