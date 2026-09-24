@@ -1757,3 +1757,53 @@ body.edit-mode .widget{overflow:visible!important}
   .standalone-drawing-canvas-wrap{min-height:180px!important;border-radius:21px!important}
   .widget-edit-handle{top:5px!important;right:5px!important;width:32px!important;height:32px!important}
 }
+
+/* v30 — panneau dessin compact : laisse l'écran respirer et les widgets autour accessibles */
+.standalone-drawing-overlay{
+  padding:16px!important;
+  background:rgba(38,24,32,.10)!important;
+  backdrop-filter:blur(7px)!important;
+  pointer-events:none!important;
+}
+.standalone-drawing-sheet{
+  width:min(92vw,390px)!important;
+  height:min(70dvh,620px)!important;
+  max-height:620px!important;
+  border-radius:28px!important;
+  padding:13px!important;
+  box-shadow:0 22px 60px rgba(39,21,33,.20)!important;
+  pointer-events:auto!important;
+}
+.standalone-drawing-head{padding:1px 1px 9px!important;gap:9px!important}
+.standalone-drawing-eyebrow{font-size:7px!important;margin-bottom:3px!important}
+.standalone-drawing-head h3{font-size:18px!important}
+.standalone-drawing-head p{font-size:9px!important;margin-top:4px!important}
+.standalone-drawing-close{width:32px!important;height:32px!important;flex-basis:32px!important;font-size:20px!important}
+.standalone-drawing-canvas-wrap{
+  min-height:0!important;
+  height:auto!important;
+  flex:1 1 auto!important;
+  border-radius:20px!important;
+}
+.standalone-drawing-toolbar{padding-top:8px!important}
+.standalone-tool-row{gap:5px!important;padding-bottom:5px!important}
+.standalone-tool{min-width:57px!important;height:39px!important;border-radius:12px!important;font-size:7.5px!important}
+.standalone-tool i{width:20px!important}
+.standalone-color-row{gap:7px!important;padding:1px 2px 7px!important}
+.standalone-color{width:21px!important;height:21px!important;flex-basis:21px!important}
+.standalone-drawing-actions{padding-top:0!important}
+.standalone-round-btn{width:35px!important;height:35px!important;font-size:16px!important}
+.standalone-send{min-width:108px!important;height:39px!important;border-radius:13px!important;font-size:12px!important}
+.standalone-send span{font-size:14px!important}
+
+@media(max-width:430px){
+  .standalone-drawing-overlay{padding:12px!important}
+  .standalone-drawing-sheet{
+    width:min(92vw,360px)!important;
+    height:min(70dvh,570px)!important;
+    max-height:570px!important;
+    border-radius:25px!important;
+    padding:11px!important;
+  }
+  .standalone-drawing-canvas-wrap{min-height:0!important;border-radius:18px!important}
+}
