@@ -1,5 +1,5 @@
-const CACHE = "you-and-me-v13";
-const FILES = ["./", "./index.html", "./style.css", "./app.js", "./firebase-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
+const CACHE = "you-and-me-v14";
+const FILES = ["./", "./index.html", "./style.css", "./app.js", "./firebase-config.js", "./spotify-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
   self.skipWaiting();

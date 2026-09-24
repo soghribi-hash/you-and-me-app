@@ -27,6 +27,7 @@ let currentColor = '#D62E63';
 let currentWidth = 2;
 let currentAlpha = 1;
 let drawing = false;
+let eraserOn = false;
 let canvasDirty = false;
 let lastX = 0, lastY = 0;
 let notifOn = localStorage.getItem('yam_notif') === 'on';
@@ -205,6 +206,7 @@ function initFirebase() {
   listenHeart();
   listenMusic();
   listenAnniversary();
+  listenThrowback();
   listenSharedAppearance();
   listenCalendar();
   listenNotes();
@@ -424,61 +426,43 @@ function listenHeart() {
   });
 }
 
-/* ---------- MUSIQUE ---------- */
+/* ---------- MUSIQUE / SPOTIFY ---------- */
 let currentMusic = null, musicBase = false, lastMusicTs = 0;
-function normalizeUrl(s) {
-  if (/^https?:\/\//i.test(s)) return s;
-  if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(s)) return 'https://' + s;
-  return null;
+let spotifyToken = null, spotifyTokenExpires = 0, spotifyResults = [], spotifySelected = null;
+function normalizeUrl(s) { if (/^https?:\/\//i.test(s)) return s; if (/^[\w-]+(\.[\w-]+)+(\/\S*)?$/.test(s)) return 'https://' + s; return null; }
+function musicLabel(url) { const u = normalizeUrl(url); if (!u) return url; try { const h = new URL(u).hostname.replace(/^www\./, ''); if (/spotify/.test(h)) return 'Spotify'; if (/youtu/.test(h)) return 'YouTube'; return h; } catch(e) { return url; } }
+function spotifyChallenge(len=64){ const chars='ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-._~'; let out=''; const a=new Uint8Array(len); crypto.getRandomValues(a); a.forEach(v=>out+=chars[v%chars.length]); return out; }
+async function sha256Base64url(str){ const data=new TextEncoder().encode(str); const hash=await crypto.subtle.digest('SHA-256',data); let b=''; new Uint8Array(hash).forEach(x=>b+=String.fromCharCode(x)); return btoa(b).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+async function connectSpotify(){
+  if (!window.SPOTIFY_CLIENT_ID) { toast('Ajoute ton Client ID Spotify dans spotify-config.js'); return false; }
+  const verifier=spotifyChallenge(); const challenge=await sha256Base64url(verifier); sessionStorage.setItem('yam_spotify_verifier',verifier);
+  const state=spotifyChallenge(24); sessionStorage.setItem('yam_spotify_state',state);
+  const params=new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,response_type:'code',redirect_uri:SPOTIFY_REDIRECT_URI,code_challenge_method:'S256',code_challenge:challenge,state});
+  location.href='https://accounts.spotify.com/authorize?'+params.toString(); return true;
 }
-function musicLabel(url) {
-  const u = normalizeUrl(url);
-  if (!u) return url;
-  try {
-    const h = new URL(u).hostname.replace(/^www\./, '');
-    if (/spotify/.test(h)) return 'Lien Spotify';
-    if (/youtu/.test(h)) return 'Lien YouTube';
-    if (/deezer/.test(h)) return 'Lien Deezer';
-    if (/apple/.test(h)) return 'Lien Apple Music';
-    return h;
-  } catch (e) { return url; }
+async function finishSpotifyAuth(){
+  const p=new URLSearchParams(location.search), code=p.get('code'), state=p.get('state'); if(!code) return;
+  if(state!==sessionStorage.getItem('yam_spotify_state')) return;
+  const verifier=sessionStorage.getItem('yam_spotify_verifier');
+  try { const r=await fetch('https://accounts.spotify.com/api/token',{method:'POST',headers:{'Content-Type':'application/x-www-form-urlencoded'},body:new URLSearchParams({client_id:SPOTIFY_CLIENT_ID,grant_type:'authorization_code',code,redirect_uri:SPOTIFY_REDIRECT_URI,code_verifier:verifier})}); const d=await r.json(); if(d.access_token){ spotifyToken=d.access_token; spotifyTokenExpires=Date.now()+((d.expires_in||3600)-60)*1000; sessionStorage.setItem('yam_spotify_token',d.access_token); } } catch(e){}
+  history.replaceState({},document.title,location.pathname); sessionStorage.removeItem('yam_spotify_verifier'); sessionStorage.removeItem('yam_spotify_state');
 }
-function shareMusic() {
-  const input = $('music-input');
-  const val = input.value.trim();
-  if (!val || !roomRef) return;
-  roomRef.child('music').set({ url: val, from: myRole, ts: Date.now() });
-  input.value = '';
-  toast('Musique envoyée à ' + otherName);
+async function getSpotifyToken(){ if(spotifyToken && Date.now()<spotifyTokenExpires) return spotifyToken; const cached=sessionStorage.getItem('yam_spotify_token'); if(cached){spotifyToken=cached;spotifyTokenExpires=Date.now()+3300000;return cached;} await finishSpotifyAuth(); return spotifyToken; }
+function renderMusicResults(items){ const box=$('music-results'); if(!box) return; if(!items.length){box.innerHTML='';box.classList.remove('show');return;} box.innerHTML=items.slice(0,7).map((t,i)=>'<button class="music-result" onclick="chooseMusic('+i+')"><img src="'+escapeHtml(t.album.images?.[2]?.url||t.album.images?.[0]?.url||'')+'"><span><b>'+escapeHtml(t.name)+'</b><small>'+escapeHtml(t.artists.map(a=>a.name).join(', '))+'</small></span></button>').join(''); box.classList.add('show'); }
+async function searchSpotify(q){
+  q=q.trim(); if(q.length<2){renderMusicResults([]);return;}
+  const token=await getSpotifyToken();
+  if(!token){ renderMusicResults([{name:'Ouvrir la recherche Spotify',artists:[{name:q}],album:{images:[]},external_urls:{spotify:'https://open.spotify.com/search/'+encodeURIComponent(q)}}]); spotifyResults=[renderFallbackTrack(q)]; return; }
+  try{ const r=await fetch('https://api.spotify.com/v1/search?'+new URLSearchParams({q,type:'track',limit:'8'}),{headers:{Authorization:'Bearer '+token}}); if(!r.ok) throw new Error('spotify'); const d=await r.json(); spotifyResults=d.tracks.items||[]; renderMusicResults(spotifyResults); }catch(e){renderMusicResults([]);}
 }
-function openMusic() {
-  const u = currentMusic && normalizeUrl(currentMusic.url);
-  if (u) window.open(u, '_blank', 'noopener');
-}
-function renderMusic() {
-  if (currentMusic && currentMusic.url) {
-    $('music-title').textContent = musicLabel(currentMusic.url);
-    const canOpen = !!normalizeUrl(currentMusic.url);
-    $('music-subtitle').textContent = 'Partagé par ' + (currentMusic.from === myRole ? 'toi' : nameOf(currentMusic.from)) + ' \u00b7 ' + relativeTime(currentMusic.ts) + (canOpen ? ' \u00b7 touche pour écouter' : '');
-  } else {
-    $('music-title').textContent = "Rien de partagé pour l'instant";
-    $('music-subtitle').textContent = 'Envoie-lui un son';
-  }
-}
-function listenMusic() {
-  onValue(roomRef.child('music'), snap => {
-    const data = snap.val();
-    currentMusic = data;
-    renderMusic();
-    if (musicBase && data && data.from !== myRole && data.ts !== lastMusicTs) notify(nameOf(data.from) + ' a partagé une musique', 'home');
-    lastMusicTs = data ? data.ts : 0;
-    musicBase = true;
-  });
-}
-setInterval(() => {
-  if (currentMusic) renderMusic();
-}, 30000);
-
+function renderFallbackTrack(q){ return {name:q,artists:[{name:'Spotify'}],album:{images:[]},external_urls:{spotify:'https://open.spotify.com/search/'+encodeURIComponent(q)}}; }
+function chooseMusic(i){ spotifySelected=spotifyResults[i]||null; if(!spotifySelected)return; $('music-input').value=spotifySelected.name+' — '+spotifySelected.artists.map(a=>a.name).join(', '); renderMusicResults([]); }
+function shareMusic(){ const input=$('music-input'); const val=input.value.trim(); if(!val||!roomRef)return; const t=spotifySelected; const payload=t?{url:t.external_urls?.spotify||('https://open.spotify.com/search/'+encodeURIComponent(val)),title:t.name,artist:t.artists.map(a=>a.name).join(', '),cover:t.album.images?.[1]?.url||t.album.images?.[0]?.url||'',from:myRole,ts:Date.now()}:{url:normalizeUrl(val)||('https://open.spotify.com/search/'+encodeURIComponent(val)),title:val,artist:'Spotify',cover:'',from:myRole,ts:Date.now()}; roomRef.child('music').set(payload); input.value=''; spotifySelected=null; toast('Musique envoyée à '+otherName); }
+function openMusic(){ const u=currentMusic&&normalizeUrl(currentMusic.url); if(u) window.open(u,'_blank','noopener'); }
+function renderMusic(){ const m=currentMusic; if(m&&m.url){ $('music-title').textContent=m.title||musicLabel(m.url); $('music-subtitle').textContent=(m.artist?m.artist+' · ':'')+'Partagé par '+(m.from===myRole?'toi':nameOf(m.from)); const img=$('music-cover'); if(img){img.src=m.cover||'';img.style.display=m.cover?'block':'none';} } else { $('music-title').textContent="Rien de partagé pour l'instant"; $('music-subtitle').textContent='Envoie-lui un son'; const img=$('music-cover'); if(img)img.style.display='none'; } }
+function listenMusic(){ onValue(roomRef.child('music'),snap=>{const data=snap.val();currentMusic=data;renderMusic();if(musicBase&&data&&data.from!==myRole&&data.ts!==lastMusicTs)notify(nameOf(data.from)+' a partagé une musique','home');lastMusicTs=data?data.ts:0;musicBase=true;}); }
+let musicSearchTimer=null; document.addEventListener('input',e=>{if(e.target.id==='music-input'){clearTimeout(musicSearchTimer);spotifySelected=null;musicSearchTimer=setTimeout(()=>searchSpotify(e.target.value),260);}});
+setInterval(()=>{if(currentMusic)renderMusic();},30000);
 /* ---------- ANNIVERSAIRE ---------- */
 let annivBase = false, lastAnnivSig = null;
 function listenAnniversary() {
@@ -530,6 +514,14 @@ function renderCountdown(dateStr) {
   arc.setAttribute('stroke-dasharray', total);
   arc.setAttribute('stroke-dashoffset', total * (1 - progress));
 }
+
+/* ---------- THROWBACK ---------- */
+let throwbackData=null;
+function listenThrowback(){ onValue(roomRef.child('throwback'),snap=>{throwbackData=snap.val()||null;renderThrowback();}); }
+function renderThrowback(){const el=$('throwback-photo');if(!el)return;if(throwbackData?.img){el.style.backgroundImage='url('+throwbackData.img+')';el.classList.add('has');}else{el.style.backgroundImage='';el.classList.remove('has');}}
+function openThrowback(){if(throwbackData?.img){$('throwback-img').src=throwbackData.img;$('throwback-viewer').classList.remove('hidden');}else $('throwback-file').click();}
+function closeThrowback(){$('throwback-viewer').classList.add('hidden');}
+function saveThrowback(e){const file=e.target.files?.[0];if(!file||!roomRef)return;const img=new Image();const r=new FileReader();r.onload=()=>{img.onload=()=>{const max=1200,scale=Math.min(1,max/img.width,max/img.height),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const data=c.toDataURL('image/jpeg',.72);roomRef.child('throwback').set({img:data,from:myRole,ts:Date.now()});e.target.value='';toast('Souvenir ajouté');};img.src=r.result;};r.readAsDataURL(file);}
 
 /* ---------- CALENDRIER (plusieurs annotations par jour, par l'un ou l'autre) ---------- */
 let calendarBase = false;
@@ -671,7 +663,7 @@ function getPos(e) {
 }
 function strokeTo(p) {
   ctx.globalAlpha = currentAlpha;
-  ctx.strokeStyle = currentColor;
+  ctx.strokeStyle = eraserOn ? '#ffffff' : currentColor;
   ctx.lineWidth = currentWidth;
   ctx.lineCap = 'round';
   ctx.beginPath();
@@ -708,6 +700,7 @@ $('color-row').addEventListener('click', e => {
   btn.classList.add('selected');
   currentColor = btn.dataset.color;
 });
+function toggleEraser(){eraserOn=!eraserOn;document.body.classList.toggle('eraser-on',eraserOn);$('eraser-btn')?.classList.toggle('active',eraserOn);}
 function clearCanvas() {
   const r = canvas.getBoundingClientRect();
   ctx.setTransform(2, 0, 0, 2, 0, 0);
@@ -715,54 +708,21 @@ function clearCanvas() {
   canvasDirty = false;
 }
 
-function sendNote() {
-  const text = $('note-word').value.trim();
-  if (!text && !canvasDirty) { toast('Dessine ou écris quelque chose'); return; }
-  if (!roomRef) return;
-  const note = { text, ts: Date.now() };
-  if (canvasDirty) note.img = canvas.toDataURL('image/jpeg', 0.6);
-  roomRef.child('notes/' + myRole).set(note);
-  $('note-word').value = '';
-  toast('Note envoyée à ' + otherName);
-}
-
-const noteData = { a: null, b: null };
-const noteBase = { a: false, b: false };
-const lastNoteTs = { a: 0, b: 0 };
-function renderRecvNote() {
-  const d = noteData[otherRole];
-  const box = $('recv-note');
-  if (!d) { box.style.display = 'none'; return; }
-  box.style.display = 'flex';
-  $('recv-thumb').style.backgroundImage = d.img ? 'url(' + d.img + ')' : '';
-  $('recv-title').textContent = 'Note de ' + otherName;
-  $('recv-sub').textContent = (d.text ? cut(d.text, 38) + ' \u00b7 ' : '') + relativeTime(d.ts);
-}
-function listenNotes() {
-  ['a', 'b'].forEach(role => {
-    onValue(roomRef.child('notes/' + role), snap => {
-      const data = snap.val();
-      noteData[role] = data;
-      renderRecvNote();
-      if (role === otherRole && noteBase[role] && data && data.ts !== lastNoteTs[role]) {
-        notify(otherName + ' t\u2019a envoy\u00e9 une note dessin\u00e9e', 'notes');
-      }
-      lastNoteTs[role] = data ? data.ts : 0;
-      noteBase[role] = true;
-    });
-  });
-}
-function openNote(role) {
-  const data = noteData[role];
-  if (!data) { toast(role === myRole ? 'Tu n\u2019as pas encore de note' : otherName + ' n\u2019a pas encore de note'); return; }
-  $('nv-head').textContent = (role === myRole ? 'Ta note' : 'Note de ' + nameOf(role)) + ' \u00b7 ' + relativeTime(data.ts);
-  const img = $('nv-img');
-  if (data.img) { img.src = data.img; img.style.display = 'block'; } else { img.style.display = 'none'; }
-  $('nv-text').textContent = data.text || '';
-  $('note-viewer').classList.remove('hidden');
-}
-function closeNote() { $('note-viewer').classList.add('hidden'); }
-
+function openNoteEditor(){ $('note-editor').classList.remove('hidden'); $('note-editor-title').value=''; $('note-editor-blocks').innerHTML=''; addNoteBlock('text'); const send=document.querySelector('#note-editor .primary'); send.textContent='Envoyer'; send.onclick=sendStructuredNote; }
+function closeNoteEditor(){ $('note-editor').classList.add('hidden'); }
+function addNoteBlock(type){ const box=$('note-editor-blocks'); const row=document.createElement('div'); row.className='note-block'; if(type==='check') row.innerHTML='<input type="checkbox"><input class="nb-text" placeholder="À faire…"><button onclick="this.parentElement.remove()">×</button>'; else if(type==='image') row.innerHTML='<input type="file" accept="image/*" onchange="noteImagePreview(event)"><span class="nb-file">Photo</span><button onclick="this.parentElement.remove()">×</button>'; else row.innerHTML='<textarea class="nb-text" rows="2" placeholder="Écris ici…"></textarea><button onclick="this.parentElement.remove()">×</button>'; box.appendChild(row); }
+function noteImagePreview(e){ const f=e.target.files?.[0]; if(f){const r=new FileReader();r.onload=()=>{e.target.dataset.data=r.result;};r.readAsDataURL(f);} }
+async function sendStructuredNote(){ if(!roomRef)return; const title=$('note-editor-title').value.trim()||'Note'; const blocks=[]; for(const row of document.querySelectorAll('#note-editor-blocks .note-block')){ const cb=row.querySelector('input[type=checkbox]'); const text=row.querySelector('.nb-text'); const file=row.querySelector('input[type=file]'); if(cb||text){ const val=(text?.value||'').trim(); if(val)blocks.push({type:cb?'check':'text',text:val,checked:!!cb?.checked}); } else if(file?.dataset.data) blocks.push({type:'image',src:file.dataset.data}); } if(!blocks.length){toast('Écris quelque chose');return;} const ref=roomRef.child('notesInbox/'+otherRole).push(); await ref.set({title,blocks,from:myRole,ts:Date.now(),favorite:false}); closeNoteEditor(); toast('Note envoyée à '+otherName); }
+let structuredNotes=[];
+function renderStructuredNotes(){ const box=$('notes-stack'); if(!box)return; const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0)); if(!notes.length){box.innerHTML='<div class="notes-empty">+</div>';return;} box.innerHTML=notes.map((n,i)=>'<article class="stack-note" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg" onclick="openStructuredNote(\''+n.id+'\')"><button class="note-fav '+(n.favorite?'on':'')+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')">♥</button><h3>'+escapeHtml(n.title)+'</h3><div class="stack-note-body">'+n.blocks.slice(0,5).map(b=>b.type==='check'?'<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\',this.checked,this)"><span>'+escapeHtml(b.text)+'</span></label>':b.type==='image'?'<img src="'+b.src+'">':'<p>'+escapeHtml(b.text)+'</p>').join('')+'</div><small>'+relativeTime(n.ts)+'</small></article>').join(''); }
+function listenNotes(){ onValue(roomRef.child('notesInbox/'+myRole),snap=>{const v=snap.val()||{};structuredNotes=Object.keys(v).map(id=>Object.assign({id},v[id])).filter(n=>n);renderStructuredNotes();}); }
+function updateNote(id,patch){ const idx=structuredNotes.findIndex(n=>n.id===id); if(idx<0)return; const next=Object.assign({},structuredNotes[idx],patch); structuredNotes[idx]=next; roomRef.child('notesInbox/'+myRole+'/'+id).update(patch); renderStructuredNotes(); }
+function toggleNoteFavorite(id){const n=structuredNotes.find(x=>x.id===id);if(n)updateNote(id,{favorite:!n.favorite});}
+function toggleNoteCheck(id,checked,el){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; let ix=0; const blocks=(n.blocks||[]).map(b=>{const x=Object.assign({},b); if(x.type==='check'){ if(el){ const labels=[...el.closest('.stack-note').querySelectorAll('input[type=checkbox]')]; if(labels[ix]===el)x.checked=checked; ix++; } } return x; }); updateNote(id,{blocks}); }
+function openStructuredNote(id){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; $('note-editor').classList.remove('hidden'); $('note-editor-title').value=n.title||''; const box=$('note-editor-blocks');box.innerHTML='';(n.blocks||[]).forEach(b=>{addNoteBlock(b.type);const row=box.lastElementChild;if(b.type==='check'){row.querySelector('input[type=checkbox]').checked=!!b.checked;row.querySelector('.nb-text').value=b.text||'';}else if(b.type==='text')row.querySelector('.nb-text').value=b.text||'';else if(b.type==='image')row.querySelector('.nb-file').textContent='Photo ajoutée';}); const send=document.querySelector('#note-editor .primary'); send.textContent='Enregistrer';send.onclick=()=>saveEditedStructuredNote(id); }
+async function saveEditedStructuredNote(id){ const n=structuredNotes.find(x=>x.id===id); if(!n)return; const title=$('note-editor-title').value.trim()||'Note'; const blocks=[];document.querySelectorAll('#note-editor-blocks .note-block').forEach(row=>{const cb=row.querySelector('input[type=checkbox]'),text=row.querySelector('.nb-text'),file=row.querySelector('input[type=file]');if(cb||text){const val=(text?.value||'').trim();if(val)blocks.push({type:cb?'check':'text',text:val,checked:!!cb?.checked});}else if(file?.dataset.data)blocks.push({type:'image',src:file.dataset.data});}); await roomRef.child('notesInbox/'+myRole+'/'+id).update({title,blocks});closeNoteEditor();document.querySelector('#note-editor .primary').textContent='Envoyer';document.querySelector('#note-editor .primary').onclick=sendStructuredNote;}
+function sendNote(){ sendStructuredNote(); }
+function sendDrawingNote(){ const text=$('note-word').value.trim(); if(!text&&!canvasDirty){toast('Dessine ou écris quelque chose');return;} if(!roomRef)return;const note={title:'Dessin',blocks:(text?[{type:'text',text}]:[]).concat(canvasDirty?[{type:'image',src:canvas.toDataURL('image/jpeg',0.6)}]:[]),from:myRole,ts:Date.now()};roomRef.child('notesInbox/'+otherRole).push().set(note);$('note-word').value='';clearCanvas();toast('Dessin envoyé à '+otherName); }
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
 const NOTE_TTL = 24 * 3600 * 1000;
@@ -1595,9 +1555,12 @@ function initWidgetSystem() {
 
   let pressTimer = null, pressStart = null, suppressClickOn = null;
   const LONG_PRESS_MS = 480;
+  const pinch = {wid:null, pts:new Map(), base:100, dist:0};
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
-    if (editMode) { startWidgetDrag(e, w); return; }
+    if (editMode) {
+      if(w && e.pointerType==='touch'){ pinch.pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(pinch.pts.size===1){pinch.wid=w.dataset.wid;pinch.base=Number(widgetConfigs[pinch.wid]?.scale||100);pinch.dist=0;} if(pinch.pts.size>=2){ const a=[...pinch.pts.values()][0],b=[...pinch.pts.values()][1];pinch.dist=Math.hypot(a.x-b.x,a.y-b.y);dragState=null; e.preventDefault(); return; } }
+      startWidgetDrag(e, w); return; }
     if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     pressStart = { x: e.clientX, y: e.clientY, w };
@@ -1610,11 +1573,12 @@ function initWidgetSystem() {
     }, LONG_PRESS_MS);
   }, { passive: false });
   document.addEventListener('pointermove', e => {
+    if (editMode && pinch.pts.has(e.pointerId)){ pinch.pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(pinch.pts.size>=2){const a=[...pinch.pts.values()][0],b=[...pinch.pts.values()][1],d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch.dist>0){const scale=Math.max(60,Math.min(150,pinch.base*(d/pinch.dist)));saveWidgetConfig(pinch.wid,{scale:Math.round(scale)});}e.preventDefault();return;} }
     if (dragState) { moveWidgetDrag(e); return; }
     if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) { clearTimeout(pressTimer); pressStart = null; }
   }, { passive: false });
-  document.addEventListener('pointerup', () => { clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
-  document.addEventListener('pointercancel', () => { clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
+  document.addEventListener('pointerup', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
+  document.addEventListener('pointercancel', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
 
   document.addEventListener('click', e => {
     if (e.target.closest('#widget-editor')) return;

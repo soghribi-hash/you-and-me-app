@@ -24,6 +24,7 @@
     <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.800 12 4l8 6.800V19a1.500 1.500 0 0 1-1.500 1.500H15v-5.500H9v5.500H5.500A1.500 1.500 0 0 1 4 19z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/></symbol>
     <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.500" y="5" width="17" height="15.500" rx="4" fill="none" stroke="currentColor" stroke-width="1.900"/><path d="M3.500 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round"/></symbol>
     <symbol id="i-note" viewBox="0 0 24 24"><path d="M4.500 19.500 5.300 15 16.500 3.800a2 2 0 0 1 2.800 0l.9.900a2 2 0 0 1 0 2.800L9 18.700z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/><path d="M14.500 5.800l3.700 3.700" stroke="currentColor" stroke-width="1.900"/></symbol>
+    <symbol id="i-journal" viewBox="0 0 24 24"><path d="M6 4.5h11a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2v-12a2 2 0 0 1 2-2Z" fill="none" stroke="currentColor" stroke-width="1.9"/><path d="M8 8h8M8 12h8M8 16h5" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round"/></symbol>
     <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 4C7.300 4 3.500 7.300 3.500 11.500c0 2.200 1 4.100 2.700 5.500L5.500 20.500l3.700-1.800c.9.200 1.900.3 2.800.3 4.700 0 8.500-3.300 8.500-7.500S16.700 4 12 4z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/></symbol>
     <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8.500A2.500 2.500 0 0 1 6.500 6h1.300l1.100-1.700c.2-.3.6-.5 1-.5h4.200c.4 0 .8.200 1 .5L16.200 6h1.300A2.500 2.500 0 0 1 20 8.500v8A2.500 2.500 0 0 1 17.500 19h-11A2.500 2.500 0 0 1 4 16.500z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/><circle cx="12" cy="12.500" r="3.300" fill="none" stroke="currentColor" stroke-width="1.900"/></symbol>
     <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.900"/><path d="M12 3.500v2.200M12 18.300v2.200M3.500 12h2.200M18.300 12h2.200M6 6l1.600 1.600M16.400 16.400 18 18M18 6l-1.600 1.600M7.600 16.400 6 18" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round"/><circle cx="12" cy="12" r="7.300" fill="none" stroke="currentColor" stroke-width="1.900"/></symbol>
@@ -92,16 +93,6 @@
         <button class="ghost" onclick="closeAvatarCropper()">Annuler</button>
         <button class="primary" onclick="saveAvatarCrop()">Valider</button>
       </div>
-    </div>
-  </div>
-
-  <!-- LECTEUR DE NOTE DESSINÉE -->
-  <div class="modal-overlay hidden" id="note-viewer" onclick="closeNote()">
-    <div class="modal note-card" onclick="event.stopPropagation()">
-      <div class="nv-head" id="nv-head"></div>
-      <img id="nv-img" alt="Dessin de la note">
-      <div class="nv-text" id="nv-text"></div>
-      <button class="primary" onclick="closeNote()">Fermer</button>
     </div>
   </div>
 
@@ -269,14 +260,14 @@
               <rect x="119" y="6" width="7" height="12" rx="2" transform="rotate(22 122 12)" fill="#e9d9df"/>
             </svg>
           </div>
-          <div class="music-info">
+          <div class="music-cover-wrap"><img id="music-cover" class="music-cover" alt=""></div><div class="music-info">
             <div class="m-eyebrow">Musique du moment</div>
             <div class="title" id="music-title">Rien de partagé pour l'instant</div>
             <div class="subtitle" id="music-subtitle">Envoie-lui un son</div>
           </div>
         </div>
         <div class="music-input-row">
-          <input class="music-input" id="music-input" placeholder="Lien Spotify ou YouTube" autocapitalize="off" autocorrect="off">
+          <div class="music-search-wrap"><input class="music-input" id="music-input" placeholder="Rechercher un son" autocapitalize="off" autocorrect="off" autocomplete="off"><div class="music-results" id="music-results"></div></div>
           <button class="send-btn light" onclick="shareMusic()" aria-label="Envoyer la musique"><svg><use href="#i-send"/></svg></button>
         </div>
       </div>
@@ -314,6 +305,12 @@
             <div class="since-pill" id="since-pill"></div>
           </div>
         </div>
+        <button class="throwback-heart" id="throwback-heart" onclick="openThrowback()" aria-label="Ouvrir le souvenir">
+          <span class="throwback-photo" id="throwback-photo"></span>
+          <span class="throwback-heart-glyph">♥</span>
+        </button>
+        <input type="file" id="throwback-file" accept="image/*" hidden onchange="saveThrowback(event)">
+        <button class="throwback-add" onclick="$('throwback-file').click()" aria-label="Ajouter un souvenir">+</button>
         <div class="anniv-row">
           <span>Notre anniversaire <span class="mini-heart" aria-hidden="true">♥</span></span>
           <input type="date" id="anniversary-date">
@@ -342,44 +339,44 @@
       </div>
     </div>
 
-    <!-- NOTES (dessin) -->
+    <!-- NOTES / JOURNAL -->
     <div class="screen" id="notes">
-      <h2 class="section-title" data-pinned="true">Notes</h2>
-      <div class="screen-subtitle" data-pinned="true">Un coin pour laisser une trace, même toute petite.</div>
+      <div class="notes-stack-wrap widget" data-wid="notes-stack" data-wname="Journal">
+        <div class="notes-stack" id="notes-stack"></div>
+        <button class="notes-add" onclick="openNoteEditor()" aria-label="Nouvelle note">+</button>
+      </div>
 
-      <button class="recv-note" id="recv-note" onclick="openNote(otherRole)" style="display:none">
-        <span class="recv-thumb" id="recv-thumb"></span>
-        <span class="recv-txt"><b id="recv-title">Note</b><small id="recv-sub"></small></span>
-      </button>
-
-      <div class="canvas-area widget" data-wid="notes-canvas" data-wname="Zone de dessin">
-        <button class="trash" onclick="clearCanvas()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button>
-        <canvas id="draw-canvas"></canvas>
-      </div>
-      <div class="tool-row" id="tool-row">
-        <button class="tool active" data-width="2" data-alpha="1"><i style="--w:2px"></i><span class="name">Feutre fin</span></button>
-        <button class="tool" data-width="6" data-alpha="1"><i style="--w:6px"></i><span class="name">Pinceau</span></button>
-        <button class="tool" data-width="10" data-alpha="1"><i style="--w:10px"></i><span class="name">Marqueur</span></button>
-        <button class="tool" data-width="16" data-alpha="0.35"><i style="--w:16px;opacity:.4"></i><span class="name">Surligneur</span></button>
-      </div>
-      <div class="color-row" id="color-row">
-        <button class="swatch selected" style="background:#F0245B" data-color="#F0245B" aria-label="Cerise"></button>
-        <button class="swatch" style="background:#FF9DB4" data-color="#FF9DB4" aria-label="Rose"></button>
-        <button class="swatch" style="background:#A3123F" data-color="#A3123F" aria-label="Bordeaux"></button>
-        <button class="swatch" style="background:#FF9A55" data-color="#FF9A55" aria-label="Orange"></button>
-        <button class="swatch" style="background:#F5CB4F" data-color="#F5CB4F" aria-label="Jaune"></button>
-        <button class="swatch" style="background:#3FA774" data-color="#3FA774" aria-label="Vert"></button>
-        <button class="swatch" style="background:#3FB8C4" data-color="#3FB8C4" aria-label="Turquoise"></button>
-        <button class="swatch" style="background:#5B8CE0" data-color="#5B8CE0" aria-label="Bleu"></button>
-        <button class="swatch" style="background:#8A6FE0" data-color="#8A6FE0" aria-label="Violet"></button>
-        <button class="swatch" style="background:#16121A" data-color="#16121A" aria-label="Noir"></button>
-        <button class="swatch" style="background:#fff;border:1px solid var(--line);" data-color="#ffffff" title="Gomme" aria-label="Gomme"></button>
-      </div>
-      <div class="note-input-row">
-        <input id="note-word" placeholder="Écris un petit mot">
-        <button class="send-btn" onclick="sendNote()" aria-label="Envoyer la note"><svg><use href="#i-send"/></svg></button>
+      <div class="draw-stack widget" data-wid="notes-canvas" data-wname="Dessin">
+        <div class="draw-card-back"></div><div class="draw-card-back two"></div>
+        <div class="canvas-area">
+          <button class="eraser-btn" id="eraser-btn" onclick="toggleEraser()" aria-label="Gomme">⌫</button>
+          <button class="trash" onclick="clearCanvas()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button>
+          <canvas id="draw-canvas"></canvas>
+        </div>
+        <div class="tool-row" id="tool-row">
+          <button class="tool active" data-width="2" data-alpha="1"><i style="--w:2px"></i><span class="name">Feutre fin</span></button>
+          <button class="tool" data-width="6" data-alpha="1"><i style="--w:6px"></i><span class="name">Pinceau</span></button>
+          <button class="tool" data-width="10" data-alpha="1"><i style="--w:10px"></i><span class="name">Marqueur</span></button>
+          <button class="tool" data-width="16" data-alpha="0.35"><i style="--w:16px;opacity:.4"></i><span class="name">Surligneur</span></button>
+        </div>
+        <div class="color-row" id="color-row">
+          <button class="swatch selected" style="background:#F0245B" data-color="#F0245B"></button><button class="swatch" style="background:#FF9DB4" data-color="#FF9DB4"></button><button class="swatch" style="background:#FF9A55" data-color="#FF9A55"></button><button class="swatch" style="background:#F5CB4F" data-color="#F5CB4F"></button><button class="swatch" style="background:#3FA774" data-color="#3FA774"></button><button class="swatch" style="background:#3FB8C4" data-color="#3FB8C4"></button><button class="swatch" style="background:#5B8CE0" data-color="#5B8CE0"></button><button class="swatch" style="background:#8A6FE0" data-color="#8A6FE0"></button><button class="swatch" style="background:#16121A" data-color="#16121A"></button>
+        </div>
+        <div class="note-input-row"><input id="note-word" placeholder="Écris un petit mot"><button class="send-btn" onclick="sendDrawingNote()" aria-label="Envoyer le dessin"><svg><use href="#i-send"/></svg></button></div>
       </div>
     </div>
+
+    <!-- ÉDITEUR DE NOTE -->
+    <div class="modal-overlay hidden" id="note-editor" onclick="if(event.target===this)closeNoteEditor()">
+      <div class="comp-sheet note-editor-sheet" onclick="event.stopPropagation()">
+        <div class="note-editor-head"><input id="note-editor-title" placeholder="Titre" maxlength="50"><button onclick="closeNoteEditor()">×</button></div>
+        <div id="note-editor-blocks" class="note-editor-blocks"></div>
+        <div class="note-editor-tools"><button onclick="addNoteBlock('text')">Aa</button><button onclick="addNoteBlock('check')">☑</button><button onclick="addNoteBlock('image')">▧</button></div>
+        <div class="comp-actions"><button class="ghost" onclick="closeNoteEditor()">Annuler</button><button class="primary" onclick="sendStructuredNote()">Envoyer</button></div>
+      </div>
+    </div>
+
+    <div class="modal-overlay hidden" id="throwback-viewer" onclick="closeThrowback()"><div class="throwback-viewer" onclick="event.stopPropagation()"><button onclick="closeThrowback()">×</button><div class="throwback-big-heart"><img id="throwback-img" alt="Souvenir"></div><div class="throwback-caption">Il y a 1 an jour pour jour</div></div></div>
 
     <!-- CHAT -->
     <div class="screen" id="chat">
@@ -473,7 +470,7 @@
   <nav class="bottomnav" aria-label="Navigation">
     <button class="nav-btn active" data-screen="home" onclick="showScreen('home')" aria-label="Accueil"><svg><use href="#i-home"/></svg></button>
     <button class="nav-btn" data-screen="calendar" onclick="showScreen('calendar')" aria-label="Calendrier"><svg><use href="#i-cal"/></svg></button>
-    <button class="nav-btn" data-screen="notes" onclick="showScreen('notes')" aria-label="Notes"><svg><use href="#i-note"/></svg></button>
+    <button class="nav-btn" data-screen="notes" onclick="showScreen('notes')" aria-label="Notes"><svg><use href="#i-journal"/></svg></button>
     <button class="nav-heart widget" id="heart-btn" data-wid="send-love" data-wname="Send love" onclick="sendHeart()" aria-label="Envoyer un cœur">
       <svg viewBox="0 0 24 24"><use href="#i-heart"/></svg>
       <span>Send love</span>
@@ -488,6 +485,7 @@
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-database-compat.js"></script>
 <script src="firebase-config.js"></script>
+<script src="spotify-config.js"></script>
 <script src="app.js?v=12"></script>
 </body>
 </html>
