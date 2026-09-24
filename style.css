@@ -536,3 +536,55 @@ body.edit-mode .live-rail.widget:before{right:0;top:-12px}
 .notes-stack-wrap{position:relative;min-height:330px;margin:8px 0 20px}.notes-stack{position:relative;min-height:300px;padding:8px 14px}.stack-note{position:absolute;inset:12px 18px auto 18px;min-height:260px;padding:20px 18px 16px;background:linear-gradient(145deg,#fff,#fff7fa);border-radius:24px;box-shadow:0 15px 28px rgba(70,20,45,.12);border:1px solid rgba(255,255,255,.85);transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 7px));transform-origin:center;z-index:calc(20 - var(--stack));cursor:pointer;overflow:hidden}.stack-note:nth-child(2){background:#ffe1e9}.stack-note:nth-child(3){background:#f1e8ff}.stack-note h3{margin:0 34px 13px 0;font-size:19px;letter-spacing:-.4px}.stack-note-body{display:grid;gap:9px}.stack-note-body p{margin:0;font-size:13px;line-height:1.45;color:#463843}.stack-note-body label{display:flex;gap:9px;align-items:flex-start;font-size:13px;color:#463843}.stack-note-body input{accent-color:var(--cherry);margin-top:2px}.stack-note-body img{width:100%;max-height:130px;object-fit:cover;border-radius:14px}.stack-note small{position:absolute;left:18px;bottom:12px;color:#9b8b94;font-size:10px}.note-fav{position:absolute;right:15px;top:13px;width:34px;height:34px;border-radius:50%;border:0;background:rgba(255,255,255,.58);color:#cbbcc3;font-size:18px}.note-fav.on{color:var(--cherry);background:#fff}.notes-add{position:absolute;right:8px;bottom:0;width:48px;height:48px;border:0;border-radius:50%;background:var(--ink);color:#fff;font-size:27px;box-shadow:0 10px 24px rgba(20,10,18,.18);z-index:25}.notes-empty{height:280px;border:1px dashed var(--line);border-radius:24px;display:grid;place-items:center;color:#b9aab2;font-size:26px}.draw-stack{position:relative;margin-bottom:20px}.draw-card-back{position:absolute;inset:6px 10px auto;height:290px;border-radius:26px;background:#f1e8ff;transform:rotate(2deg);opacity:.7}.draw-card-back.two{background:#ffe1e9;transform:rotate(-2deg);top:10px}.draw-stack .canvas-area{position:relative;z-index:2;margin-bottom:10px}.eraser-btn{position:absolute;right:58px;top:12px;width:38px;height:38px;border:0;border-radius:50%;background:var(--bg);color:#5b4f57;z-index:5;font-weight:900}.eraser-btn.active{background:var(--cherry);color:#fff}.note-editor-sheet{max-width:520px}.note-editor-head{display:flex;gap:8px;align-items:center}.note-editor-head input{flex:1;border:0;outline:0;font-size:21px;font-weight:900;background:transparent}.note-editor-head button{width:34px;height:34px;border:0;border-radius:50%;background:var(--bg);font-size:22px}.note-editor-blocks{display:grid;gap:9px;margin:14px 0;max-height:48vh;overflow:auto}.note-block{display:flex;gap:8px;align-items:flex-start;padding:10px 11px;border:1px solid var(--line);border-radius:15px;background:#fff}.note-block .nb-text{flex:1;min-width:0;border:0;outline:0;resize:none;background:transparent;font:600 14px/1.35 Figtree,sans-serif}.note-block>button{border:0;background:none;color:#aa96a0;font-size:18px}.note-editor-tools{display:flex;gap:7px;border-top:1px solid var(--line);padding-top:10px}.note-editor-tools button{border:1px solid var(--line);background:#fff;border-radius:12px;padding:8px 13px;font-weight:900}.note-editor-blocks input[type=file]{max-width:150px;font-size:11px}
 body.eraser-on .canvas-area{cursor:crosshair}
 @media(max-width:430px){.stack-note{inset:12px 10px auto 10px}.notes-stack{padding:8px 5px}.throwback-heart{left:8px}.throwback-add{left:75px}}
+
+/* ============================================================
+   V15 — modern cute editorial skin
+   Conserves la structure et les fonctionnalités de You & Me.
+   ============================================================ */
+:root{
+  --bg:#fbf7f8; --paper:rgba(255,255,255,.84); --ink:#17131a;
+  --muted:#857983; --cherry:#ee5f86; --cherry-deep:#c94369;
+  --rose:#f7b4c7; --blush:#ffe9ef; --lilac:#ddd2f7; --line:rgba(39,25,34,.09);
+  --shadow:0 18px 45px rgba(58,30,47,.12);
+  --r-xl:30px; --r-lg:24px; --r-md:18px;
+}
+body{background:#eee7eb;color:var(--ink)}
+#app{max-width:520px;background:linear-gradient(180deg,rgba(255,255,255,.22),rgba(255,245,248,.66));backdrop-filter:saturate(1.08)}
+#app:before{background:radial-gradient(65% 30% at 10% 4%,rgba(255,203,219,.30),transparent 70%),radial-gradient(60% 28% at 100% 42%,rgba(221,210,247,.34),transparent 72%)}
+.topbar{padding:calc(18px + env(safe-area-inset-top)) 18px 12px}
+.logo{font-size:38px;letter-spacing:-1.7px}.logo-accent{color:#b99acb}.logo-dot{color:#ee9ab2}
+.online-pill{background:rgba(255,255,255,.72);border-color:rgba(255,255,255,.7);box-shadow:0 8px 24px rgba(60,35,50,.08)}
+.screens{padding:6px 14px calc(118px + var(--safe-b))}
+h2.section-title{font-size:31px;letter-spacing:-1.8px;margin:12px 4px 10px}.screen-subtitle{color:#8c7e87}
+.card{background:rgba(255,255,255,.78);border:1px solid rgba(255,255,255,.8);box-shadow:var(--shadow);border-radius:26px}
+/* home: airy magazine-like composition */
+.note-duo{gap:8px;margin:12px 0 14px}.note-bubble{background:rgba(255,255,255,.82);box-shadow:0 10px 26px rgba(65,35,52,.10);border-color:rgba(255,255,255,.8)}
+.profile-bubble{filter:drop-shadow(0 12px 22px rgba(48,27,42,.14))}
+.live-rail{filter:drop-shadow(0 16px 28px rgba(52,27,44,.15))}.live-peek-stack{border-radius:24px 0 0 24px!important;background:linear-gradient(150deg,#f6c4d2,#dcd0f5)!important}
+.live-card{border-radius:24px!important;box-shadow:0 14px 35px rgba(45,24,39,.13)!important}
+.w-music{background:rgba(255,255,255,.84)!important;border:1px solid rgba(255,255,255,.86)!important;box-shadow:var(--shadow)!important;border-radius:26px!important}
+.music-cover{border-radius:13px}.music-input{background:rgba(247,241,244,.9)!important;border:1px solid rgba(44,28,37,.08)!important;border-radius:15px!important}
+.music-results{background:rgba(29,21,27,.96);border-radius:18px}
+/* calendar */
+.countdown-card{background:linear-gradient(145deg,rgba(255,224,233,.92),rgba(232,222,250,.88));border:0;box-shadow:0 20px 48px rgba(69,40,58,.14)!important;overflow:hidden}
+.countdown-card .count-num{letter-spacing:-4px}.throwback-heart{filter:drop-shadow(0 8px 15px rgba(110,30,65,.18))}
+.throwback-viewer{background:rgba(255,250,252,.97);box-shadow:0 28px 70px rgba(44,22,37,.28)}
+/* notes: the stack is the visual hero */
+.notes-stack-wrap{min-height:350px;margin:12px -2px 24px}.notes-stack{min-height:330px;padding:8px 7px}
+.stack-note{inset:12px 12px auto 12px;min-height:285px;border-radius:27px;padding:22px 20px 17px;box-shadow:0 20px 38px rgba(60,31,48,.15);border:1px solid rgba(255,255,255,.72)}
+.stack-note:nth-child(2){background:#ffdfe9}.stack-note:nth-child(3){background:#e9e0fb}.stack-note:nth-child(4){background:#fff0d9}
+.stack-note h3{font-size:21px}.note-fav{width:37px;height:37px;background:rgba(255,255,255,.66);box-shadow:0 5px 12px rgba(40,20,32,.08)}
+.notes-add{width:50px;height:50px;background:#17131a;box-shadow:0 14px 26px rgba(25,15,22,.20)}
+.draw-stack .canvas-area{border-radius:26px!important;box-shadow:0 18px 38px rgba(55,28,45,.12)!important;border:1px solid rgba(255,255,255,.8)!important}
+.draw-card-back{border-radius:27px}.draw-card-back.two{border-radius:27px}
+/* all widget editor surfaces */
+.modal-overlay{background:rgba(34,22,30,.22);backdrop-filter:blur(10px)}
+.comp-sheet,.widget-sheet{background:rgba(255,250,252,.96)!important;border:1px solid rgba(255,255,255,.8)!important;box-shadow:0 28px 80px rgba(43,23,36,.25)!important;border-radius:30px!important}
+.we-swatches button{box-shadow:0 4px 12px rgba(45,25,38,.08)}
+/* bottom navigation: compact, soft, floating */
+.bottom-nav{background:rgba(255,250,252,.82)!important;border:1px solid rgba(255,255,255,.86)!important;box-shadow:0 18px 45px rgba(46,24,39,.18)!important;border-radius:28px!important;margin:0 10px calc(10px + var(--safe-b))!important;left:0!important;right:0!important;width:auto!important;backdrop-filter:blur(18px)}
+.nav-btn{color:#786c74!important}.nav-btn.active{color:#17131a!important}.nav-heart{background:#17131a!important;box-shadow:0 12px 28px rgba(22,15,20,.25)!important;border:5px solid rgba(255,250,252,.95)!important}
+.nav-heart svg{color:#fff}
+/* tiny polish */
+button:active{transition:transform .12s ease}.primary{background:#17131a!important}.ghost{background:rgba(255,255,255,.72)!important;border-color:rgba(40,25,35,.08)!important}
+@media(max-width:430px){.logo{font-size:35px}.screens{padding-left:12px;padding-right:12px}.stack-note{inset:12px 8px auto 8px}}
