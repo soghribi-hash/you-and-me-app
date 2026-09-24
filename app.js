@@ -178,11 +178,12 @@ function applyNames() {
   otherRole = myRole === 'b' ? 'a' : 'b';
   myName = myRole ? NAMES[myRole] : '';
   otherName = NAMES[otherRole];
-  $('her-note-label').textContent = 'Note de ' + otherName;
-  $('partner-name-label').textContent = 'Mood de ' + otherName;
-  $('partner-status').textContent = otherName + ' \u00b7 hors ligne';
-  $('other-photo-label').textContent = 'Photo de ' + otherName;
-  $('me-profile-name').textContent = myName ? 'Tu es ' + myName : '';
+  const setText = (id, value) => { const el = $(id); if (el) el.textContent = value; };
+  setText('her-note-label', 'Note de ' + otherName);
+  setText('partner-name-label', 'Mood de ' + otherName);
+  setText('partner-status', otherName + ' \u00b7 hors ligne');
+  setText('other-photo-label', 'Photo de ' + otherName);
+  setText('me-profile-name', myName ? 'Tu es ' + myName : '');
   refreshAvatars();
   renderBubbles();
 }
