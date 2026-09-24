@@ -3,16 +3,36 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
-<title>You & Me.</title>
+<title>You &amp; Me.</title>
 <link rel="manifest" href="manifest.json">
 <link rel="apple-touch-icon" href="icon-192.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="theme-color" content="#D62E63">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#FFF4F6">
 <link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;600;700;800&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Figtree:wght@500;600;700;800;900&family=Caveat:wght@600;700&family=Playfair+Display:ital,wght@1,800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="style.css">
 </head>
 <body>
+
+<!-- Symboles d'icônes réutilisés partout -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <defs>
+    <symbol id="i-heart" viewBox="0 0 24 24"><path d="M12 21.2C5.6 15.7 2.5 12.5 2.5 8.7 2.5 5.9 4.7 3.8 7.3 3.8c1.8 0 3.6 1 4.7 2.8 1.1-1.8 2.9-2.8 4.7-2.8 2.6 0 4.8 2.1 4.8 4.9 0 3.8-3.100 7-9.500 12.500z"/></symbol>
+    <symbol id="i-send" viewBox="0 0 24 24"><path d="M12 19V5M5.500 11.500 12 5l6.500 6.500" fill="none" stroke="currentColor" stroke-width="2.600" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-home" viewBox="0 0 24 24"><path d="M4 10.800 12 4l8 6.800V19a1.500 1.500 0 0 1-1.500 1.500H15v-5.500H9v5.500H5.500A1.500 1.500 0 0 1 4 19z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cal" viewBox="0 0 24 24"><rect x="3.500" y="5" width="17" height="15.500" rx="4" fill="none" stroke="currentColor" stroke-width="1.900"/><path d="M3.500 10h17M8 3v4M16 3v4" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round"/></symbol>
+    <symbol id="i-note" viewBox="0 0 24 24"><path d="M4.500 19.500 5.300 15 16.500 3.800a2 2 0 0 1 2.800 0l.9.900a2 2 0 0 1 0 2.800L9 18.700z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/><path d="M14.500 5.800l3.700 3.700" stroke="currentColor" stroke-width="1.900"/></symbol>
+    <symbol id="i-chat" viewBox="0 0 24 24"><path d="M12 4C7.300 4 3.500 7.300 3.500 11.500c0 2.200 1 4.100 2.700 5.500L5.500 20.500l3.700-1.800c.9.200 1.900.3 2.800.3 4.700 0 8.500-3.300 8.500-7.500S16.700 4 12 4z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/></symbol>
+    <symbol id="i-cam" viewBox="0 0 24 24"><path d="M4 8.500A2.500 2.500 0 0 1 6.500 6h1.300l1.100-1.700c.2-.3.6-.5 1-.5h4.200c.4 0 .8.200 1 .5L16.200 6h1.300A2.500 2.500 0 0 1 20 8.500v8A2.500 2.500 0 0 1 17.500 19h-11A2.500 2.500 0 0 1 4 16.500z" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round"/><circle cx="12" cy="12.500" r="3.300" fill="none" stroke="currentColor" stroke-width="1.900"/></symbol>
+    <symbol id="i-gear" viewBox="0 0 24 24"><circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="1.900"/><path d="M12 3.500v2.200M12 18.300v2.200M3.500 12h2.200M18.300 12h2.200M6 6l1.600 1.600M16.400 16.400 18 18M18 6l-1.600 1.600M7.600 16.400 6 18" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round"/><circle cx="12" cy="12" r="7.300" fill="none" stroke="currentColor" stroke-width="1.900"/></symbol>
+    <symbol id="i-image" viewBox="0 0 24 24"><rect x="3.500" y="4.500" width="17" height="15" rx="3.500" fill="none" stroke="currentColor" stroke-width="1.900"/><circle cx="9" cy="10" r="1.700" fill="currentColor"/><path d="m4 17 5-4.500 3.500 3 3-2.500 4.500 4" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linejoin="round" stroke-linecap="round"/></symbol>
+    <symbol id="i-flip" viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.500-5.800L20 8.500M20 4v4.500h-4.500M20 12a8 8 0 0 1-13.500 5.800L4 15.500M4 20v-4.500h4.500" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+    <symbol id="i-close" viewBox="0 0 24 24"><path d="M6 6l12 12M18 6 6 18" fill="none" stroke="currentColor" stroke-width="2.200" stroke-linecap="round"/></symbol>
+    <symbol id="i-trash" viewBox="0 0 24 24"><path d="M5 7h14M10 7V4.500h4V7M7 7l.8 12.500h8.400L17 7" fill="none" stroke="currentColor" stroke-width="1.900" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  </defs>
+</svg>
 
 <div id="banners" aria-live="polite"></div>
 <div id="fx" aria-hidden="true"></div>
@@ -20,7 +40,33 @@
 
 <div id="app">
 
-  <!-- LECTEUR DE NOTE -->
+  <!-- CAMÉRA « EN DIRECT » -->
+  <div class="cam hidden" id="cam">
+    <video id="cam-video" playsinline muted autoplay></video>
+    <div class="cam-flash" id="cam-flash"></div>
+    <div class="cam-top">
+      <button class="cam-round" onclick="closeCamera()" aria-label="Fermer"><svg><use href="#i-close"/></svg></button>
+      <div class="cam-tag"><span class="rec"></span>En direct</div>
+      <button class="cam-round" onclick="flipCamera()" aria-label="Changer de caméra"><svg><use href="#i-flip"/></svg></button>
+    </div>
+    <div class="cam-bottom">
+      <button class="shutter" onclick="snap()" aria-label="Prendre la photo"><span></span></button>
+    </div>
+  </div>
+
+  <!-- COMPOSITION D'UNE PHOTO -->
+  <div class="composer hidden" id="composer">
+    <div class="comp-sheet">
+      <div class="comp-frame"><img id="comp-img" alt="Aperçu"></div>
+      <textarea id="comp-caption" rows="2" maxlength="140" placeholder="Ajoute une description"></textarea>
+      <div class="comp-actions">
+        <button class="ghost" onclick="closeComposer()">Annuler</button>
+        <button class="primary" onclick="publishPhoto()">Publier</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LECTEUR DE NOTE DESSINÉE -->
   <div class="modal-overlay hidden" id="note-viewer" onclick="closeNote()">
     <div class="modal note-card" onclick="event.stopPropagation()">
       <div class="nv-head" id="nv-head"></div>
@@ -33,7 +79,7 @@
   <!-- ONBOARDING -->
   <div class="modal-overlay" id="onboarding">
     <div class="modal">
-      <h3>Bienvenue sur You & Me.</h3>
+      <h3>Bienvenue sur You &amp; Me.</h3>
       <p>La première fois, choisis qui tu es, puis entrez chacun le même code secret pour vous connecter.</p>
       <label>Qui es-tu ?</label>
       <div class="role-pick">
@@ -47,7 +93,7 @@
   </div>
 
   <div class="topbar">
-    <div class="logo">You & Me<span class="dot">.</span></div>
+    <div class="logo" aria-label="You &amp; Me.">You <span class="amp" aria-hidden="true">&amp;</span> Me<span class="dot">.</span></div>
     <div class="online-pill"><span class="avatar off" id="partner-avatar"></span><span id="partner-status">Hors ligne</span></div>
   </div>
 
@@ -55,69 +101,115 @@
 
     <!-- HOME -->
     <div class="screen active" id="home">
-      <div class="home-kicker">NOTRE PETIT MONDE <span>•</span> AUJOURD’HUI</div>
-      <div class="stories-row">
-        <div class="story" onclick="showScreen('notes')">
-          <div class="ring"><div class="inner" id="my-note-preview-icon">✏️</div></div>
-          <div class="label">Ta note</div>
-          <div class="preview" id="my-note-preview"></div>
+      <div class="home-date" id="home-date"></div>
+
+      <!-- Notes façon Instagram : on écrit directement dans la bulle -->
+      <div class="note-duo">
+        <div class="note-cell">
+          <div class="note-bubble mine" id="my-note-bubble">
+            <textarea id="my-note-input" rows="1" maxlength="60" placeholder="Une pensée…" enterkeyhint="send" aria-label="Ta note"></textarea>
+            <button class="note-share" id="my-note-share" onclick="saveBubble()" aria-label="Partager ma note"><svg><use href="#i-send"/></svg></button>
+            <button class="note-clear" id="my-note-clear" onclick="clearBubble()" aria-label="Supprimer ma note"><svg><use href="#i-close"/></svg></button>
+          </div>
+          <div class="note-avatar" id="my-note-avatar"></div>
+          <div class="note-label">Ta note</div>
         </div>
-        <div class="story" onclick="openNote(otherRole)">
-          <div class="ring"><div class="inner" id="her-note-preview-icon">💌</div></div>
-          <div class="label" id="her-note-label">Sa note</div>
-          <div class="preview" id="her-note-preview"></div>
+        <div class="note-cell">
+          <div class="note-bubble empty" id="her-note-bubble"><span id="her-note-text">…</span></div>
+          <div class="note-avatar" id="her-note-avatar"></div>
+          <div class="note-label" id="her-note-label">Note de Nono</div>
         </div>
       </div>
 
-      <div class="mood-row" id="mood-row">
-        <button class="mood-bubble" data-mood="😊" title="Heureuse" aria-label="Heureuse">😊</button>
-        <button class="mood-bubble" data-mood="😠" title="Énervé" aria-label="Énervé">😠</button>
-        <button class="mood-bubble" data-mood="🤔" title="Pensive" aria-label="Pensive">🤔</button>
-        <button class="mood-bubble" data-mood="😢" title="Triste" aria-label="Triste">😢</button>
-        <button class="mood-bubble" data-mood="🥵" title="Horny" aria-label="Horny">🥵</button>
-        <button class="mood-bubble" data-mood="🥰" title="Amoureuse" aria-label="Amoureuse">🥰</button>
-      </div>
+      <div class="bento">
+        <button class="w-heart" id="heart-btn" onclick="sendHeart()" aria-label="Envoyer un cœur">
+          <span class="lbl">SEND LOVE</span>
+          <svg class="heart-glyph" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg>
+          <svg class="cupid" viewBox="0 0 72 44" aria-hidden="true">
+            <defs>
+              <linearGradient id="bowg" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#fff" stop-opacity=".5"/><stop offset=".6" stop-color="#fff"/><stop offset="1" stop-color="#e6d6dc"/></linearGradient>
+            </defs>
+            <!-- corde tendue -->
+            <path d="M25 3.500 10 22l15 18.500" fill="none" stroke="#fff" stroke-opacity=".8" stroke-width="1" stroke-linejoin="round"/>
+            <!-- arc -->
+            <path d="M25 2.500C44 12 44 32 25 41.500 34.500 32 34.500 12 25 2.500Z" fill="url(#bowg)"/>
+            <rect x="35.200" y="18" width="2.600" height="8" rx="1.200" fill="#F0245B"/>
+            <!-- flèche -->
+            <path d="M10 22H60" stroke="#fff" stroke-width="1.700" stroke-linecap="round"/>
+            <!-- plumes -->
+            <path d="M8 16.500h6.500L19 22h-6.500z" fill="#F0245B"/>
+            <path d="M8 27.500h6.500L19 22h-6.500z" fill="#F0245B"/>
+            <path d="M12.500 22H19l-2.400-2.900h-3.800z" fill="#fff" fill-opacity=".9"/>
+            <path d="M12.500 22H19l-2.400 2.900h-3.800z" fill="#fff" fill-opacity=".9"/>
+            <circle cx="9.800" cy="22" r="1.700" fill="#fff"/>
+            <!-- pointe en cœur -->
+            <g transform="translate(58.500 22) rotate(-90) scale(.78)"><path d="M0 9.500C-6.500 4-9 1.200-9-2.200c0-2.700 2-4.700 4.500-4.700 1.800 0 3.600 1 4.500 2.800.9-1.800 2.700-2.800 4.500-2.800 2.500 0 4.500 2 4.500 4.700 0 3.400-2.500 6.200-9 11.700z" fill="#F0245B"/></g>
+          </svg>
+        </button>
 
-      <div class="status-row" id="status-row">
-        <button class="status-chip" data-status="Au taf">Au taf</button>
-        <button class="status-chip" data-status="En route">En route</button>
-        <button class="status-chip" data-status="Dodo">Dodo</button>
-        <button class="status-chip" data-status="Yomb">Yomb</button>
-      </div>
-
-      <div class="two-col">
-        <button class="heart-card" id="heart-btn" onclick="sendHeart()" aria-label="Envoyer un cœur">&lt;3</button>
-        <div class="mood-card">
-          <div class="eyebrow" id="partner-name-label">SON MOOD</div>
+        <div class="w-mood">
+          <div class="w-title" id="partner-name-label">Mood de Nono</div>
           <div class="big-emoji" id="partner-mood">🤍</div>
-          <div class="mood-status" id="partner-status-chip"></div>
-          <div class="time" id="partner-mood-time"></div>
+          <div class="w-foot">
+            <div class="mood-status" id="partner-status-chip"></div>
+            <div class="time" id="partner-mood-time"></div>
+          </div>
         </div>
       </div>
 
-      <div class="music-card">
+      <div class="w-music">
         <div class="music-top" onclick="openMusic()">
-          <div class="vinyl-wrap">
-            <svg class="vinyl" id="vinyl" viewBox="0 0 100 100">
-              <circle cx="50" cy="50" r="49" fill="#0c0c0e"/>
-              <circle cx="50" cy="50" r="42" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
-              <circle cx="50" cy="50" r="36" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
-              <circle cx="50" cy="50" r="30" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
-              <circle cx="50" cy="50" r="24" fill="none" stroke="#1c1c1e" stroke-width="0.6"/>
-              <circle cx="50" cy="50" r="19" fill="#D6295C"/>
-              <path d="M50 34 C44 34 40 38 40 44 C40 49 44 50 47 51 C50 52 51 54 49 56 C47 58 43 56 43 53" fill="none" stroke="#ffe3ea" stroke-width="1.6" stroke-linecap="round" opacity="0.85"/>
-              <circle cx="50" cy="50" r="3" fill="#2b1420"/>
+          <div class="turntable" aria-hidden="true">
+            <div class="vinyl" id="vinyl">
+              <div class="disc">
+                <svg class="label" viewBox="0 0 100 100">
+                  <defs><path id="lblArc" d="M50 50m-33 0a33 33 0 1 1 66 0a33 33 0 1 1-66 0"/></defs>
+                  <circle cx="50" cy="50" r="49" fill="#F0245B"/>
+                  <circle cx="50" cy="50" r="49" fill="none" stroke="#fff" stroke-opacity=".25" stroke-width="2"/>
+                  <text font-family="Figtree,sans-serif" font-size="9.500" font-weight="800" letter-spacing="3.400" fill="#fff" fill-opacity=".9"><textPath href="#lblArc" startOffset="2%">SOSO · NONO · SOSO · NONO ·</textPath></text>
+                  <svg x="38" y="36" width="24" height="24" viewBox="0 0 24 24"><use href="#i-heart" fill="#fff"/></svg>
+                  <circle cx="50" cy="50" r="3.600" fill="#1a0b10"/><circle cx="50" cy="50" r="1.400" fill="#e9d9df"/>
+                </svg>
+              </div>
+              <div class="sheen"></div>
+            </div>
+            <svg class="tonearm" viewBox="0 0 130 120">
+              <defs><linearGradient id="armg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#cdbfc5"/></linearGradient></defs>
+              <circle cx="116" cy="14" r="10" fill="#3a1a24" fill-opacity=".55"/>
+              <circle cx="116" cy="14" r="7.500" fill="url(#armg)"/><circle cx="116" cy="14" r="2.600" fill="#8c6a76"/>
+              <path d="M116 14 91 82" stroke="url(#armg)" stroke-width="3.400" stroke-linecap="round" fill="none"/>
+              <path d="M91 82 86 94" stroke="url(#armg)" stroke-width="3.400" stroke-linecap="round"/>
+              <rect x="80" y="91" width="9" height="13" rx="2" transform="rotate(24 84.500 97.500)" fill="#1a0b10"/>
+              <rect x="119" y="6" width="7" height="12" rx="2" transform="rotate(22 122 12)" fill="#e9d9df"/>
             </svg>
           </div>
           <div class="music-info">
-            <div class="eyebrow">Musique du moment</div>
+            <div class="m-eyebrow">Musique du moment</div>
             <div class="title" id="music-title">Rien de partagé pour l'instant</div>
-            <div class="subtitle" id="music-subtitle">Envoie-lui un son ✨</div>
+            <div class="subtitle" id="music-subtitle">Envoie-lui un son</div>
           </div>
         </div>
         <div class="music-input-row">
-          <input class="music-input" id="music-input" placeholder="Lien Spotify ou YouTube">
-          <button class="send-btn" onclick="shareMusic()">➤</button>
+          <input class="music-input" id="music-input" placeholder="Lien Spotify ou YouTube" autocapitalize="off" autocorrect="off">
+          <button class="send-btn light" onclick="shareMusic()" aria-label="Envoyer la musique"><svg><use href="#i-send"/></svg></button>
+        </div>
+      </div>
+
+      <div class="panel your-mood">
+        <div class="panel-title">Ton mood</div>
+        <div class="mood-row" id="mood-row">
+          <button class="mood-bubble" data-mood="😊" title="Heureuse" aria-label="Heureuse">😊</button>
+          <button class="mood-bubble" data-mood="😠" title="Énervé" aria-label="Énervé">😠</button>
+          <button class="mood-bubble" data-mood="🤔" title="Pensive" aria-label="Pensive">🤔</button>
+          <button class="mood-bubble" data-mood="😢" title="Triste" aria-label="Triste">😢</button>
+          <button class="mood-bubble" data-mood="🥵" title="Horny" aria-label="Horny">🥵</button>
+          <button class="mood-bubble" data-mood="🥰" title="Amoureuse" aria-label="Amoureuse">🥰</button>
+        </div>
+        <div class="status-row" id="status-row">
+          <button class="status-chip" data-status="Au taf">Au taf</button>
+          <button class="status-chip" data-status="En route">En route</button>
+          <button class="status-chip" data-status="Dodo">Dodo</button>
+          <button class="status-chip" data-status="Yomb">Yomb</button>
         </div>
       </div>
     </div>
@@ -130,12 +222,12 @@
         <div class="countdown-top">
           <div class="ring-wrap">
             <svg viewBox="0 0 120 120">
-              <circle cx="60" cy="60" r="52" fill="none" stroke="#F3D9D0" stroke-width="9"/>
-              <circle cx="60" cy="60" r="52" fill="none" stroke="#D6295C" stroke-width="9" stroke-linecap="round" id="countdown-arc" transform="rotate(-90 60 60)"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.28)" stroke-width="9"/>
+              <circle cx="60" cy="60" r="52" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" id="countdown-arc" transform="rotate(-90 60 60)"/>
             </svg>
             <div class="ring-center">
               <div class="num" id="countdown-days">--</div>
-              <div class="lbl">JOURS</div>
+              <div class="lbl">jours</div>
             </div>
           </div>
           <div class="countdown-info">
@@ -152,9 +244,9 @@
 
       <div class="card">
         <div class="cal-nav">
-          <button class="cal-arrow" onclick="changeMonth(-1)">‹</button>
+          <button class="cal-arrow" onclick="changeMonth(-1)" aria-label="Mois précédent">‹</button>
           <div class="month" id="cal-month-label"></div>
-          <button class="cal-arrow" onclick="changeMonth(1)">›</button>
+          <button class="cal-arrow" onclick="changeMonth(1)" aria-label="Mois suivant">›</button>
         </div>
         <div class="cal-grid" id="cal-grid"></div>
         <div class="day-detail">
@@ -166,75 +258,84 @@
           </div>
           <div class="annot-row">
             <input class="annot-input" id="annot-input" placeholder="Annoter cette date">
-            <button class="plus-btn" onclick="saveAnnotation()" aria-label="Ajouter">+</button>
+            <button class="send-btn" onclick="saveAnnotation()" aria-label="Ajouter"><svg><use href="#i-send"/></svg></button>
           </div>
         </div>
       </div>
     </div>
 
-    <!-- NOTES -->
+    <!-- NOTES (dessin) -->
     <div class="screen" id="notes">
       <h2 class="section-title">Notes</h2>
       <div class="screen-subtitle">Un coin pour laisser une trace, même toute petite.</div>
+
+      <button class="recv-note" id="recv-note" onclick="openNote(otherRole)" style="display:none">
+        <span class="recv-thumb" id="recv-thumb"></span>
+        <span class="recv-txt"><b id="recv-title">Note</b><small id="recv-sub"></small></span>
+      </button>
+
       <div class="canvas-area">
-        <button class="trash" onclick="clearCanvas()">🗑</button>
+        <button class="trash" onclick="clearCanvas()" aria-label="Effacer le dessin"><svg><use href="#i-trash"/></svg></button>
         <canvas id="draw-canvas"></canvas>
       </div>
       <div class="tool-row" id="tool-row">
-        <button class="tool active" data-width="2" data-alpha="1">✒️<span class="name">Feutre fin</span></button>
-        <button class="tool" data-width="6" data-alpha="1">🖌️<span class="name">Pinceau</span></button>
-        <button class="tool" data-width="10" data-alpha="1">🖍️<span class="name">Marqueur</span></button>
-        <button class="tool" data-width="16" data-alpha="0.35">🌟<span class="name">Surligneur</span></button>
+        <button class="tool active" data-width="2" data-alpha="1"><i style="--w:2px"></i><span class="name">Feutre fin</span></button>
+        <button class="tool" data-width="6" data-alpha="1"><i style="--w:6px"></i><span class="name">Pinceau</span></button>
+        <button class="tool" data-width="10" data-alpha="1"><i style="--w:10px"></i><span class="name">Marqueur</span></button>
+        <button class="tool" data-width="16" data-alpha="0.35"><i style="--w:16px;opacity:.4"></i><span class="name">Surligneur</span></button>
       </div>
       <div class="color-row" id="color-row">
-        <button class="swatch selected" style="background:#D6295C" data-color="#D6295C"></button>
-        <button class="swatch" style="background:#F2A0AF" data-color="#F2A0AF"></button>
-        <button class="swatch" style="background:#9E1E49" data-color="#9E1E49"></button>
-        <button class="swatch" style="background:#F2A65A" data-color="#F2A65A"></button>
-        <button class="swatch" style="background:#F0CC5B" data-color="#F0CC5B"></button>
-        <button class="swatch" style="background:#3FA774" data-color="#3FA774"></button>
-        <button class="swatch" style="background:#3FB8C4" data-color="#3FB8C4"></button>
-        <button class="swatch" style="background:#5B8CE0" data-color="#5B8CE0"></button>
-        <button class="swatch" style="background:#7C6BC4" data-color="#7C6BC4"></button>
-        <button class="swatch" style="background:#2B2130" data-color="#2B2130"></button>
-        <button class="swatch" style="background:#fff;border:1px solid var(--line);" data-color="#ffffff" title="Gomme"></button>
+        <button class="swatch selected" style="background:#F0245B" data-color="#F0245B" aria-label="Cerise"></button>
+        <button class="swatch" style="background:#FF9DB4" data-color="#FF9DB4" aria-label="Rose"></button>
+        <button class="swatch" style="background:#A3123F" data-color="#A3123F" aria-label="Bordeaux"></button>
+        <button class="swatch" style="background:#FF9A55" data-color="#FF9A55" aria-label="Orange"></button>
+        <button class="swatch" style="background:#F5CB4F" data-color="#F5CB4F" aria-label="Jaune"></button>
+        <button class="swatch" style="background:#3FA774" data-color="#3FA774" aria-label="Vert"></button>
+        <button class="swatch" style="background:#3FB8C4" data-color="#3FB8C4" aria-label="Turquoise"></button>
+        <button class="swatch" style="background:#5B8CE0" data-color="#5B8CE0" aria-label="Bleu"></button>
+        <button class="swatch" style="background:#8A6FE0" data-color="#8A6FE0" aria-label="Violet"></button>
+        <button class="swatch" style="background:#16121A" data-color="#16121A" aria-label="Noir"></button>
+        <button class="swatch" style="background:#fff;border:1px solid var(--line);" data-color="#ffffff" title="Gomme" aria-label="Gomme"></button>
       </div>
       <div class="note-input-row">
         <input id="note-word" placeholder="Écris un petit mot">
-        <button class="send-btn" onclick="sendNote()">➤</button>
+        <button class="send-btn" onclick="sendNote()" aria-label="Envoyer la note"><svg><use href="#i-send"/></svg></button>
       </div>
     </div>
 
     <!-- CHAT -->
     <div class="screen" id="chat">
       <h2 class="section-title">Chat</h2>
-      <div class="screen-subtitle">Juste vous deux. Pas de bruit autour.</div>
+      <div class="screen-subtitle">Juste nous deux</div>
       <div class="chat-scroll" id="chat-scroll"></div>
       <div class="chat-input-row">
         <input id="chat-input" placeholder="Ton message">
-        <button class="send-btn" onclick="sendMessage()">➤</button>
+        <button class="send-btn" onclick="sendMessage()" aria-label="Envoyer"><svg><use href="#i-send"/></svg></button>
       </div>
     </div>
 
     <!-- PHOTOS -->
     <div class="screen" id="photos">
       <h2 class="section-title">Photos</h2>
-      <div class="screen-subtitle">Vos moments, comme un petit journal à deux.</div>
-      <div class="camera-row">
-        <label class="camera-btn">📸 Prendre une photo
-          <input type="file" accept="image/*" capture="environment" style="display:none" onchange="handlePhoto(event)">
-        </label>
-        <label class="camera-btn alt">🖼️ Galerie
-          <input type="file" accept="image/*" style="display:none" onchange="handlePhoto(event)">
-        </label>
-      </div>
+
+      <button class="live-widget" onclick="openLive()" aria-label="En direct : prendre une photo maintenant">
+        <span class="vf"><i></i><i></i><i></i><i></i></span>
+        <span class="live-inset"><svg><use href="#i-heart"/></svg></span>
+        <span class="live-txt"><span class="rec"></span><b>En direct</b></span>
+        <span class="live-shutter"><span></span></span>
+      </button>
+      <label class="gal-btn">
+        <svg><use href="#i-image"/></svg>Depuis la galerie
+        <input id="file-gal" type="file" accept="image/*" style="display:none" onchange="handleGallery(event)">
+      </label>
+      <input id="file-cam" type="file" accept="image/*" capture="environment" style="display:none" onchange="handleNativeCamera(event)">
+
       <div id="photos-feed"></div>
     </div>
 
     <!-- SETTINGS -->
     <div class="screen" id="settings">
       <h2 class="section-title">Réglages</h2>
-      <div class="screen-subtitle">Votre espace, vos photos, votre ambiance.</div>
       <div class="card">
         <div class="settings-row">
           <div class="settings-name" id="me-profile-name"></div>
@@ -244,33 +345,33 @@
       <div class="card">
         <div class="settings-row">
           <div class="settings-left">
-            <div class="settings-avatar" id="my-avatar-preview"></div>
+            <div class="settings-avatar av" id="my-avatar-preview"></div>
             <div class="settings-name">Ma photo</div>
           </div>
           <label class="btn-small">Modifier<input type="file" accept="image/*" style="display:none" onchange="handleProfilePhoto(event)"></label>
         </div>
         <div class="settings-row">
           <div class="settings-left">
-            <div class="settings-avatar her" id="her-avatar-preview"></div>
-            <div class="settings-name" id="other-photo-label">Sa photo</div>
+            <div class="settings-avatar av her" id="her-avatar-preview"></div>
+            <div class="settings-name" id="other-photo-label">Photo de Nono</div>
           </div>
         </div>
       </div>
 
       <div class="card">
-        <div style="font-size:11px;font-weight:800;color:var(--ink-soft);letter-spacing:0.5px;margin-bottom:12px;">FOND D'ÉCRAN</div>
+        <div class="card-title">Fond d'écran</div>
         <div class="wallpaper-row">
-          <label class="wallpaper-btn">🖼️ Ma galerie<input type="file" accept="image/*" style="display:none" onchange="handleWallpaper(event)"></label>
-          <button class="wallpaper-btn" onclick="resetWallpaper()">↺ Par défaut</button>
+          <label class="wallpaper-btn">Ma galerie<input type="file" accept="image/*" style="display:none" onchange="handleWallpaper(event)"></label>
+          <button class="wallpaper-btn" onclick="resetWallpaper()">Par défaut</button>
         </div>
       </div>
 
       <div class="card">
         <div class="settings-row">
           <div class="settings-name">Notifications</div>
-          <button class="toggle off" id="notif-toggle" onclick="toggleNotifications()"></button>
+          <button class="toggle off" id="notif-toggle" onclick="toggleNotifications()" aria-label="Activer les notifications"></button>
         </div>
-        <div style="font-size:11.5px;color:var(--ink-soft);padding-top:6px;">
+        <div class="hint">
           Chaque interaction de l'autre (cœur, mood, note, musique, chat, photo, calendrier) s'affiche en bannière dans l'app, et en notification quand l'app est en arrière-plan sur ton téléphone.
         </div>
       </div>
@@ -278,14 +379,14 @@
 
   </div>
 
-  <div class="bottomnav">
-    <button class="nav-btn active" onclick="showScreen('home')"><span class="ic">🏠</span>Accueil</button>
-    <button class="nav-btn" onclick="showScreen('calendar')"><span class="ic">📅</span>Calendrier</button>
-    <button class="nav-btn" onclick="showScreen('notes')"><span class="ic">✏️</span>Notes</button>
-    <button class="nav-btn" onclick="showScreen('chat')"><span class="ic">💬</span>Chat</button>
-    <button class="nav-btn" onclick="showScreen('photos')"><span class="ic">📷</span>Photos</button>
-    <button class="nav-btn" onclick="showScreen('settings')"><span class="ic">⚙️</span>Réglages</button>
-  </div>
+  <nav class="bottomnav" aria-label="Navigation">
+    <button class="nav-btn active" data-screen="home" onclick="showScreen('home')" aria-label="Accueil"><svg><use href="#i-home"/></svg></button>
+    <button class="nav-btn" data-screen="calendar" onclick="showScreen('calendar')" aria-label="Calendrier"><svg><use href="#i-cal"/></svg></button>
+    <button class="nav-btn" data-screen="notes" onclick="showScreen('notes')" aria-label="Notes"><svg><use href="#i-note"/></svg></button>
+    <button class="nav-btn" data-screen="chat" onclick="showScreen('chat')" aria-label="Chat"><svg><use href="#i-chat"/></svg></button>
+    <button class="nav-btn" data-screen="photos" onclick="showScreen('photos')" aria-label="Photos"><svg><use href="#i-cam"/></svg></button>
+    <button class="nav-btn" data-screen="settings" onclick="showScreen('settings')" aria-label="Réglages"><svg><use href="#i-gear"/></svg></button>
+  </nav>
 
 </div>
 

@@ -2,6 +2,8 @@
    You & Me.  —  Soso (a) & Nono (b)
    ============================================================ */
 
+
+const avatars = { a: '', b: '' };
 /* ---------- IDENTITÉS ---------- */
 const NAMES = { a: 'Soso', b: 'Nono' };
 const nameOf = r => NAMES[r] || 'Quelqu\u2019un';
@@ -51,6 +53,20 @@ function formatKey(d) {
   return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
 }
 const $ = id => document.getElementById(id);
+function initialOf(role) { return nameOf(role).charAt(0).toUpperCase(); }
+function avatarHTML(role, size) {
+  const src = avatars[role];
+  return '<span class="av ' + (size || 'sm') + ' av-' + role + '"' + (src ? ' style="background-image:url(' + src + ')"' : '') + '>' + (src ? '' : initialOf(role)) + '</span>';
+}
+function paintAvatar(el, role) {
+  if (!el) return;
+  const src = avatars[role];
+  el.style.backgroundImage = src ? 'url(' + src + ')' : '';
+  el.textContent = src ? '' : initialOf(role);
+  el.classList.toggle('av-a', role === 'a');
+  el.classList.toggle('av-b', role === 'b');
+}
+
 
 /* ---------- NOTIFICATIONS : bannière dans l'app + notif système ---------- */
 let dbErrShown = false;
@@ -130,7 +146,7 @@ function toggleNotifications() {
 if (notifOn) $('notif-toggle').classList.remove('off');
 
 /* ---------- EFFET CŒURS ---------- */
-const HEART_SVG = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#D62E63"/></svg>';
+const HEART_SVG = '<svg viewBox="0 0 24 24" width="26" height="26"><path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" fill="#F0245B"/></svg>';
 function burstHearts(originEl, n) {
   const fx = $('fx');
   let x = window.innerWidth / 2, y = window.innerHeight / 2;
@@ -162,10 +178,12 @@ function applyNames() {
   myName = myRole ? NAMES[myRole] : '';
   otherName = NAMES[otherRole];
   $('her-note-label').textContent = 'Note de ' + otherName;
-  $('partner-name-label').textContent = 'MOOD DE ' + otherName.toUpperCase();
+  $('partner-name-label').textContent = 'Mood de ' + otherName;
   $('partner-status').textContent = otherName + ' \u00b7 hors ligne';
   $('other-photo-label').textContent = 'Photo de ' + otherName;
   $('me-profile-name').textContent = myName ? 'Tu es ' + myName : '';
+  refreshAvatars();
+  renderBubbles();
 }
 
 function initFirebase() {
@@ -187,6 +205,7 @@ function initFirebase() {
   listenAnniversary();
   listenCalendar();
   listenNotes();
+  listenBubbles();
   listenChat();
   listenPhotos();
   bindMyControls();
@@ -223,7 +242,7 @@ function showScreen(id) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   $(id).classList.add('active');
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
-  const nb = document.querySelector('.nav-btn[onclick="showScreen(\'' + id + '\')"]');
+  const nb = document.querySelector('.nav-btn[data-screen="' + id + '"]');
   if (nb) nb.classList.add('active');
   if (id === 'calendar') renderCalendar();
   if (id === 'chat') scrollChatToBottom();
@@ -254,15 +273,14 @@ function listenPartnerProfile() {
     const avatar = $('partner-avatar');
     avatar.classList.toggle('on', !!data.online);
     avatar.classList.toggle('off', !data.online);
-    avatar.style.backgroundImage = data.photo ? 'url(' + data.photo + ')' : '';
-    avatar.style.backgroundSize = 'cover';
+    avatars[otherRole] = data.photo || '';
     $('partner-status').textContent = data.online ? otherName + ' est en ligne' : otherName + ' \u00b7 hors ligne';
 
     $('partner-mood').textContent = data.mood || '\u{1F90D}';
     partnerMoodTs = data.moodTs || 0;
     $('partner-mood-time').textContent = partnerMoodTs ? relativeTime(partnerMoodTs) : '';
     $('partner-status-chip').textContent = data.status || '';
-    $('her-avatar-preview').innerHTML = data.photo ? '<img src="' + data.photo + '">' : '';
+    refreshAvatars();
 
     const photoSig = data.photo ? data.photo.length + ':' + data.photo.slice(-24) : '';
     if (partnerBase) {
@@ -280,7 +298,8 @@ function listenPartnerProfile() {
     const data = snap.val() || {};
     document.querySelectorAll('.mood-bubble').forEach(b => b.classList.toggle('selected', b.dataset.mood === data.mood));
     document.querySelectorAll('.status-chip').forEach(c => c.classList.toggle('active', c.dataset.status === data.status));
-    $('my-avatar-preview').innerHTML = data.photo ? '<img src="' + data.photo + '">' : '';
+    avatars[myRole] = data.photo || '';
+    refreshAvatars();
   });
 }
 
@@ -307,6 +326,22 @@ function bindMyControls() {
   enter('annot-input', saveAnnotation);
 }
 
+
+// Repeint toutes les pastilles de photo de profil (et re-rend chat/photos si la photo a changé)
+let avatarSig = '';
+function refreshAvatars() {
+  paintAvatar($('partner-avatar'), otherRole);
+  paintAvatar($('my-note-avatar').firstElementChild || (() => { const d = document.createElement('div'); d.className = 'av'; $('my-note-avatar').appendChild(d); return d; })(), myRole);
+  paintAvatar($('her-note-avatar').firstElementChild || (() => { const d = document.createElement('div'); d.className = 'av'; $('her-note-avatar').appendChild(d); return d; })(), otherRole);
+  paintAvatar($('my-avatar-preview'), myRole);
+  paintAvatar($('her-avatar-preview'), otherRole);
+  const sig = ['a', 'b'].map(r => (avatars[r] || '').length + ':' + (avatars[r] || '').slice(-16)).join('|');
+  if (sig !== avatarSig) {
+    avatarSig = sig;
+    if (typeof chatMessages !== 'undefined' && chatMessages.length) renderChat();
+    if (typeof photoItems !== 'undefined' && photoItems.length) renderPhotos(photoItems);
+  }
+}
 /* ---------- CŒUR ---------- */
 let lastHeartSent = 0, heartBase = false, lastHeartTs = 0;
 function sendHeart() {
@@ -377,16 +412,13 @@ function openMusic() {
   if (u) window.open(u, '_blank', 'noopener');
 }
 function renderMusic() {
-  const vinyl = $('vinyl');
   if (currentMusic && currentMusic.url) {
     $('music-title').textContent = musicLabel(currentMusic.url);
     const canOpen = !!normalizeUrl(currentMusic.url);
     $('music-subtitle').textContent = 'Partagé par ' + (currentMusic.from === myRole ? 'toi' : nameOf(currentMusic.from)) + ' \u00b7 ' + relativeTime(currentMusic.ts) + (canOpen ? ' \u00b7 touche pour écouter' : '');
-    vinyl.classList.add('spin');
   } else {
     $('music-title').textContent = "Rien de partagé pour l'instant";
-    $('music-subtitle').textContent = 'Envoie-lui un son \u2728';
-    vinyl.classList.remove('spin');
+    $('music-subtitle').textContent = 'Envoie-lui un son';
   }
 }
 function listenMusic() {
@@ -649,27 +681,23 @@ function sendNote() {
 const noteData = { a: null, b: null };
 const noteBase = { a: false, b: false };
 const lastNoteTs = { a: 0, b: 0 };
-function renderStory(role) {
-  const mine = role === myRole;
-  const data = noteData[role];
-  const icon = $(mine ? 'my-note-preview-icon' : 'her-note-preview-icon');
-  const preview = $(mine ? 'my-note-preview' : 'her-note-preview');
-  if (data) {
-    icon.innerHTML = data.img ? '<img src="' + data.img + '">' : '\u{1F4AC}';
-    preview.textContent = data.text || '';
-  } else {
-    icon.textContent = mine ? '\u270F\uFE0F' : '\u{1F48C}';
-    preview.textContent = '';
-  }
+function renderRecvNote() {
+  const d = noteData[otherRole];
+  const box = $('recv-note');
+  if (!d) { box.style.display = 'none'; return; }
+  box.style.display = 'flex';
+  $('recv-thumb').style.backgroundImage = d.img ? 'url(' + d.img + ')' : '';
+  $('recv-title').textContent = 'Note de ' + otherName;
+  $('recv-sub').textContent = (d.text ? cut(d.text, 38) + ' \u00b7 ' : '') + relativeTime(d.ts);
 }
 function listenNotes() {
   ['a', 'b'].forEach(role => {
     onValue(roomRef.child('notes/' + role), snap => {
       const data = snap.val();
       noteData[role] = data;
-      renderStory(role);
+      renderRecvNote();
       if (role === otherRole && noteBase[role] && data && data.ts !== lastNoteTs[role]) {
-        notify(otherName + ' a partagé une note', 'home');
+        notify(otherName + ' t\u2019a envoy\u00e9 une note dessin\u00e9e', 'notes');
       }
       lastNoteTs[role] = data ? data.ts : 0;
       noteBase[role] = true;
@@ -687,8 +715,88 @@ function openNote(role) {
 }
 function closeNote() { $('note-viewer').classList.add('hidden'); }
 
+
+/* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
+const NOTE_TTL = 24 * 3600 * 1000;
+const bubbleData = { a: null, b: null };
+const bubbleBase = { a: false, b: false };
+const lastBubbleTs = { a: 0, b: 0 };
+function liveBubble(role) {
+  const d = bubbleData[role];
+  return d && d.text && d.ts && Date.now() - d.ts < NOTE_TTL ? d : null;
+}
+function autosizeNote() {
+  const ta = $('my-note-input');
+  ta.style.height = 'auto';
+  ta.style.height = ta.scrollHeight + 'px';
+}
+function updateBubbleState() {
+  const ta = $('my-note-input');
+  const mine = liveBubble(myRole);
+  const bubble = $('my-note-bubble');
+  const val = ta.value.trim();
+  bubble.classList.toggle('has-note', !!mine);
+  bubble.classList.toggle('can-share', !!val && val !== (mine ? mine.text : ''));
+}
+function renderBubbles() {
+  const mine = liveBubble(myRole);
+  const her = liveBubble(otherRole);
+  const ta = $('my-note-input');
+  if (document.activeElement !== ta) {
+    ta.value = mine ? mine.text : '';
+    autosizeNote();
+  }
+  updateBubbleState();
+  $('her-note-text').textContent = her ? her.text : '\u2026';
+  $('her-note-bubble').classList.toggle('empty', !her);
+  $('my-note-avatar').classList.toggle('idle', !mine);
+  $('her-note-avatar').classList.toggle('idle', !her);
+}
+function saveBubble() {
+  const ta = $('my-note-input');
+  const text = ta.value.trim().slice(0, 60);
+  if (!roomRef) { showBanner('Pas encore connect\u00e9 \u00e0 la base \u2014 v\u00e9rifie ta connexion.'); return; }
+  if (!text) { clearBubble(); return; }
+  roomRef.child('bubbles/' + myRole).set({ text, ts: Date.now() });
+  bubbleData[myRole] = { text, ts: Date.now() };
+  ta.blur();
+  renderBubbles();
+  toast('Note partag\u00e9e avec ' + otherName);
+}
+function clearBubble() {
+  if (!roomRef) return;
+  roomRef.child('bubbles/' + myRole).remove();
+  bubbleData[myRole] = null;
+  $('my-note-input').value = '';
+  autosizeNote();
+  renderBubbles();
+}
+function listenBubbles() {
+  const ta = $('my-note-input');
+  if (!ta.dataset.bound) {
+    ta.dataset.bound = '1';
+    ta.addEventListener('input', () => { autosizeNote(); updateBubbleState(); });
+    ta.addEventListener('keydown', e => { if (e.key === 'Enter') { e.preventDefault(); saveBubble(); } });
+    ta.addEventListener('blur', () => setTimeout(renderBubbles, 120));
+  }
+  ['a', 'b'].forEach(role => {
+    onValue(roomRef.child('bubbles/' + role), snap => {
+      const data = snap.val();
+      bubbleData[role] = data;
+      renderBubbles();
+      if (role === otherRole && bubbleBase[role] && data && data.ts !== lastBubbleTs[role]) {
+        notify(otherName + ' a partag\u00e9 une note : ' + cut(data.text, 40), 'home');
+      }
+      lastBubbleTs[role] = data ? data.ts : 0;
+      bubbleBase[role] = true;
+    });
+  });
+}
+// Une note expire au bout de 24 h : on rafra\u00eechit l'affichage r\u00e9guli\u00e8rement
+setInterval(() => { if (roomRef) renderBubbles(); }, 60000);
 /* ---------- CHAT ---------- */
 let chatBase = false, lastChatId = null;
+let chatMessages = [];
 const knownReactions = {};
 
 function sendMessage() {
@@ -704,7 +812,8 @@ function listenChat() {
   onValue(roomRef.child('chat').limitToLast(100), snap => {
     const messages = [];
     snap.forEach(child => { messages.push(Object.assign({ id: child.key }, child.val())); });
-    $('chat-scroll').innerHTML = messages.map(renderMessage).join('');
+    chatMessages = messages;
+    renderChat();
     const last = messages[messages.length - 1];
     if (chatBase) {
       if (last && last.id !== lastChatId && last.from !== myRole && !chatVisible()) {
@@ -721,10 +830,16 @@ function listenChat() {
     scrollChatToBottom();
   });
 }
+function renderChat() {
+  const openPicker = document.querySelector('.reaction-picker.show');
+  const openId = openPicker ? openPicker.id : null;
+  $('chat-scroll').innerHTML = chatMessages.map(renderMessage).join('');
+  if (openId && $(openId)) $(openId).classList.add('show');
+}
 function renderMessage(m) {
   const mine = m.from === myRole;
   const reactionText = Object.keys(m.reactions || {}).map(r => m.reactions[r]).join('');
-  return '<div class="msg-row ' + (mine ? 'me' : '') + '">' +
+  return '<div class="msg-row ' + (mine ? 'me' : '') + '">' + (mine ? '' : avatarHTML(m.from, 'sm')) +
     '<div class="bubble ' + (mine ? 'me' : 'her') + '" onclick="toggleReactionPicker(\'' + m.id + '\')">' +
     escapeHtml(m.text) + (reactionText ? '<span class="reaction">' + reactionText + '</span>' : '') + '</div></div>' +
     '<div class="reaction-picker" id="picker-' + m.id + '">' +
@@ -764,39 +879,120 @@ function fileToCompressedDataURL(file, maxDim, quality) {
     reader.readAsDataURL(file);
   });
 }
-async function handlePhoto(event) {
-  const file = event.target.files[0];
-  if (!file || !roomRef) return;
-  const dataURL = await fileToCompressedDataURL(file, 900, 0.6);
-  roomRef.child('photos').push({ from: myRole, img: dataURL, ts: firebase.database.ServerValue.TIMESTAMP });
-  event.target.value = '';
-  toast('Photo envoyée à ' + otherName);
+
+/* — Caméra « En direct » — */
+let camStream = null, camFacing = 'environment';
+function openLive() {
+  if (!roomRef) { showBanner('Pas encore connect\u00e9 \u00e0 la base \u2014 v\u00e9rifie ta connexion.'); return; }
+  if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) startCamera();
+  else $('file-cam').click();
+}
+async function startCamera() {
+  $('cam').classList.remove('hidden');
+  stopCamera();
+  try {
+    camStream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: { ideal: camFacing }, width: { ideal: 1280 }, height: { ideal: 1600 } }, audio: false });
+    const v = $('cam-video');
+    v.srcObject = camStream;
+    v.classList.toggle('mirror', camFacing === 'user');
+    await v.play().catch(() => {});
+  } catch (e) {
+    // Pas d'acc\u00e8s \u00e0 la cam\u00e9ra dans l'app : on ouvre l'appareil photo du t\u00e9l\u00e9phone
+    closeCamera();
+    $('file-cam').click();
+  }
+}
+function stopCamera() {
+  if (camStream) { camStream.getTracks().forEach(t => t.stop()); camStream = null; }
+}
+function closeCamera() {
+  stopCamera();
+  $('cam').classList.add('hidden');
+}
+function flipCamera() {
+  camFacing = camFacing === 'user' ? 'environment' : 'user';
+  startCamera();
+}
+function snap() {
+  const v = $('cam-video');
+  if (!v.videoWidth) return;
+  const max = 900;
+  const k = Math.min(1, max / Math.max(v.videoWidth, v.videoHeight));
+  const w = Math.round(v.videoWidth * k), h = Math.round(v.videoHeight * k);
+  const c = document.createElement('canvas');
+  c.width = w; c.height = h;
+  const x = c.getContext('2d');
+  if (camFacing === 'user') { x.translate(w, 0); x.scale(-1, 1); }
+  x.drawImage(v, 0, 0, w, h);
+  const data = c.toDataURL('image/jpeg', 0.62);
+  const f = $('cam-flash');
+  f.classList.remove('go'); void f.offsetWidth; f.classList.add('go');
+  if (navigator.vibrate) navigator.vibrate(15);
+  setTimeout(() => { closeCamera(); openComposer(data, 'live'); }, 160);
 }
 
+/* — Publication (cam\u00e9ra ou galerie) — */
+let pendingImg = null, pendingSrc = 'live';
+function openComposer(dataURL, src) {
+  pendingImg = dataURL; pendingSrc = src;
+  $('comp-img').src = dataURL;
+  $('comp-caption').value = '';
+  $('composer').classList.remove('hidden');
+}
+function closeComposer() {
+  $('composer').classList.add('hidden');
+  pendingImg = null;
+}
+function publishPhoto() {
+  if (!pendingImg || !roomRef) return;
+  const caption = $('comp-caption').value.trim();
+  const p = { from: myRole, img: pendingImg, src: pendingSrc, ts: firebase.database.ServerValue.TIMESTAMP };
+  if (caption) p.caption = caption;
+  roomRef.child('photos').push(p);
+  closeComposer();
+  showScreen('photos');
+  toast('Photo envoy\u00e9e \u00e0 ' + otherName);
+}
+async function handleGallery(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  openComposer(await fileToCompressedDataURL(file, 900, 0.6), 'gallery');
+}
+async function handleNativeCamera(event) {
+  const file = event.target.files[0];
+  event.target.value = '';
+  if (!file) return;
+  openComposer(await fileToCompressedDataURL(file, 900, 0.6), 'live');
+}
+
+/* — Fil de photos — */
 function normalizeComments(c) {
   if (!c) return [];
   return (Array.isArray(c) ? c : Object.keys(c).map(k => c[k])).filter(Boolean);
 }
 let photosBase = false;
+let photoItems = [];
 const photoState = {};
 function listenPhotos() {
   onValue(roomRef.child('photos').limitToLast(30), snap => {
     const items = [];
     snap.forEach(child => { items.push(Object.assign({ id: child.key }, child.val())); });
     items.reverse();
+    photoItems = items;
     renderPhotos(items);
     if (photosBase) {
       items.forEach(p => {
         const prev = photoState[p.id];
         const comments = normalizeComments(p.comments);
         if (!prev) {
-          if (p.from !== myRole) notify(nameOf(p.from) + ' a partagé une photo', 'photos');
+          if (p.from !== myRole) notify(nameOf(p.from) + (p.src === 'live' ? ' a post\u00e9 en direct' : ' a partag\u00e9 une photo'), 'photos');
         } else {
           const likeNow = !!(p.likes && p.likes[otherRole]);
-          if (likeNow && !prev.likeOther) notify(otherName + ' a aimé ' + (p.from === myRole ? 'ta photo' : 'une photo'), 'photos');
+          if (likeNow && !prev.likeOther) notify(otherName + ' a aim\u00e9 ' + (p.from === myRole ? 'ta photo' : 'une photo'), 'photos');
           if (comments.length > prev.comments) {
             const lastC = comments[comments.length - 1];
-            if (lastC && lastC.from !== myRole) notify(otherName + ' a commenté : ' + cut(lastC.text, 50), 'photos');
+            if (lastC && lastC.from !== myRole) notify(otherName + ' a comment\u00e9 : ' + cut(lastC.text, 50), 'photos');
           }
         }
       });
@@ -810,36 +1006,53 @@ function renderPhotos(items) {
   const drafts = {};
   feed.querySelectorAll('input[data-pid]').forEach(i => { drafts[i.dataset.pid] = i.value; });
   const focusId = document.activeElement && document.activeElement.dataset ? document.activeElement.dataset.pid : null;
-  feed.innerHTML = items.map(renderPhoto).join('');
+  feed.innerHTML = items.length ? items.map(renderPhoto).join('') : '<div class="empty-feed">Pas encore de photo. Lance un \u00ab En direct \u00bb.</div>';
   feed.querySelectorAll('input[data-pid]').forEach(i => {
     if (drafts[i.dataset.pid]) i.value = drafts[i.dataset.pid];
     if (focusId && i.dataset.pid === focusId) i.focus();
   });
 }
+const HEART_ICON = '<svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg>';
 function renderPhoto(p) {
-  const likes = p.likes || {};
-  const liked = !!likes[myRole];
-  const likedBy = ['a', 'b'].filter(r => likes[r]).map(r => r === myRole ? 'toi' : nameOf(r));
+  const liked = !!(p.likes && p.likes[myRole]);
   const comments = normalizeComments(p.comments);
-  return '<div class="feed-item">' +
-    '<div class="feed-photo"><img src="' + p.img + '"><div class="feed-meta"><span>' + (p.from === myRole ? 'Toi' : nameOf(p.from)) + ' \u00b7 ' + relativeTime(p.ts || Date.now()) + '</span></div></div>' +
-    '<div class="feed-actions">' +
-    '<button class="heart-icon" onclick="toggleLike(\'' + p.id + '\',' + liked + ',this)">' + (liked ? '\u2764\uFE0F' : '\u{1F90D}') + '</button>' +
-    '<span class="likes-line">' + (likedBy.length ? 'Aimé par ' + likedBy.join(' et ') : '') + '</span>' +
-    '<span class="likes-line" style="margin-left:auto">' + comments.length + ' commentaire' + (comments.length > 1 ? 's' : '') + '</span>' +
-    '</div>' +
-    '<div class="comments">' + comments.map(c => '<div class="comment"><b>' + (c.from === myRole ? 'Toi' : nameOf(c.from)) + '</b> ' + escapeHtml(c.text) + '</div>').join('') + '</div>' +
-    '<div class="comment-input-row"><input data-pid="' + p.id + '" placeholder="Ajouter un commentaire" onkeydown="if(event.key===\'Enter\')addComment(\'' + p.id + '\', this)">' +
-    '<button class="send-btn" aria-label="Publier" onclick="addComment(\'' + p.id + '\', this.previousElementSibling)">\u27A4</button></div>' +
-    '</div>';
+  const who = p.from === myRole ? 'Toi' : nameOf(p.from);
+  const live = p.src === 'live';
+  return '<article class="post" data-id="' + p.id + '">' +
+    '<div class="post-head">' + avatarHTML(p.from, 'md') +
+      '<div class="post-who"><b>' + who + '</b><small>' + (live ? '<span class="rec"></span>En direct \u00b7 ' : '') + relativeTime(p.ts || Date.now()) + '</small></div></div>' +
+    '<div class="post-photo" data-id="' + p.id + '"><img src="' + p.img + '" alt="" draggable="false">' +
+      '<svg class="pop-heart" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"/></svg></div>' +
+    (p.caption ? '<div class="post-caption">' + escapeHtml(p.caption) + '</div>' : '') +
+    '<div class="post-actions"><button class="fav' + (liked ? ' on' : '') + '" aria-label="Aimer" aria-pressed="' + liked + '" onclick="toggleLike(\'' + p.id + '\',' + liked + ',this)">' + HEART_ICON + '</button></div>' +
+    (comments.length ? '<div class="post-comments">' + comments.map(c => '<div class="comment"><b>' + (c.from === myRole ? 'Toi' : nameOf(c.from)) + '</b>' + escapeHtml(c.text) + '</div>').join('') + '</div>' : '') +
+    '<div class="comment-input-row">' + avatarHTML(myRole, 'sm') +
+      '<input data-pid="' + p.id + '" placeholder="Ajouter un commentaire" enterkeyhint="send" onkeydown="if(event.key===\'Enter\')addComment(\'' + p.id + '\', this)">' +
+      '<button class="send-btn" aria-label="Publier" onclick="addComment(\'' + p.id + '\', this.previousElementSibling)"><svg><use href="#i-send"/></svg></button></div>' +
+    '</article>';
 }
 function toggleLike(id, wasLiked, btn) {
+  if (!roomRef) return;
   roomRef.child('photos/' + id + '/likes/' + myRole).set(wasLiked ? null : true);
   if (!wasLiked && btn) burstHearts(btn, 5);
 }
+// Double tap sur une photo = j'aime (comme sur Insta)
+let lastTap = { id: null, t: 0 };
+$('photos-feed').addEventListener('click', e => {
+  const ph = e.target.closest('.post-photo');
+  if (!ph) return;
+  const now = Date.now();
+  if (lastTap.id === ph.dataset.id && now - lastTap.t < 330) {
+    lastTap = { id: null, t: 0 };
+    const ph2 = photoItems.find(x => x.id === ph.dataset.id);
+    const pop = ph.querySelector('.pop-heart');
+    pop.classList.remove('go'); void pop.getBoundingClientRect(); pop.classList.add('go');
+    if (ph2 && !(ph2.likes && ph2.likes[myRole])) toggleLike(ph.dataset.id, false, null);
+  } else lastTap = { id: ph.dataset.id, t: now };
+});
 function addComment(id, input) {
   const text = input.value.trim();
-  if (!text) return;
+  if (!text || !roomRef) return;
   roomRef.child('photos/' + id + '/comments').transaction(list => {
     list = normalizeComments(list);
     list.push({ from: myRole, text, ts: Date.now() });
@@ -847,7 +1060,6 @@ function addComment(id, input) {
   });
   input.value = '';
 }
-
 /* ---------- RÉGLAGES ---------- */
 async function handleProfilePhoto(event) {
   const file = event.target.files[0];
@@ -875,6 +1087,17 @@ function applyWallpaper() {
 applyWallpaper();
 
 /* ---------- DÉMARRAGE ---------- */
+/* ---------- DATE DU JOUR (accueil) ---------- */
+function renderToday() {
+  const t = new Date().toLocaleDateString('fr-FR', { weekday: 'long', day: 'numeric', month: 'long' });
+  const txt = t.charAt(0).toUpperCase() + t.slice(1);
+  const el = $('home-date');
+  if (el && el.textContent !== txt) el.textContent = txt;
+}
+renderToday();
+setInterval(renderToday, 60000);
+document.addEventListener('visibilitychange', () => { if (!document.hidden) { renderToday(); if (calendarBase) renderCalendar(); } });
+
 applyNames();
 if (myRole && room) {
   $('onboarding').classList.add('hidden');

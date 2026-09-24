@@ -48,6 +48,11 @@ Retourne dans Realtime Database > onglet "Règles", et remplace par :
 
 C'est ton code, dans ton repo GitHub : tu peux revenir ici, me montrer ce que tu veux changer, je te redonne les fichiers mis à jour, et tu les ré-uploades sur GitHub (ça écrase l'ancienne version, l'app se met à jour automatiquement pour vous deux).
 
+## Bon à savoir
+- **En direct** (onglet Photos) : au premier usage, le téléphone demande l'autorisation d'utiliser la caméra. Si elle est refusée, l'app ouvre l'appareil photo classique du téléphone à la place.
+- **Notes de l'accueil** : comme sur Instagram, elles restent 24 h puis disparaissent. Tape directement dans la bulle, puis valide avec la flèche ou la touche envoyer.
+- Après avoir ré-uploadé les fichiers sur GitHub, ferme et rouvre l'app une fois pour récupérer la nouvelle version.
+
 ## Limites à connaître (honnêtement)
 - **Notifications** : chaque interaction de l'autre (cœur, mood, statut, note, musique, message, réaction, photo, like, commentaire, calendrier) s'affiche en **bannière dans l'app** quand elle est ouverte, et en **notification système** quand elle est en arrière-plan (active-les dans Réglages > Notifications ; sur iPhone, l'app doit d'abord être ajoutée à l'écran d'accueil). Si l'app est **totalement fermée**, la notif ne peut pas partir : il faudrait des notifications push (Firebase Cloud Messaging + un petit serveur). En attendant, un cœur reçu pendant que l'app était fermée s'affiche à l'ouverture suivante.
 - **Photos/notes** : elles sont stockées en base64 directement dans la base de données (pas de vrai espace de stockage fichiers), ça marche très bien à l'usage d'un couple mais évite les photos en HD à outrance — le plan gratuit Firebase a un quota (1 Go de data, largement suffisant pour ce genre d'usage).
