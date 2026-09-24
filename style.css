@@ -1192,3 +1192,93 @@ html,body{background:#121014!important}
   #notes .notes-stack-wrap.is-fanned{min-height:730px!important}
 }
 .nav-heart svg{width:42px!important;height:42px!important;stroke:none!important;fill:#fff!important}
+
+/* ---------- Notes : dernière passe UI ---------- */
+:root{
+  --note-white:#fffdfd;
+  --note-pink:#ffdfe9;
+  --note-green:#dff3e8;
+  --note-lilac:#e9e0fb;
+  --note-blue:#dcecfb;
+  --note-ink:#211820;
+  --note-muted:#927f89;
+}
+
+#notes .notes-empty{
+  position:relative!important;
+  display:flex!important;
+  flex-direction:column!important;
+  align-items:flex-start!important;
+  justify-content:flex-start!important;
+  width:calc(100% - 16px)!important;
+  height:430px!important;
+  margin:14px 8px 0!important;
+  padding:28px 24px 24px!important;
+  border:1px solid rgba(255,255,255,.82)!important;
+  border-radius:30px!important;
+  background:linear-gradient(145deg,rgba(255,253,254,.22),rgba(255,255,255,.08))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 18px 38px rgba(48,25,41,.06)!important;
+  backdrop-filter:blur(9px)!important;
+  -webkit-backdrop-filter:blur(9px)!important;
+  color:rgba(33,24,32,.46)!important;
+  text-align:left!important;
+  cursor:pointer!important;
+  overflow:hidden!important;
+}
+#notes .notes-empty:before,
+#notes .notes-empty:after{
+  content:"";position:absolute;pointer-events:none;border-radius:24px;
+  border:1px solid rgba(255,255,255,.32);
+  background:rgba(255,255,255,.05);
+}
+#notes .notes-empty:before{inset:9px -7px -9px 7px;transform:rotate(2.2deg);z-index:-1}
+#notes .notes-empty:after{inset:15px -11px -15px 11px;transform:rotate(-2deg);z-index:-2}
+#notes .notes-empty-kicker{display:block!important;margin-bottom:18px!important;font:900 9px/1 Figtree,sans-serif!important;letter-spacing:1.5px!important;color:rgba(82,62,72,.38)!important}
+#notes .notes-empty b{display:block!important;margin-top:0!important;font:800 31px/1.05 Figtree,sans-serif!important;letter-spacing:-1.2px!important;color:rgba(43,31,39,.38)!important}
+#notes .notes-empty small{display:block!important;margin-top:auto!important;font:650 11px/1.4 Figtree,sans-serif!important;color:rgba(108,89,100,.42)!important}
+
+/* palette exacte des cartes : blanc, rose, vert, lilas, bleu */
+#notes .stack-note:nth-child(1){background:var(--note-bg,var(--note-white))!important}
+#notes .stack-note:nth-child(2){background:var(--note-bg,var(--note-pink))!important}
+#notes .stack-note:nth-child(3){background:var(--note-bg,var(--note-green))!important}
+#notes .stack-note:nth-child(4){background:var(--note-bg,var(--note-lilac))!important}
+#notes .stack-note:nth-child(5){background:var(--note-bg,var(--note-blue))!important}
+
+/* Éditeur : hiérarchie typo plus éditoriale */
+.note-editor-sheet{font-family:Figtree,sans-serif!important;color:var(--note-ink)!important}
+.note-editor-head input{font:850 26px/1.05 Figtree,sans-serif!important;letter-spacing:-1px!important}
+.note-editor-head input::placeholder{color:#b6a9b0!important}
+.note-editor-palette{padding:4px 1px 2px!important}
+.note-color{width:31px!important;height:31px!important}
+.note-editor-blocks{gap:10px!important}
+.note-block{min-height:52px!important;align-items:center!important;border-radius:17px!important;background:rgba(255,255,255,.76)!important;box-shadow:0 5px 15px rgba(45,27,39,.045)!important}
+.note-block .nb-text{font:650 14px/1.35 Figtree,sans-serif!important;color:#3b2d35!important}
+.note-block .nb-text::placeholder{color:#b3a5ad!important}
+.note-block>button{font:700 20px/1 Figtree,sans-serif!important}
+.note-drawing-head b{font:850 18px/1.1 Figtree,sans-serif!important;letter-spacing:-.4px!important}
+.note-drawing-head:after{content:'Ajoute ton dessin, puis garde-le dans la note.';display:block;margin-top:5px;font:600 10px/1.35 Figtree,sans-serif;color:#9a8992}
+.note-tool{font:800 10px/1.1 Figtree,sans-serif!important;letter-spacing:-.1px!important}
+.note-tool span{display:block;margin-top:1px}
+.note-editor-tools{gap:9px!important;margin:3px 0 2px!important}
+.note-editor-tools button{flex:1!important;min-height:56px!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:4px!important;border:1px solid rgba(55,36,47,.07)!important;background:rgba(255,255,255,.72)!important;box-shadow:0 7px 18px rgba(45,27,39,.05)!important;border-radius:16px!important;color:#44363f!important}
+.note-editor-tools button strong{font:900 19px/1 Figtree,sans-serif!important}
+.note-editor-tools button span{font:750 10px/1 Figtree,sans-serif!important;letter-spacing:.15px!important}
+.note-block .nb-photo-btn{min-height:40px!important;border-radius:13px!important;background:linear-gradient(135deg,rgba(255,223,233,.58),rgba(223,243,232,.58))!important;border:1px solid rgba(255,255,255,.9)!important;font:800 12px/1 Figtree,sans-serif!important;color:#493b44!important}
+.note-block .nb-photo-icon{display:grid;place-items:center;width:24px;height:24px;border-radius:8px;background:#fff;color:#8c6d7b;font-size:16px;font-weight:900}
+.note-block.has-photo .nb-photo-btn{background:linear-gradient(135deg,rgba(223,243,232,.85),rgba(220,236,251,.8))!important}
+.note-editor-actions .primary{
+  min-width:150px!important;
+  border:0!important;
+  background:linear-gradient(135deg,#dff3e8 0%,#ffdfe9 100%)!important;
+  color:#2b2229!important;
+  box-shadow:0 10px 24px rgba(190,123,148,.16)!important;
+  font:900 14px/1 Figtree,sans-serif!important;
+  letter-spacing:-.2px!important;
+}
+.note-editor-actions .ghost{font:800 13px/1 Figtree,sans-serif!important;color:#5f5059!important}
+
+@media(max-width:430px){
+  #notes .notes-empty{height:430px!important;margin-left:7px!important;width:calc(100% - 14px)!important;padding:26px 21px!important}
+  #notes .notes-empty b{font-size:28px!important}
+  .note-editor-tools button{min-height:54px!important}
+}

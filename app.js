@@ -793,22 +793,34 @@ function addNoteBlock(type){
   if(type==='check'){
     row.innerHTML='<input type="checkbox" aria-label="Cocher"><input class="nb-text" placeholder="À faire…"><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
   } else if(type==='image'){
-    row.innerHTML='<label class="nb-photo-btn">📷 <span class="nb-file">Ajouter une photo</span><input class="nb-photo-input" type="file" accept="image/*" onchange="noteImagePreview(event)"></label><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+    row.innerHTML='<label class="nb-photo-btn"><span class="nb-photo-icon">＋</span><span class="nb-file">Ajouter une photo</span><input class="nb-photo-input" type="file" accept="image/*" multiple onchange="noteImagePreview(event)"></label><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
   } else {
     row.innerHTML='<textarea class="nb-text" rows="2" placeholder="Écris ici…"></textarea><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
   }
   box.appendChild(row);
 }
 function noteImagePreview(e){
-  const f=e.target.files?.[0];
-  if(!f)return;
-  const r=new FileReader();
-  r.onload=()=>{
-    e.target.dataset.data=r.result;
-    const label=e.target.closest('.nb-photo-btn')?.querySelector('.nb-file');
-    if(label) label.textContent='Photo ajoutée ✓';
-  };
-  r.readAsDataURL(f);
+  const files=[...(e.target.files||[])].filter(f=>f.type.startsWith('image/'));
+  if(!files.length)return;
+  const box=$('note-editor-blocks');
+  const first=e.target.closest('.note-block');
+  files.forEach((f,idx)=>{
+    const reader=new FileReader();
+    reader.onload=()=>{
+      const target = idx===0 ? first : document.createElement('div');
+      if(idx>0){
+        target.className='note-block';
+        target.innerHTML='<label class="nb-photo-btn"><span class="nb-photo-icon">✓</span><span class="nb-file">Photo ajoutée</span><input class="nb-photo-input" type="file" accept="image/*"></label><button type="button" onclick="this.parentElement.remove()" aria-label="Supprimer">×</button>';
+        box.appendChild(target);
+      }
+      const input=target.querySelector('input[type=file]');
+      if(input) input.dataset.data=reader.result;
+      const label=target.querySelector('.nb-file');
+      if(label) label.textContent=files.length>1?`Photo ${idx+1} ajoutée ✓`:'Photo ajoutée ✓';
+      target.classList.add('has-photo');
+    };
+    reader.readAsDataURL(f);
+  });
 }
 function collectNoteBlocks(){
   const blocks=[];
@@ -823,7 +835,7 @@ function collectNoteBlocks(){
 async function sendStructuredNote(){
   if(!roomRef)return;
   const title=$('note-editor-title').value.trim()||'Note'; const blocks=collectNoteBlocks();
-  if(!blocks.length){toast('Écris ou dessine quelque chose');return;}
+  if(!blocks.length){toast('Écris, ajoute une photo ou dessine quelque chose');return;}
   const ref=roomRef.child('notesInbox/'+otherRole).push();
   await ref.set({title,blocks,color:selectedNoteColor,from:myRole,ts:Date.now(),favorite:false});
   closeNoteEditor(); toast('Note envoyée à '+otherName);
@@ -851,7 +863,7 @@ function renderStructuredNotes(){
   const box=$('notes-stack'); if(!box)return;
   const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
   if(!notes.length){
-    box.innerHTML='<div class="notes-empty"><span>Crée votre première note</span></div>';
+    box.innerHTML='<button type="button" class="notes-empty" onclick="openNoteEditor()" aria-label="Créer une première note"><span class="notes-empty-kicker">VOTRE CARNET À DEUX</span><b>Une petite note<br>attend ici.</b><small>Écrivez, dessinez ou ajoutez une photo.</small></button>';
     return;
   }
   box.innerHTML=notes.map((n,i)=>{
