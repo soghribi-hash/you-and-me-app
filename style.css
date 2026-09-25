@@ -252,7 +252,7 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 .picker-del{display:flex;align-items:center;justify-content:center;width:20px;height:20px;color:var(--muted);padding-left:2px;margin-left:2px;border-left:1px solid var(--line)}
 .picker-del svg{width:15px;height:15px}
 .picker-del:active{color:var(--cherry)}
-.chat-input-row{display:flex;gap:8px;position:sticky;bottom:-34px;padding:14px 0 4px;background:linear-gradient(to top,var(--bg) 62%,rgba(255,244,246,0));z-index:3}
+.chat-input-row{display:flex;gap:8px;position:sticky;bottom:-34px;padding:14px 0 4px;background:transparent;z-index:3}
 .chat-input-row input{min-width:0;flex:1;background:#fff;border:1px solid var(--line);border-radius:999px;padding:0 18px;height:46px;font-size:15px;font-weight:600;outline:none}
 
 /* ---------- PHOTOS : « En direct » façon BeReal, cadres façon instantané ---------- */
@@ -1932,4 +1932,49 @@ body.edit-mode .widget{overflow:visible!important}
 .reaction-picker{
   flex-wrap:wrap;
   max-width:calc(100vw - 46px);
+}
+
+
+/* Aperçu agrandi des photos de notes — reste dans une carte arrondie, jamais plein écran. */
+#notes .stack-note-body .note-media,
+#notes .stack-note-body img.note-media{
+  cursor:zoom-in;
+  max-height:320px!important;
+  object-fit:contain!important;
+}
+.note-media-preview-card{
+  width:min(92vw,560px);
+  max-height:86vh;
+  padding:14px;
+  border-radius:28px;
+  background:rgba(255,250,252,.96);
+  border:1px solid rgba(255,255,255,.9);
+  box-shadow:0 24px 70px rgba(32,16,27,.22);
+  overflow:auto;
+}
+.note-media-preview-head{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:12px;
+  padding:2px 4px 12px;
+  color:var(--ink);
+}
+.note-media-preview-head b{
+  font-size:14px;
+  font-weight:800;
+}
+.note-media-preview-head button{
+  width:34px;height:34px;border:0;border-radius:50%;
+  background:rgba(255,255,255,.9);color:var(--ink);
+  font-size:22px;line-height:1;cursor:pointer;
+}
+#note-media-preview-img{
+  display:block;
+  width:100%;
+  height:auto;
+  max-height:72vh;
+  object-fit:contain;
+  border-radius:20px;
+  background:#fff;
 }

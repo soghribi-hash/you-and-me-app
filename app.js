@@ -1125,7 +1125,7 @@ function renderStructuredNotes(){
     const blocks=n.blocks||[];
     const body=blocks.slice(0,8).map((b,bi)=>b.type==='check'
       ? '<label><input type="checkbox" '+(b.checked?'checked':'')+' onclick="event.stopPropagation();toggleNoteCheck(\''+n.id+'\','+!!b.checked+',this,'+bi+')"><span>'+escapeHtml(b.text)+'</span></label>'
-      : (b.type==='image'||b.type==='drawing') ? '<img src="'+escapeHtml(b.src||'')+'" alt="" class="note-media">'
+      : (b.type==='image'||b.type==='drawing') ? '<img src="'+escapeHtml(b.src||'')+'" alt="" class="note-media" onclick="event.stopPropagation();openNoteMediaPreview(\''+escapeHtml(b.src||'').replace(/'/g,"\\'")+ '\',\''+escapeHtml(n.title||'Note').replace(/'/g,"\\'")+'\')">'
       : '<p>'+escapeHtml(b.text)+'</p>').join('');
     const comments=normalizeNoteComments(n.comments);
     const open=!!noteCommentsOpen[n.id];
@@ -1229,6 +1229,21 @@ async function addNoteComment(id,text){
   await roomRef.child(path+'/comments').push({from:myRole,text:value,ts:firebase.database.ServerValue.TIMESTAMP});
   noteCommentsOpen[id]=true;
 }
+
+function openNoteMediaPreview(src, title){
+  const modal=$('note-media-preview');
+  const img=$('note-media-preview-img');
+  const label=$('note-media-preview-title');
+  if(!modal||!img)return;
+  img.src=src||'';
+  if(label) label.textContent=title||'Notre note';
+  modal.classList.remove('hidden');
+}
+function closeNoteMediaPreview(){
+  const modal=$('note-media-preview');
+  if(modal) modal.classList.add('hidden');
+}
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeNoteMediaPreview(); });
 function openStructuredNote(id){
   const n=structuredNotes.find(x=>x.id===id);
   if(!n)return;
@@ -2230,7 +2245,7 @@ function exitEditMode() {
 }
 
 function startWidgetDrag(e, w) {
-  if (!editMode || !w || e.target.closest('#widget-editor') || e.target.closest('input,textarea,button,select,label')) return;
+  if (!editMode || !w || e.pointerType==='touch' || e.target.closest('#widget-editor') || e.target.closest('input,textarea,button,select,label')) return;
   const wid = w.dataset.wid;
   const cfg = normalizedWidgetConfig(wid, widgetConfigs[wid]);
   dragState = { wid, startX: e.clientX, startY: e.clientY, x: Number(cfg.x) || 0, y: Number(cfg.y) || 0, moved: false };

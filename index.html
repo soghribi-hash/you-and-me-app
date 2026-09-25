@@ -361,6 +361,17 @@
       </div>
     </div>
 
+    <!-- APERÇU AGRANDI D'UNE PHOTO DE NOTE -->
+    <div class="modal-overlay hidden" id="note-media-preview" onclick="if(event.target===this)closeNoteMediaPreview()">
+      <div class="note-media-preview-card" onclick="event.stopPropagation()">
+        <div class="note-media-preview-head">
+          <b id="note-media-preview-title">Notre note</b>
+          <button type="button" onclick="closeNoteMediaPreview()" aria-label="Fermer">×</button>
+        </div>
+        <img id="note-media-preview-img" alt="Photo de la note">
+      </div>
+    </div>
+
     <!-- ÉDITEUR DE NOTE -->
     <div class="modal-overlay hidden" id="note-editor" onclick="if(event.target===this)closeNoteEditor()">
       <div class="comp-sheet note-editor-sheet" onclick="event.stopPropagation()">
