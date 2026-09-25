@@ -2031,3 +2031,53 @@ body.edit-mode .widget{overflow:visible!important}
 /* Le déplacement des widgets est interdit par geste tactile : aucune animation de déplacement. */
 .widget{touch-action:none!important}
 body.edit-mode .widget{animation:none!important;transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale))!important}
+
+
+/* V36 — verrouillage tactile de la home : les widgets restent fixes comme sur la maquette.
+   Le swipe vertical reste disponible pour faire défiler la page, mais aucun pan horizontal
+   ne peut décaler l'écran ou faire bouger les widgets. */
+html, body { overflow-x:hidden !important; }
+#app { overflow-x:hidden !important; }
+.screens {
+  overflow-x:hidden !important;
+  overscroll-behavior-x:none !important;
+  touch-action:pan-y !important;
+}
+.widget {
+  touch-action:manipulation !important;
+  transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale)) !important;
+}
+#home .widget {
+  --wx:0px !important;
+}
+#home .w-music {
+  --wy:420px !important;
+}
+#home .live-rail {
+  --wy:92px !important;
+}
+/* L'ouverture du tiroir reste uniquement liée à son bouton, jamais au swipe de la page. */
+#home .live-rail {
+  touch-action:manipulation !important;
+}
+
+/* Icône commentaire façon Instagram : bulle outline + compteur. */
+#notes .note-comment-toggle {
+  display:inline-flex !important;
+  align-items:center !important;
+  justify-content:center !important;
+  gap:5px !important;
+  min-width:42px !important;
+}
+#notes .note-comment-toggle svg {
+  width:15px !important;
+  height:15px !important;
+  fill:none !important;
+  stroke:currentColor !important;
+  stroke-width:1.9 !important;
+  stroke-linejoin:round !important;
+  flex:0 0 auto !important;
+}
+#notes .note-comment-toggle span {
+  line-height:1 !important;
+}

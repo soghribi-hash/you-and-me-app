@@ -1152,7 +1152,7 @@ function renderStructuredNotes(){
       '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note" aria-pressed="'+(likeClass?'true':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"></use></svg></button>'+
       '<h3 onclick="event.stopPropagation();openStructuredNote(\''+n.id+'\')">'+escapeHtml(n.title||'Note')+'</h3><div class="stack-note-body">'+body+'</div>'+
       '<div class="note-footer" onclick="event.stopPropagation()"><small>'+formatNoteDate(n.ts)+'</small>'+
-      '<button class="note-comment-toggle" type="button" onclick="toggleNoteComments(\''+n.id+'\')" aria-expanded="'+open+'">♡ '+comments.length+'</button></div>'+
+      '<button class="note-comment-toggle" type="button" onclick="toggleNoteComments(\''+n.id+'\')" aria-expanded="'+open+'"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-comment"></use></svg><span>'+comments.length+'</span></button></div>'+
       commentPanel+
       '</article>';
   }).join('');
