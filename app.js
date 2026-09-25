@@ -539,6 +539,7 @@ function listenThrowback(){ onValue(roomRef.child('throwback'),snap=>{throwbackD
 function renderThrowback(){const el=$('throwback-photo');if(!el)return;const thumb=$('home-memory-thumb');if(throwbackData?.img){el.style.backgroundImage='url('+throwbackData.img+')';el.classList.add('has');if(thumb){thumb.style.backgroundImage='url('+throwbackData.img+')';thumb.classList.add('has');}}else{el.style.backgroundImage='';el.classList.remove('has');if(thumb){thumb.style.backgroundImage='';thumb.classList.remove('has');}}}
 function openThrowback(){if(throwbackData?.img){$('throwback-img').src=throwbackData.img;$('throwback-viewer').classList.remove('hidden');}else $('throwback-file').click();}
 function closeThrowback(){$('throwback-viewer').classList.add('hidden');}
+function chooseThrowbackPhoto(){ closeThrowback(); $('throwback-file')?.click(); }
 function saveThrowback(e){const file=e.target.files?.[0];if(!file||!roomRef)return;const img=new Image();const r=new FileReader();r.onload=()=>{img.onload=()=>{const max=1200,scale=Math.min(1,max/img.width,max/img.height),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const data=c.toDataURL('image/jpeg',.72);roomRef.child('throwback').set({img:data,from:myRole,ts:Date.now()});e.target.value='';toast('Souvenir ajouté');};img.src=r.result;};r.readAsDataURL(file);}
 
 /* ---------- CALENDRIER (plusieurs annotations par jour, par l'un ou l'autre) ---------- */

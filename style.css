@@ -2239,3 +2239,80 @@ body.edit-mode #home .live-peek-stack{pointer-events:auto!important}
 #home .live-drawer-tab b{font-size:0!important}
 
 /* Taille tactile plus libre : le pinch peut réduire ou agrandir réellement. */
+
+
+/* V42 — micro-ajustements demandés : En direct / Throwback / logo / palette notes */
+#home .live-drawer{
+  right:8px!important;
+  top:24px!important;
+  width:226px!important;
+  height:276px!important;
+  padding:7px!important;
+  border-radius:24px!important;
+  background:linear-gradient(145deg,rgba(31,24,34,.74),rgba(83,55,75,.58))!important;
+  border:1px solid rgba(246,207,224,.68)!important;
+  box-shadow:0 20px 46px rgba(35,16,30,.22), inset 0 1px 0 rgba(255,255,255,.28)!important;
+  backdrop-filter:blur(20px) saturate(1.08)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(1.08)!important;
+}
+#home .live-drawer-grid{
+  width:100%!important;
+  height:262px!important;
+  border-radius:18px!important;
+}
+#home .live-front-photo{
+  border-radius:18px!important;
+  box-shadow:0 9px 22px rgba(0,0,0,.15)!important;
+}
+#home .live-front-top b,
+#home .live-peek-stack .peek-label{
+  font-family:"Playfair Display",serif!important;
+  font-style:italic!important;
+  font-weight:800!important;
+  letter-spacing:1.6px!important;
+}
+#home .live-front-top b{font-size:10px!important;color:#f0bfd4!important}
+#home .live-front-top span{font-size:8px!important}
+#home .live-front-bottom b{font-size:15px!important}
+#home .live-front-bottom span{font-size:8px!important}
+
+/* Le bouton de fermeture reste dans la petite carte ouverte. */
+#home .live-drawer-tab{
+  right:7px!important;
+  top:7px!important;
+  width:27px!important;
+  height:27px!important;
+  background:rgba(255,255,255,.20)!important;
+  border:1px solid rgba(255,255,255,.32)!important;
+}
+
+/* Throwback : retrouver l'accès à la photothèque depuis le souvenir ouvert. */
+.throwback-library{
+  display:inline-flex!important;
+  align-items:center!important;
+  justify-content:center!important;
+  margin:12px auto 2px!important;
+  min-width:128px!important;
+  min-height:38px!important;
+  padding:8px 16px!important;
+  border:1px solid rgba(239,63,112,.16)!important;
+  border-radius:999px!important;
+  background:rgba(255,255,255,.82)!important;
+  color:#5b4f57!important;
+  font:800 12px/1 Figtree,sans-serif!important;
+  box-shadow:0 6px 16px rgba(45,24,40,.08)!important;
+}
+.throwback-library:active{transform:scale(.97)!important}
+
+/* La palette reste clairement disponible aussi lors de l'édition d'une note. */
+.note-editor-palette{
+  display:flex!important;
+  align-items:center!important;
+  gap:9px!important;
+  margin:2px 0 13px!important;
+  padding:3px 1px!important;
+}
+.note-color{cursor:pointer!important}
+
+/* Le point du logo reprend exactement le lilas du &. */
+.logo-dot{color:#d3a6c8!important}

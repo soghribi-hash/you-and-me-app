@@ -1,4 +1,4 @@
-const CACHE = "you-and-me-v39";
+const CACHE = "you-and-me-v42";
 const FILES = ["./", "./index.html", "./style.css", "./app.js", "./firebase-config.js", "./spotify-config.js", "./manifest.json", "./icon-192.png", "./icon-512.png"];
 
 self.addEventListener("install", (e) => {
