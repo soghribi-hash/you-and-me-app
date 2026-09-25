@@ -1146,7 +1146,7 @@ function renderStructuredNotes(){
         `<div class="note-comment-input-row"><input id="note-comment-input-${n.id}" maxlength="180" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter'){event.preventDefault();addNoteComment('${n.id}',this.value)}"><button type="button" onclick="addNoteComment('${n.id}',document.getElementById('note-comment-input-${n.id}').value)">↑</button></div></div>`
       : '';
     const likeClass=noteLikeState(n)?'on':'';
-    return '<article class="stack-note" data-note-index="'+i+'" data-note-id="'+n.id+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="cycleNoteStack(\''+n.id+'\')">'+
+    return '<article class="stack-note" data-note-index="'+i+'" data-note-id="'+n.id+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'">'+
       '<div class="stack-note-origin">'+escapeHtml(n.from===myRole?'Toi':nameOf(n.from))+'</div>'+
       '<button class="note-trash" type="button" onclick="event.stopPropagation();deletePublishedNote(\''+n.id+'\')" aria-label="Supprimer cette note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"></use></svg></button>'+
       '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note" aria-pressed="'+(likeClass?'true':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"></use></svg></button>'+
@@ -1351,13 +1351,25 @@ notesStackWrap?.addEventListener('pointerdown', e=>{
   if(e.target.closest('.notes-add,.note-fav,.note-trash,.note-comment-toggle,.note-comment-panel,h3,.note-media'))return;
   notesStackWrap.dataset.swipeX=String(e.clientX);
   notesStackWrap.dataset.swipeY=String(e.clientY);
+  notesStackWrap.dataset.swipePointer=String(e.pointerId);
 });
 notesStackWrap?.addEventListener('pointerup', e=>{
   if(e.target.closest('.notes-add,.note-fav,.note-trash,.note-comment-toggle,.note-comment-panel,h3,.note-media'))return;
   const sx=Number(notesStackWrap.dataset.swipeX||e.clientX), sy=Number(notesStackWrap.dataset.swipeY||e.clientY);
   const dx=e.clientX-sx, dy=e.clientY-sy;
-  if(Math.abs(dx)>28 && Math.abs(dx)>Math.abs(dy)){ cycleNoteStack(noteBrowseId); return; }
-  if(e.target.closest('.stack-note')) cycleNoteStack(e.target.closest('.stack-note').dataset.noteId || noteBrowseId);
+  if(Math.abs(dx)>28 && Math.abs(dx)>Math.abs(dy)){
+    cycleNoteStack(noteBrowseId);
+    notesStackWrap.dataset.suppressClick='1';
+  }
+});
+notesStackWrap?.addEventListener('click',e=>{
+  if(e.target.closest('.notes-add,.note-fav,.note-trash,.note-comment-toggle,.note-comment-panel,h3,.note-media'))return;
+  if(notesStackWrap.dataset.suppressClick==='1'){
+    notesStackWrap.dataset.suppressClick='';
+    return;
+  }
+  const card=e.target.closest('.stack-note');
+  if(card) cycleNoteStack(card.dataset.noteId || noteBrowseId);
 });
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
@@ -2356,19 +2368,29 @@ function initWidgetSystem() {
     }
     if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    pressStart = { x: e.clientX, y: e.clientY, w };
+    if (e.target.closest('button,input,textarea,select,a,[contenteditable=\"true\"]')) return;
+    pressStart = { x: e.clientX, y: e.clientY, w, pointerId:e.pointerId, target:e.target };
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => {
       if (!pressStart) return;
+      const p = pressStart;
       enterEditMode();
       if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
-      suppressClickOn = pressStart.w; pressStart = null;
+      suppressClickOn = p.w;
+      pressStart = null;
+      // Le même appui long devient immédiatement le début du déplacement.
+      startWidgetDrag({
+        clientX:p.x, clientY:p.y, pointerId:p.pointerId, pointerType:e.pointerType, target:p.target,
+        preventDefault(){ try { e.preventDefault(); } catch(_){} }
+      }, p.w);
     }, LONG_PRESS_MS);
   }, { passive: false });
   document.addEventListener('pointermove', e => {
     if (dragState) { e.preventDefault(); moveWidgetDrag(e); return; }
-    if (e.pointerType==='touch') return;
-    if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) { clearTimeout(pressTimer); pressStart = null; }
+    if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) {
+      clearTimeout(pressTimer);
+      pressStart = null;
+    }
   }, { passive: false });
   document.addEventListener('pointerup', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: false });
   document.addEventListener('pointercancel', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: false });

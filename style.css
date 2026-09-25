@@ -2089,3 +2089,48 @@ body.edit-mode .widget-edit-handle{z-index:120!important}
   42%{opacity:.72;transform:translateX(-16px) rotate(calc(var(--note-rot) - 2deg)) translateY(-5px) scale(.985)}
   100%{opacity:1;transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 9px))}
 }
+
+/* V38 — interactions demandées : aucun déplacement accidentel hors mode édition. */
+html, body, #app, .screens { overflow-x:hidden !important; }
+.widget { touch-action:pan-y !important; }
+body.edit-mode .widget { touch-action:none !important; }
+
+/* Pile En direct : les cartes de bord sont de vraies photos. */
+.live-peek-stack { overflow:visible !important; }
+.live-peek-stack .peek-card {
+  background-position:center !important;
+  background-size:cover !important;
+  background-repeat:no-repeat !important;
+  border-radius:20px !important;
+  border:3px solid rgba(255,255,255,.96) !important;
+}
+.live-peek-stack .peek-card-1 { right:2px !important; z-index:1 !important; transform:rotate(8deg) translateY(5px) !important; }
+.live-peek-stack .peek-card-2 { right:9px !important; z-index:2 !important; transform:rotate(-5deg) translateY(-3px) !important; }
+.live-peek-stack .peek-card-3 { right:16px !important; z-index:3 !important; transform:rotate(1deg) !important; }
+
+/* Ouverte : une seule carte au premier plan, les suivantes restent empilées derrière. */
+.live-drawer-grid { position:relative !important; display:block !important; height:300px !important; max-height:none !important; overflow:hidden !important; padding:0 !important; }
+.live-drawer-grid .snapshot-card {
+  position:absolute !important; inset:0 !important; width:100% !important; height:100% !important;
+  margin:0 !important; border-radius:24px !important;
+  transform:translateY(calc(var(--snap-i) * 9px)) scale(calc(1 - var(--snap-i) * .025)) rotate(calc(var(--snap-i) * -1deg)) !important;
+  z-index:calc(30 - var(--snap-i)) !important;
+  transition:transform .28s cubic-bezier(.2,.8,.2,1), opacity .22s ease !important;
+}
+.live-drawer-grid .snapshot-card:not(.is-current) { pointer-events:none !important; }
+.live-drawer-grid .snapshot-card.is-current { box-shadow:0 20px 42px rgba(40,20,35,.20) !important; }
+.live-drawer-grid .snapshot-card.is-current img { object-fit:cover !important; }
+.live-drawer-grid .snapshot-card:after { background:linear-gradient(to top,rgba(18,10,15,.64),transparent 52%) !important; }
+
+/* Notes : appui = carte suivante, swipe horizontal = carte suivante, sans casser les boutons. */
+#notes .notes-stack-wrap { touch-action:pan-y !important; }
+#notes .stack-note { touch-action:pan-y !important; }
+
+/* V38 — mouvement de carte plus lisible dans le journal, sans effet de magie. */
+#notes .notes-stack-wrap.note-shuffling .stack-note[data-note-index="0"]{
+  animation:noteCardArriveV38 .34s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes noteCardArriveV38{
+  0%{opacity:.78;transform:translateX(14px) translateY(-4px) rotate(calc(var(--note-rot) + 1.5deg)) scale(.985)}
+  100%{opacity:1;transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 7px)) scale(1)}
+}
