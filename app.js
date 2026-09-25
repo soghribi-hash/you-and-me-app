@@ -2209,8 +2209,8 @@ function saveWidgetConfig(wid, patch) {
 function clampWidgetPosition(wid, x, y) {
   const isLive = wid === 'home-live';
   return {
-    x: Math.max(isLive ? -180 : -220, Math.min(isLive ? 40 : 220, Number(x) || 0)),
-    y: Math.max(-520, Math.min(720, Number(y) || 0))
+    x: Math.max(-260, Math.min(260, Number(x) || 0)),
+    y: Math.max(-650, Math.min(850, Number(y) || 0))
   };
 }
 
@@ -2246,7 +2246,7 @@ function openWidgetEditor(el) {
   currentEditWid = el.dataset.wid;
   const cfg = normalizedWidgetConfig(currentEditWid, widgetConfigs[currentEditWid]);
   $('we-title').textContent = el.dataset.wname || 'Widget';
-  $('we-scale').value = Math.max(60, Math.min(150, Number(cfg.scale) || 100));
+  $('we-scale').value = Math.max(50, Math.min(180, Number(cfg.scale) || 100));
   renderSwatches(cfg.bg || ''); renderFonts(cfg.font || '');
   $('widget-editor').classList.remove('hidden');
 }
@@ -2282,35 +2282,26 @@ function resetCurrentWidget() {
   closeWidgetEditor();
 }
 function renderWidgetEditHandles(){
-  document.querySelectorAll('.widget[data-wid]').forEach(w=>{
-    let btn=w.querySelector(':scope > .widget-edit-handle');
-    if(!editMode){
-      btn?.remove();
-      return;
-    }
-    if(!btn){
-      btn=document.createElement('button');
-      btn.type='button';
-      btn.className='widget-edit-handle';
-      btn.setAttribute('aria-label','Modifier '+(w.dataset.wname||'ce widget'));
-      btn.innerHTML='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9"></path><path d="M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z"></path></svg>';
-      btn.addEventListener('pointerdown',e=>{e.stopPropagation();});
-      btn.addEventListener('click',e=>{
-        e.preventDefault();e.stopPropagation();
-        openWidgetEditor(w);
-      });
-      w.appendChild(btn);
-    }
-  });
+  // L’édition se fait directement au doigt : pas de cadre ni de poignée
+  // intrusive. Un tap sur le widget en mode édition ouvre toujours son éditeur.
+  document.querySelectorAll('.widget[data-wid] .widget-edit-handle').forEach(btn=>btn.remove());
 }
 function enterEditMode() {
-  editMode = true; document.body.classList.add('edit-mode');
-  if (!$('edit-done-btn')) { const b = document.createElement('button'); b.id = 'edit-done-btn'; b.className = 'edit-done'; b.textContent = 'Terminé'; document.body.appendChild(b); }
+  editMode = true;
+  document.body.classList.add('edit-mode');
+  if (!$('edit-done-btn')) {
+    const b = document.createElement('button');
+    b.id = 'edit-done-btn';
+    b.className = 'edit-done';
+    b.textContent = 'Terminé';
+    document.body.appendChild(b);
+  }
   renderWidgetEditHandles();
 }
 function exitEditMode() {
   if (!editMode) return;
-  editMode = false; dragState = null;
+  editMode = false;
+  dragState = null;
   document.body.classList.remove('edit-mode');
   closeWidgetEditor();
   renderWidgetEditHandles();
@@ -2318,16 +2309,18 @@ function exitEditMode() {
 
 function startWidgetDrag(e, w) {
   if (!editMode || !w || !w.dataset.wid) return;
-  if (e.target.closest('.widget-edit-handle,button,input,textarea,select,a,[contenteditable="true"]')) return;
+  if (e.target && e.target.closest && e.target.closest('.widget-edit-handle')) return;
   const wid=w.dataset.wid;
   const cfg=normalizedWidgetConfig(wid, widgetConfigs[wid]);
   dragState={wid,w,startX:e.clientX,startY:e.clientY,x:Number(cfg.x)||0,y:Number(cfg.y)||0,moved:false,pointerId:e.pointerId};
   w.classList.add('widget-dragging');
-  try{w.setPointerCapture(e.pointerId);}catch(_){}
-  e.preventDefault();
+  // On ne capture plus le pointeur sur le widget lui-même : certains widgets
+  // sont des boutons/éléments avec pointer-events particuliers. Le document
+  // reçoit les mouvements pendant tout le mode édition.
+  try{ e.preventDefault(); }catch(_){ }
 }
 function moveWidgetDrag(e) {
-  if (!dragState) return;
+  if (!dragState || e.pointerId !== dragState.pointerId) return;
   const dx = e.clientX - dragState.startX, dy = e.clientY - dragState.startY;
   if (Math.abs(dx) + Math.abs(dy) > 4) dragState.moved = true;
   const pos = clampWidgetPosition(dragState.wid, dragState.x + dx, dragState.y + dy);
@@ -2370,8 +2363,6 @@ function initWidgetSystem() {
     const wid=w.dataset.wid, cfg=normalizedWidgetConfig(wid,widgetConfigs[wid]);
     pinchState={wid,w,baseScale:Number(cfg.scale)||100,startDist:dist,moved:false};
     w.classList.add('widget-dragging');
-    try{w.setPointerCapture(pts[0].id);}catch(_){ }
-    try{w.setPointerCapture(pts[1].id);}catch(_){ }
   }
   function updatePinch(){
     if(!pinchState || pointers.size<2)return;
@@ -2379,7 +2370,7 @@ function initWidgetSystem() {
     const dx=pts[1].x-pts[0].x, dy=pts[1].y-pts[0].y;
     const dist=Math.hypot(dx,dy);
     if(!dist)return;
-    const scale=Math.max(60,Math.min(150,pinchState.baseScale*(dist/pinchState.startDist)));
+    const scale=Math.max(50,Math.min(180,pinchState.baseScale*(dist/pinchState.startDist)));
     if(Math.abs(scale-pinchState.baseScale)>1)pinchState.moved=true;
     saveWidgetConfig(pinchState.wid,{scale:Math.round(scale)});
   }
@@ -2391,18 +2382,27 @@ function initWidgetSystem() {
 
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
+
     if (editMode) {
-      if(w && e.target.closest('.widget-edit-handle,button,input,textarea,select,a,[contenteditable="true"]')) return;
-      if(w){
-        pointers.set(e.pointerId,{id:e.pointerId,x:e.clientX,y:e.clientY,w});
-        if(pointers.size>=2){ beginPinch(w); e.preventDefault(); }
-        else startWidgetDrag(e,w);
+      if (!w) return;
+      // En mode édition, même un widget-bouton (Throwback, En direct, etc.)
+      // doit pouvoir être saisi et déplacé.
+      pointers.set(e.pointerId,{id:e.pointerId,x:e.clientX,y:e.clientY,w});
+      if(pointers.size>=2){
+        beginPinch(w);
+        e.preventDefault();
+      } else {
+        startWidgetDrag(e,w);
       }
       return;
     }
+
     if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    if (e.target.closest('button,input,textarea,select,a,[contenteditable="true"]')) return;
+
+    // On arme l’appui long sur TOUT le widget, y compris les boutons et les
+    // éléments interactifs. Si le doigt bouge avant le délai, on annule et
+    // le comportement normal (scroll/clic) reste intact.
     pressStart = { x: e.clientX, y: e.clientY, w, pointerId:e.pointerId, target:e.target };
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => {
@@ -2411,12 +2411,12 @@ function initWidgetSystem() {
       enterEditMode();
       if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
       suppressClickOn = p.w;
-      pressStart = null;
       pointers.set(p.pointerId,{id:p.pointerId,x:p.x,y:p.y,w:p.w});
       startWidgetDrag({
-        clientX:p.x, clientY:p.y, pointerId:p.pointerId, pointerType:e.pointerType, target:p.target,
-        preventDefault(){ try { e.preventDefault(); } catch(_){} }
+        clientX:p.x, clientY:p.y, pointerId:p.pointerId, pointerType:e.pointerType,
+        target:p.target, preventDefault(){ try { e.preventDefault(); } catch(_){} }
       }, p.w);
+      pressStart = null;
     }, LONG_PRESS_MS);
   }, { passive: false });
 
@@ -2424,8 +2424,8 @@ function initWidgetSystem() {
     if(editMode && pointers.has(e.pointerId)){
       const point=pointers.get(e.pointerId); point.x=e.clientX; point.y=e.clientY;
       if(pointers.size>=2){ e.preventDefault(); updatePinch(); return; }
+      if(dragState && dragState.pointerId===e.pointerId){ e.preventDefault(); moveWidgetDrag(e); return; }
     }
-    if (dragState) { e.preventDefault(); moveWidgetDrag(e); return; }
     if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) {
       clearTimeout(pressTimer); pressStart = null;
     }
@@ -2434,14 +2434,14 @@ function initWidgetSystem() {
   document.addEventListener('pointerup', e => {
     pointers.delete(e.pointerId);
     if(pinchState && pointers.size<2) endPinch();
-    clearTimeout(pressTimer); pressStart = null;
-    if(!pinchState) endWidgetDrag();
+    clearTimeout(pressTimer); pressStart=null;
+    if(!pinchState && dragState?.pointerId===e.pointerId) endWidgetDrag();
   }, { passive: false });
   document.addEventListener('pointercancel', e => {
     pointers.delete(e.pointerId);
     if(pinchState && pointers.size<2) endPinch();
-    clearTimeout(pressTimer); pressStart = null;
-    if(!pinchState) endWidgetDrag();
+    clearTimeout(pressTimer); pressStart=null;
+    if(!pinchState && dragState?.pointerId===e.pointerId) endWidgetDrag();
   }, { passive: false });
 
   document.addEventListener('click', e => {

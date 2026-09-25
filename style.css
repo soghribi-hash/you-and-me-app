@@ -2211,3 +2211,31 @@ body.edit-mode #home .live-rail{touch-action:none!important}
 .widget.widget-dragging{transition:none!important}
 #widget-editor .we-hint{line-height:1.45!important}
 #widget-editor .we-pos-row,#widget-editor .we-live-pos{display:none!important}
+
+/* V40 — édition tactile : tous les widgets sont saisissables, sans cadre intrusif. */
+body.edit-mode .widget,
+body.edit-mode #home .live-rail.widget{
+  pointer-events:auto!important;
+  touch-action:none!important;
+  cursor:grab!important;
+}
+body.edit-mode .widget.widget-dragging{cursor:grabbing!important;outline:none!important;box-shadow:none!important}
+body.edit-mode .widget:before{display:none!important}
+body.edit-mode .widget-edit-handle{display:none!important}
+body.edit-mode #home .live-peek-stack{pointer-events:auto!important}
+
+/* Le bouton de fermeture de la pile ouverte reste discret : un tap la replie. */
+#home .live-drawer-tab{
+  display:flex!important;position:absolute!important;right:9px!important;top:9px!important;
+  z-index:20!important;width:30px!important;height:30px!important;padding:0!important;
+  align-items:center!important;justify-content:center!important;border:0!important;
+  border-radius:50%!important;background:rgba(255,255,255,.16)!important;color:#fff!important;
+  box-shadow:0 5px 14px rgba(0,0,0,.12)!important;backdrop-filter:blur(8px)!important;
+  -webkit-backdrop-filter:blur(8px)!important;font-size:0!important;cursor:pointer!important;
+}
+#home .live-drawer-tab span{display:none!important}
+#home .live-drawer-tab b{display:block!important;font-size:20px!important;font-weight:400!important;line-height:1!important;transform:rotate(0deg)!important}
+#home .live-drawer-tab b::after{content:'×';display:block!important;font-size:20px!important;line-height:1!important}
+#home .live-drawer-tab b{font-size:0!important}
+
+/* Taille tactile plus libre : le pinch peut réduire ou agrandir réellement. */
