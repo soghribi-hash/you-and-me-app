@@ -458,7 +458,18 @@
       <div class="screen-subtitle">Juste nous deux</div>
       <div class="chat-scroll" id="chat-scroll"></div>
       <div class="chat-input-row">
+        <label class="chat-photo-btn" aria-label="Ajouter une photo">
+          <svg><use href="#i-image"/></svg>
+          <input id="chat-photo-input" type="file" accept="image/*" onchange="sendChatPhoto(event)">
+        </label>
         <input id="chat-input" placeholder="Ton message">
+        <div class="chat-compose-colors" aria-label="Couleur du prochain message">
+          <button type="button" class="chat-compose-color selected msg-color-swatch-cherry" data-color="cherry" title="Rose" aria-label="Rose" onclick="setChatComposeColor('cherry')"></button>
+          <button type="button" class="chat-compose-color msg-color-swatch-lilac" data-color="lilac" title="Lilas" aria-label="Lilas" onclick="setChatComposeColor('lilac')"></button>
+          <button type="button" class="chat-compose-color msg-color-swatch-mint" data-color="mint" title="Menthe" aria-label="Menthe" onclick="setChatComposeColor('mint')"></button>
+          <button type="button" class="chat-compose-color msg-color-swatch-sky" data-color="sky" title="Bleu doux" aria-label="Bleu doux" onclick="setChatComposeColor('sky')"></button>
+          <button type="button" class="chat-compose-color msg-color-swatch-peach" data-color="peach" title="Pêche" aria-label="Pêche" onclick="setChatComposeColor('peach')"></button>
+        </div>
         <button class="send-btn" onclick="sendMessage()" aria-label="Envoyer"><svg><use href="#i-send"/></svg></button>
       </div>
     </div>

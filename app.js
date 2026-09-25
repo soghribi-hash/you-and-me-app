@@ -1388,8 +1388,95 @@ function sendMessage() {
   const input = $('chat-input');
   const text = input.value.trim();
   if (!text || !roomRef) return;
-  roomRef.child('chat').push({ from: myRole, text, ts: firebase.database.ServerValue.TIMESTAMP });
+  roomRef.child('chat').push({
+    from: myRole,
+    text,
+    ts: firebase.database.ServerValue.TIMESTAMP,
+    color: chatMessageColor || 'cherry'
+  });
   input.value = '';
+}
+let chatMessageColor = 'cherry';
+
+const chatColorNames = {
+  cherry: 'Rose',
+  lilac: 'Lilas',
+  mint: 'Menthe',
+  sky: 'Bleu doux',
+  peach: 'Pêche',
+  butter: 'Vanille',
+  white: 'Blanc'
+};
+
+function setMessageColor(id, color) {
+  if (!roomRef || !chatColorNames[color]) return;
+  const msg = chatMessages.find(m => m.id === id);
+  if (!msg || msg.from !== myRole) return;
+  roomRef.child('chat/' + id + '/color').set(color);
+  const picker = $('picker-' + id);
+  if (picker) picker.classList.remove('show');
+}
+
+function setChatComposeColor(color) {
+  if (!chatColorNames[color]) return;
+  chatMessageColor = color;
+  document.querySelectorAll('.chat-compose-color').forEach(b => b.classList.toggle('selected', b.dataset.color === color));
+}
+
+function chatBubbleColorClass(mine, color) {
+  if (!mine) return 'her';
+  return 'me msg-color-' + (chatColorNames[color] ? color : 'cherry');
+}
+
+function safeChatImageSrc(src) {
+  return (typeof src === 'string' && /^data:image\/(?:png|jpe?g|webp|gif);base64,/i.test(src)) ? src : '';
+}
+
+function prepareChatImage(file) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) return reject(new Error('image'));
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error || new Error('read'));
+    reader.onload = () => {
+      const img = new Image();
+      img.onload = () => {
+        const max = 1280;
+        const scale = Math.min(1, max / Math.max(img.naturalWidth || img.width, img.naturalHeight || img.height));
+        const w = Math.max(1, Math.round((img.naturalWidth || img.width) * scale));
+        const h = Math.max(1, Math.round((img.naturalHeight || img.height) * scale));
+        const canvas = document.createElement('canvas');
+        canvas.width = w; canvas.height = h;
+        const c = canvas.getContext('2d');
+        c.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', .78));
+      };
+      img.onerror = () => reject(new Error('decode'));
+      img.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}
+
+async function sendChatPhoto(event) {
+  const input = event.target;
+  const file = input.files && input.files[0];
+  input.value = '';
+  if (!file || !roomRef) return;
+  try {
+    const image = await prepareChatImage(file);
+    const captionInput = $('chat-input');
+    const caption = captionInput ? captionInput.value.trim() : '';
+    await roomRef.child('chat').push({
+      from: myRole,
+      text: caption,
+      image,
+      ts: firebase.database.ServerValue.TIMESTAMP,
+      color: chatMessageColor || 'cherry'
+    });
+    if (captionInput) captionInput.value = '';
+  } catch (e) {
+    toast('Impossible d’ajouter cette photo');
+  }
 }
 function chatVisible() { return $('chat').classList.contains('active') && !document.hidden; }
 
@@ -1424,11 +1511,21 @@ function renderChat() {
 function renderMessage(m) {
   const mine = m.from === myRole;
   const reactionText = Object.keys(m.reactions || {}).map(r => m.reactions[r]).join('');
+  const bubbleClass = chatBubbleColorClass(mine, m.color);
+  const image = safeChatImageSrc(m.image);
+  const imageHtml = image ? '<img class="chat-message-image" src="' + image + '" alt="Photo envoyée" loading="lazy">' : '';
+  const textHtml = m.text ? '<div class="chat-message-text">' + escapeHtml(m.text) + '</div>' : '';
+  const colorPalette = mine
+    ? '<div class="picker-colors" aria-label="Couleur du message">' +
+      Object.keys(chatColorNames).map(c => '<button type="button" class="picker-color msg-color-swatch-' + c + ((m.color || 'cherry') === c ? ' selected' : '') + '" title="' + chatColorNames[c] + '" aria-label="' + chatColorNames[c] + '" onclick="event.stopPropagation();setMessageColor(\'' + m.id + '\',\'' + c + '\')"></button>').join('') +
+      '</div>'
+    : '';
   return '<div class="msg-row ' + (mine ? 'me' : '') + '">' + (mine ? '' : avatarHTML(m.from, 'sm')) +
-    '<div class="bubble ' + (mine ? 'me' : 'her') + '" onclick="toggleReactionPicker(\'' + m.id + '\')">' +
-    escapeHtml(m.text) + (reactionText ? '<span class="reaction">' + reactionText + '</span>' : '') + '</div></div>' +
+    '<div class="bubble ' + bubbleClass + '" onclick="toggleReactionPicker(\'' + m.id + '\')">' +
+    imageHtml + textHtml + (reactionText ? '<span class="reaction">' + reactionText + '</span>' : '') + '</div></div>' +
     '<div class="reaction-picker" id="picker-' + m.id + '">' +
     ['\u{1F60D}', '\u{1F602}', '\u{1F622}', '\u{1F525}', '\u{1F44D}', '\u2764\uFE0F'].map(e => '<span onclick="react(\'' + m.id + '\',\'' + e + '\')">' + e + '</span>').join('') +
+    colorPalette +
     (mine ? '<span class="picker-del" onclick="deleteMessage(\'' + m.id + '\')" aria-label="Supprimer le message"><svg><use href="#i-trash"/></svg></span>' : '') + '</div>';
 }
 function toggleReactionPicker(id) {
