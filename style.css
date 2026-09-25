@@ -1978,3 +1978,32 @@ body.edit-mode .widget{overflow:visible!important}
   border-radius:20px;
   background:#fff;
 }
+
+/* v34 — notes consultables : shuffle doux + suppression discrète */
+#notes .notes-stack-wrap.note-shuffling .stack-note{
+  animation:noteShuffle .42s cubic-bezier(.2,.8,.2,1);
+}
+@keyframes noteShuffle{
+  0%{opacity:1;transform:translateY(calc(var(--stack) * 7px)) rotate(var(--note-rot))}
+  45%{opacity:.72;transform:translateY(-12px) scale(.985) rotate(calc(var(--note-rot) * -1.4))}
+  100%{opacity:1;transform:translateY(calc(var(--stack) * 7px)) rotate(var(--note-rot))}
+}
+#notes .note-trash{
+  position:absolute!important;
+  right:16px!important;
+  bottom:10px!important;
+  width:34px!important;
+  height:34px!important;
+  border:0!important;
+  border-radius:50%!important;
+  display:grid!important;
+  place-items:center!important;
+  background:rgba(255,255,255,.62)!important;
+  color:#9b8b94!important;
+  font-size:16px!important;
+  line-height:1!important;
+  z-index:4!important;
+  box-shadow:none!important;
+}
+#notes .note-trash:active{transform:scale(.92)!important}
+#notes .stack-note h3{cursor:pointer!important}

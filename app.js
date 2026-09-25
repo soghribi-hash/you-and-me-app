@@ -1097,6 +1097,8 @@ async function sendStructuredNote(){
 let structuredNotes=[];
 let noteCommentsOpen = {};
 let noteSources = { a: {}, b: {} };
+let noteBrowseId = null;
+let noteShuffleTimer = null;
 
 function formatNoteDate(ts){
   const d = new Date(Number(ts) || Date.now());
@@ -1115,7 +1117,12 @@ function normalizeNoteComments(comments){
 }
 function renderStructuredNotes(){
   const box=$('notes-stack'); if(!box)return;
-  const notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  let notes=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(noteBrowseId){
+    const idx=notes.findIndex(n=>n.id===noteBrowseId);
+    if(idx>0) notes=notes.slice(idx).concat(notes.slice(0,idx));
+    if(idx<0) noteBrowseId=null;
+  }
   if(!notes.length){
     box.innerHTML='<button type="button" class="notes-empty" onclick="openNoteEditor()" aria-label="Créer une première note"><span class="notes-empty-kicker">VOTRE CARNET À DEUX</span><b>Une petite note<br>attend ici.</b><small>Écrivez, dessinez ou ajoutez une photo.</small></button>';
     return;
@@ -1137,10 +1144,11 @@ function renderStructuredNotes(){
         `<div class="note-comment-input-row"><input id="note-comment-input-${n.id}" maxlength="180" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter'){event.preventDefault();addNoteComment('${n.id}',this.value)}"><button type="button" onclick="addNoteComment('${n.id}',document.getElementById('note-comment-input-${n.id}').value)">↑</button></div></div>`
       : '';
     const likeClass=noteLikeState(n)?'on':'';
-    return '<article class="stack-note" data-note-index="'+i+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="openStructuredNote(\''+n.id+'\')">'+
+    return '<article class="stack-note" data-note-index="'+i+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="cycleNoteStack(\''+n.id+'\')">'+
       '<div class="stack-note-origin">'+escapeHtml(n.from===myRole?'Toi':nameOf(n.from))+'</div>'+
       '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note">♥</button>'+
-      '<h3>'+escapeHtml(n.title||'Note')+'</h3><div class="stack-note-body">'+body+'</div>'+
+      '<button class="note-trash" type="button" onclick="event.stopPropagation();deletePublishedNote(\''+n.id+'\')" aria-label="Supprimer cette note">⌫</button>'+
+      '<h3 onclick="event.stopPropagation();openStructuredNote(\''+n.id+'\')">'+escapeHtml(n.title||'Note')+'</h3><div class="stack-note-body">'+body+'</div>'+
       '<div class="note-footer" onclick="event.stopPropagation()"><small>'+formatNoteDate(n.ts)+'</small>'+
       '<button class="note-comment-toggle" type="button" onclick="toggleNoteComments(\''+n.id+'\')" aria-expanded="'+open+'">♡ '+comments.length+'</button></div>'+
       commentPanel+
@@ -1151,6 +1159,31 @@ function toggleNotesStack(force){
   const wrap=document.querySelector('.notes-stack-wrap'); if(!wrap)return;
   const next=typeof force==='boolean'?force:!wrap.classList.contains('is-fanned');
   wrap.classList.toggle('is-fanned',next);
+}
+function cycleNoteStack(id){
+  if(!structuredNotes.length)return;
+  const sorted=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
+  if(id && noteBrowseId===id){
+    const idx=sorted.findIndex(n=>n.id===id);
+    noteBrowseId=sorted[(idx+1)%sorted.length]?.id || id;
+  }else{
+    noteBrowseId=id || noteBrowseId || sorted[0]?.id;
+  }
+  const wrap=document.querySelector('.notes-stack-wrap');
+  wrap?.classList.remove('note-shuffling');
+  void wrap?.offsetWidth;
+  wrap?.classList.add('note-shuffling');
+  clearTimeout(noteShuffleTimer);
+  noteShuffleTimer=setTimeout(()=>wrap?.classList.remove('note-shuffling'),420);
+  renderStructuredNotes();
+}
+async function deletePublishedNote(id){
+  const n=structuredNotes.find(x=>x.id===id);
+  const path=notePath(n);
+  if(!n||!path||!roomRef)return;
+  await roomRef.child(path).remove();
+  if(noteBrowseId===id) noteBrowseId=null;
+  toast('Note supprimée');
 }
 function listenNotes(){
   ['a','b'].forEach(inboxRole=>{
@@ -1314,7 +1347,11 @@ function sendDrawingNote(){
 
 setupNoteDrawing();
 initStandaloneDrawing();
-document.querySelector('.notes-stack-wrap')?.addEventListener('click',e=>{if(e.target.closest('.notes-add,.note-fav,.stack-note'))return;toggleNotesStack();});
+document.querySelector('.notes-stack-wrap')?.addEventListener('click',e=>{
+  if(e.target.closest('.notes-add,.note-fav,.note-trash,.note-comment-toggle,.note-comment-panel,h3,.note-media'))return;
+  if(e.target.closest('.stack-note')) return;
+  cycleNoteStack(noteBrowseId);
+});
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
 const NOTE_TTL = 24 * 3600 * 1000;
@@ -2277,8 +2314,14 @@ function initWidgetSystem() {
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
     if (editMode) {
-      if(w && e.pointerType==='touch'){ pinch.pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(pinch.pts.size===1){pinch.wid=w.dataset.wid;pinch.base=Number(widgetConfigs[pinch.wid]?.scale||100);pinch.dist=0;} if(pinch.pts.size>=2){ const a=[...pinch.pts.values()][0],b=[...pinch.pts.values()][1];pinch.dist=Math.hypot(a.x-b.x,a.y-b.y);dragState=null; e.preventDefault(); return; } }
-      startWidgetDrag(e, w); return; }
+      if (e.pointerType==='touch') {
+        // Sur tactile, aucun geste ne déplace/redimensionne un widget.
+        // L'édition reste accessible via le bouton crayon et les contrôles du panneau.
+        pinch.pts.delete(e.pointerId);
+        return;
+      }
+      startWidgetDrag(e, w); return;
+    }
     if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
     pressStart = { x: e.clientX, y: e.clientY, w };
@@ -2291,7 +2334,7 @@ function initWidgetSystem() {
     }, LONG_PRESS_MS);
   }, { passive: false });
   document.addEventListener('pointermove', e => {
-    if (editMode && pinch.pts.has(e.pointerId)){ pinch.pts.set(e.pointerId,{x:e.clientX,y:e.clientY}); if(pinch.pts.size>=2){const a=[...pinch.pts.values()][0],b=[...pinch.pts.values()][1],d=Math.hypot(a.x-b.x,a.y-b.y);if(pinch.dist>0){const scale=Math.max(60,Math.min(150,pinch.base*(d/pinch.dist)));saveWidgetConfig(pinch.wid,{scale:Math.round(scale)});}e.preventDefault();return;} }
+    if (e.pointerType==='touch') return;
     if (dragState) { moveWidgetDrag(e); return; }
     if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) { clearTimeout(pressTimer); pressStart = null; }
   }, { passive: false });
