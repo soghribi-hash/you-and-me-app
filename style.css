@@ -396,11 +396,9 @@ h2.section-title{font-size:34px;line-height:1;font-weight:900;letter-spacing:-1.
 
 /* ---------- WIDGETS PERSONNALISABLES (appui long) ---------- */
 #home.active,#calendar.active,#notes.active,#photos.active{display:flex;flex-direction:column}
-.widget{--wscale:1;--wx:0px;--wy:0px;position:relative;transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale));transform-origin:center;touch-action:manipulation;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
+.widget{--wscale:1;--wx:0px;--wy:0px;position:relative;transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale));transform-origin:center;touch-action:none;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 .widget textarea,.widget input{-webkit-user-select:text;user-select:text}
-body.edit-mode .widget{animation:wjiggle .24s ease-in-out infinite;cursor:pointer}
-body.edit-mode .widget:nth-child(even){animation-delay:-.12s}
-@keyframes wjiggle{0%,100%{transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale)) rotate(-1deg)}50%{transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale)) rotate(1deg)}}
+body.edit-mode .widget{animation:none!important;cursor:pointer!important}
 body.edit-mode .widget:before{content:'';position:absolute;top:-7px;right:-7px;width:25px;height:25px;border-radius:50%;background:#000;box-shadow:0 0 0 2px #fff;z-index:6;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='white' stroke-width='2.3' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M12 20h9'/%3E%3Cpath d='M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4Z'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:center;background-size:12px}
@@ -2007,3 +2005,29 @@ body.edit-mode .widget{overflow:visible!important}
 }
 #notes .note-trash:active{transform:scale(.92)!important}
 #notes .stack-note h3{cursor:pointer!important}
+
+/* v35 — notes : actions fixes définitives + widgets tactiles verrouillés */
+#notes .stack-note{touch-action:pan-y!important}
+#notes .note-trash{
+  position:absolute!important;right:12px!important;top:12px!important;bottom:auto!important;left:auto!important;
+  width:32px!important;height:32px!important;border:0!important;border-radius:50%!important;
+  display:grid!important;place-items:center!important;padding:0!important;
+  background:rgba(255,255,255,.82)!important;color:#8f8089!important;
+  box-shadow:0 4px 10px rgba(40,20,32,.08)!important;z-index:40!important;
+}
+#notes .note-trash svg{width:17px!important;height:17px!important;fill:none!important;stroke:currentColor!important;pointer-events:none!important}
+#notes .note-trash:active{transform:scale(.92)!important}
+#notes .note-fav{
+  position:absolute!important;right:14px!important;bottom:10px!important;top:auto!important;left:auto!important;
+  width:34px!important;height:34px!important;border:0!important;border-radius:50%!important;
+  display:grid!important;place-items:center!important;padding:0!important;
+  background:rgba(255,255,255,.72)!important;color:#b9aab2!important;
+  box-shadow:none!important;font-size:0!important;z-index:40!important;
+}
+#notes .note-fav svg{width:18px!important;height:18px!important;fill:none!important;stroke:currentColor!important;stroke-width:1.8!important;pointer-events:none!important}
+#notes .note-fav.on{color:#ef3f70!important;background:rgba(255,255,255,.92)!important}
+#notes .note-fav.on svg{fill:currentColor!important;stroke:currentColor!important}
+#notes .note-comment-toggle{position:absolute!important;right:56px!important;bottom:10px!important}
+/* Le déplacement des widgets est interdit par geste tactile : aucune animation de déplacement. */
+.widget{touch-action:none!important}
+body.edit-mode .widget{animation:none!important;transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale))!important}

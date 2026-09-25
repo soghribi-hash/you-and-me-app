@@ -1092,7 +1092,9 @@ async function sendStructuredNote(){
   if(!blocks.length){toast('Écris, ajoute une photo ou dessine quelque chose');return;}
   const ref=roomRef.child('notesInbox/'+otherRole).push();
   await ref.set({title,blocks,color:selectedNoteColor,from:myRole,ts:Date.now(),favorite:false});
-  closeNoteEditor(); toast('Note envoyée à '+otherName);
+  closeNoteEditor();
+  $('note-editor')?.classList.add('hidden');
+  toast('Note envoyée à '+otherName);
 }
 let structuredNotes=[];
 let noteCommentsOpen = {};
@@ -1146,8 +1148,8 @@ function renderStructuredNotes(){
     const likeClass=noteLikeState(n)?'on':'';
     return '<article class="stack-note" data-note-index="'+i+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="cycleNoteStack(\''+n.id+'\')">'+
       '<div class="stack-note-origin">'+escapeHtml(n.from===myRole?'Toi':nameOf(n.from))+'</div>'+
-      '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note">♥</button>'+
-      '<button class="note-trash" type="button" onclick="event.stopPropagation();deletePublishedNote(\''+n.id+'\')" aria-label="Supprimer cette note">⌫</button>'+
+      '<button class="note-trash" type="button" onclick="event.stopPropagation();deletePublishedNote(\''+n.id+'\')" aria-label="Supprimer cette note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"></use></svg></button>'+
+      '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note" aria-pressed="'+(likeClass?'true':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"></use></svg></button>'+
       '<h3 onclick="event.stopPropagation();openStructuredNote(\''+n.id+'\')">'+escapeHtml(n.title||'Note')+'</h3><div class="stack-note-body">'+body+'</div>'+
       '<div class="note-footer" onclick="event.stopPropagation()"><small>'+formatNoteDate(n.ts)+'</small>'+
       '<button class="note-comment-toggle" type="button" onclick="toggleNoteComments(\''+n.id+'\')" aria-expanded="'+open+'">♡ '+comments.length+'</button></div>'+
@@ -2282,12 +2284,9 @@ function exitEditMode() {
 }
 
 function startWidgetDrag(e, w) {
-  if (!editMode || !w || e.pointerType==='touch' || e.target.closest('#widget-editor') || e.target.closest('input,textarea,button,select,label')) return;
-  const wid = w.dataset.wid;
-  const cfg = normalizedWidgetConfig(wid, widgetConfigs[wid]);
-  dragState = { wid, startX: e.clientX, startY: e.clientY, x: Number(cfg.x) || 0, y: Number(cfg.y) || 0, moved: false };
-  w.setPointerCapture?.(e.pointerId);
-  e.preventDefault(); e.stopPropagation();
+  // Les widgets sont désormais verrouillés contre tout déplacement par geste.
+  // Leur position ne peut être modifiée que via les contrôles explicites du mode édition.
+  return;
 }
 function moveWidgetDrag(e) {
   if (!dragState) return;
@@ -2314,13 +2313,10 @@ function initWidgetSystem() {
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
     if (editMode) {
-      if (e.pointerType==='touch') {
-        // Sur tactile, aucun geste ne déplace/redimensionne un widget.
-        // L'édition reste accessible via le bouton crayon et les contrôles du panneau.
-        pinch.pts.delete(e.pointerId);
-        return;
-      }
-      startWidgetDrag(e, w); return;
+      // Aucun appui ou glissement ne déplace un widget.
+      // L'édition passe uniquement par le bouton crayon / les contrôles dédiés.
+      pinch.pts.delete(e.pointerId);
+      return;
     }
     if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
