@@ -1146,7 +1146,7 @@ function renderStructuredNotes(){
         `<div class="note-comment-input-row"><input id="note-comment-input-${n.id}" maxlength="180" placeholder="Écrire un commentaire…" onkeydown="if(event.key==='Enter'){event.preventDefault();addNoteComment('${n.id}',this.value)}"><button type="button" onclick="addNoteComment('${n.id}',document.getElementById('note-comment-input-${n.id}').value)">↑</button></div></div>`
       : '';
     const likeClass=noteLikeState(n)?'on':'';
-    return '<article class="stack-note" data-note-index="'+i+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="cycleNoteStack(\''+n.id+'\')">'+
+    return '<article class="stack-note" data-note-index="'+i+'" data-note-id="'+n.id+'" style="--stack:'+i+';--note-rot:'+((i%3)-1)*1.2+'deg;--note-bg:'+bg+'" onclick="cycleNoteStack(\''+n.id+'\')">'+
       '<div class="stack-note-origin">'+escapeHtml(n.from===myRole?'Toi':nameOf(n.from))+'</div>'+
       '<button class="note-trash" type="button" onclick="event.stopPropagation();deletePublishedNote(\''+n.id+'\')" aria-label="Supprimer cette note"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-trash"></use></svg></button>'+
       '<button class="note-fav '+likeClass+'" onclick="event.stopPropagation();toggleNoteFavorite(\''+n.id+'\')" aria-label="J’aime cette note" aria-pressed="'+(likeClass?'true':'false')+'"><svg viewBox="0 0 24 24" aria-hidden="true"><use href="#i-heart"></use></svg></button>'+
@@ -1165,12 +1165,9 @@ function toggleNotesStack(force){
 function cycleNoteStack(id){
   if(!structuredNotes.length)return;
   const sorted=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
-  if(id && noteBrowseId===id){
-    const idx=sorted.findIndex(n=>n.id===id);
-    noteBrowseId=sorted[(idx+1)%sorted.length]?.id || id;
-  }else{
-    noteBrowseId=id || noteBrowseId || sorted[0]?.id;
-  }
+  const currentId = id || noteBrowseId || sorted[0]?.id;
+  const idx = sorted.findIndex(n=>n.id===currentId);
+  noteBrowseId = sorted[(idx >= 0 ? idx + 1 : 0) % sorted.length]?.id || sorted[0]?.id;
   const wrap=document.querySelector('.notes-stack-wrap');
   wrap?.classList.remove('note-shuffling');
   void wrap?.offsetWidth;
@@ -1349,10 +1346,18 @@ function sendDrawingNote(){
 
 setupNoteDrawing();
 initStandaloneDrawing();
-document.querySelector('.notes-stack-wrap')?.addEventListener('click',e=>{
+const notesStackWrap = document.querySelector('.notes-stack-wrap');
+notesStackWrap?.addEventListener('pointerdown', e=>{
   if(e.target.closest('.notes-add,.note-fav,.note-trash,.note-comment-toggle,.note-comment-panel,h3,.note-media'))return;
-  if(e.target.closest('.stack-note')) return;
-  cycleNoteStack(noteBrowseId);
+  notesStackWrap.dataset.swipeX=String(e.clientX);
+  notesStackWrap.dataset.swipeY=String(e.clientY);
+});
+notesStackWrap?.addEventListener('pointerup', e=>{
+  if(e.target.closest('.notes-add,.note-fav,.note-trash,.note-comment-toggle,.note-comment-panel,h3,.note-media'))return;
+  const sx=Number(notesStackWrap.dataset.swipeX||e.clientX), sy=Number(notesStackWrap.dataset.swipeY||e.clientY);
+  const dx=e.clientX-sx, dy=e.clientY-sy;
+  if(Math.abs(dx)>28 && Math.abs(dx)>Math.abs(dy)){ cycleNoteStack(noteBrowseId); return; }
+  if(e.target.closest('.stack-note')) cycleNoteStack(e.target.closest('.stack-note').dataset.noteId || noteBrowseId);
 });
 
 /* ---------- NOTES DE L'ACCUEIL (bulles façon Instagram, valables 24 h) ---------- */
@@ -1744,6 +1749,20 @@ function listenPhotos() {
     photosBase = true;
   });
 }
+let liveBrowseId = null;
+function cycleLiveSnapshot(id){
+  if(!photoItems.length)return;
+  const current = id || liveBrowseId || photoItems[0]?.id;
+  const idx = photoItems.findIndex(p=>p.id===current);
+  liveBrowseId = photoItems[(idx >= 0 ? idx + 1 : 0) % photoItems.length]?.id || photoItems[0]?.id;
+  renderHomeSnapshots(photoItems);
+  const top = document.querySelector('#home-snapshots .snapshot-card.is-current');
+  top?.animate([
+    {transform:'translateX(0) rotate(0deg)',opacity:.7},
+    {transform:'translateX(-8px) rotate(-1.5deg)',opacity:1},
+    {transform:'translateX(0) rotate(0deg)',opacity:1}
+  ],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'});
+}
 function renderHomeSnapshots(items) {
   const box = $('home-snapshots');
   if (!box) return;
@@ -1752,6 +1771,7 @@ function renderHomeSnapshots(items) {
   const stack = rail ? rail.querySelector('.live-peek-stack') : null;
 
   if (!items.length) {
+    liveBrowseId = null;
     box.innerHTML =
       '<button class="snapshot-card placeholder" onclick="closeLivePeek();showScreen(\'photos\')">' +
       '<span><b>En direct</b><br>Vos prochains directs apparaîtront ici.</span></button>';
@@ -1763,14 +1783,20 @@ function renderHomeSnapshots(items) {
     return;
   }
 
+  if (!liveBrowseId || !items.some(p=>p.id===liveBrowseId)) liveBrowseId = items[0].id;
+  const activeIndex = Math.max(0, items.findIndex(p=>p.id===liveBrowseId));
   const visible = items.slice(0, 6);
-  box.innerHTML = visible.map(p => {
+  const ordered = [items[activeIndex], ...visible.filter(p=>p.id!==items[activeIndex]?.id)];
+
+  box.innerHTML = ordered.map((p,i) => {
     const who = p.from === myRole ? 'Toi' : nameOf(p.from);
     const live = p.src === 'live';
-    return '<button class="snapshot-card" onclick="closeLivePeek();showScreen(\'photos\')" aria-label="Ouvrir ce direct">' +
+    const current = i === 0;
+    return '<button class="snapshot-card ' + (current ? 'is-current' : '') + '" style="--snap-i:'+i+'" onclick="cycleLiveSnapshot(\''+p.id+'\')" aria-label="Voir la photo suivante">' +
       '<img src="' + p.img + '" alt="" draggable="false">' +
-      '<span class="snapshot-meta"><b>' + (live ? 'En direct' : who) + '</b>' +
-      relativeTime(p.ts || Date.now()) + '</span></button>';
+      '<span class="snapshot-meta"><b>' + (live ? 'En direct' : who) + '</b>' + relativeTime(p.ts || Date.now()) + '</span>' +
+      (current ? '<span class="snapshot-next-hint">Touchez pour faire défiler</span>' : '') +
+      '</button>';
   }).join('');
 
   if (stack) {
@@ -2284,9 +2310,14 @@ function exitEditMode() {
 }
 
 function startWidgetDrag(e, w) {
-  // Les widgets sont désormais verrouillés contre tout déplacement par geste.
-  // Leur position ne peut être modifiée que via les contrôles explicites du mode édition.
-  return;
+  if (!editMode || !w || !w.dataset.wid) return;
+  if (e.target.closest('.widget-edit-handle,button,input,textarea,select,a,[contenteditable="true"]')) return;
+  const wid=w.dataset.wid;
+  const cfg=normalizedWidgetConfig(wid, widgetConfigs[wid]);
+  dragState={wid,w,startX:e.clientX,startY:e.clientY,x:Number(cfg.x)||0,y:Number(cfg.y)||0,moved:false,pointerId:e.pointerId};
+  w.classList.add('widget-dragging');
+  try{w.setPointerCapture(e.pointerId);}catch(_){}
+  e.preventDefault();
 }
 function moveWidgetDrag(e) {
   if (!dragState) return;
@@ -2296,7 +2327,13 @@ function moveWidgetDrag(e) {
   saveWidgetConfig(dragState.wid, pos);
   if (currentEditWid === dragState.wid) { renderWidgetEditHandles(); }
 }
-function endWidgetDrag() { dragState = null; }
+function endWidgetDrag() {
+  if (dragState?.w) {
+    dragState.w.classList.remove('widget-dragging');
+    if (dragState.moved) suppressClickOn = dragState.w;
+  }
+  dragState = null;
+}
 
 function initWidgetSystem() {
   ['home', 'calendar', 'notes', 'photos'].forEach(id => initOrderGroup($(id)));
@@ -2313,9 +2350,8 @@ function initWidgetSystem() {
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
     if (editMode) {
-      // Aucun appui ou glissement ne déplace un widget.
-      // L'édition passe uniquement par le bouton crayon / les contrôles dédiés.
       pinch.pts.delete(e.pointerId);
+      if (w) startWidgetDrag(e,w);
       return;
     }
     if (!w) { pressStart = null; return; }
@@ -2330,12 +2366,12 @@ function initWidgetSystem() {
     }, LONG_PRESS_MS);
   }, { passive: false });
   document.addEventListener('pointermove', e => {
+    if (dragState) { e.preventDefault(); moveWidgetDrag(e); return; }
     if (e.pointerType==='touch') return;
-    if (dragState) { moveWidgetDrag(e); return; }
     if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) { clearTimeout(pressTimer); pressStart = null; }
   }, { passive: false });
-  document.addEventListener('pointerup', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
-  document.addEventListener('pointercancel', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: true });
+  document.addEventListener('pointerup', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: false });
+  document.addEventListener('pointercancel', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: false });
 
   document.addEventListener('click', e => {
     if (e.target.closest('#widget-editor')) return;

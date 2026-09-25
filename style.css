@@ -2033,34 +2033,6 @@ body.edit-mode .widget{overflow:visible!important}
 body.edit-mode .widget{animation:none!important;transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale))!important}
 
 
-/* V36 — verrouillage tactile de la home : les widgets restent fixes comme sur la maquette.
-   Le swipe vertical reste disponible pour faire défiler la page, mais aucun pan horizontal
-   ne peut décaler l'écran ou faire bouger les widgets. */
-html, body { overflow-x:hidden !important; }
-#app { overflow-x:hidden !important; }
-.screens {
-  overflow-x:hidden !important;
-  overscroll-behavior-x:none !important;
-  touch-action:pan-y !important;
-}
-.widget {
-  touch-action:manipulation !important;
-  transform:translate3d(var(--wx),var(--wy),0) scale(var(--wscale)) !important;
-}
-#home .widget {
-  --wx:0px !important;
-}
-#home .w-music {
-  --wy:420px !important;
-}
-#home .live-rail {
-  --wy:92px !important;
-}
-/* L'ouverture du tiroir reste uniquement liée à son bouton, jamais au swipe de la page. */
-#home .live-rail {
-  touch-action:manipulation !important;
-}
-
 /* Icône commentaire façon Instagram : bulle outline + compteur. */
 #notes .note-comment-toggle {
   display:inline-flex !important;
@@ -2080,4 +2052,40 @@ html, body { overflow-x:hidden !important; }
 }
 #notes .note-comment-toggle span {
   line-height:1 !important;
+}
+
+/* V37 — widgets déplaçables uniquement en mode édition */
+.widget{touch-action:auto!important}
+body.edit-mode .widget{touch-action:none!important;cursor:grab!important}
+body.edit-mode .widget.widget-dragging{cursor:grabbing!important;z-index:80!important;box-shadow:0 24px 55px rgba(25,12,20,.22)!important}
+body.edit-mode .widget-edit-handle{z-index:120!important}
+.edit-done{z-index:999!important}
+
+/* Les positions de la home sont désormais réellement personnalisables. */
+#home .widget{--wx:0px}
+#home .w-music{--wy:420px}
+#home .live-rail{--wy:92px}
+
+/* V37 — pile En direct : cartes photo arrondies cachées sur le côté. */
+.live-peek-stack{overflow:visible!important}
+.peek-card{border-radius:21px!important;border-width:3px!important}
+.live-peek-stack .peek-card-1{transform:rotate(8deg) translateY(5px)!important}
+.live-peek-stack .peek-card-2{transform:rotate(-5deg) translateY(-3px)!important}
+.live-peek-stack .peek-card-3{transform:rotate(1deg)!important}
+.live-drawer-grid{display:block!important;position:relative!important;height:300px!important;max-height:none!important;overflow:hidden!important;padding:0!important}
+.live-drawer-grid .snapshot-card{position:absolute!important;inset:0!important;width:100%!important;height:100%!important;border-radius:24px!important;transform:translateY(calc(var(--snap-i) * 8px)) scale(calc(1 - var(--snap-i) * .025)) rotate(calc(var(--snap-i) * -1deg))!important;z-index:calc(30 - var(--snap-i))!important;transition:transform .28s ease,opacity .22s ease,box-shadow .28s ease!important}
+.live-drawer-grid .snapshot-card:not(.is-current){pointer-events:none!important}
+.live-drawer-grid .snapshot-card.is-current{box-shadow:0 20px 42px rgba(40,20,35,.20)!important}
+.live-drawer-grid .snapshot-card.is-current img{object-fit:cover!important}
+.snapshot-next-hint{position:absolute;left:50%;bottom:12px;transform:translateX(-50%);padding:7px 11px;border-radius:999px;background:rgba(20,15,20,.72);color:#fff;font-size:9px;font-weight:800;letter-spacing:.1px;z-index:4;white-space:nowrap;backdrop-filter:blur(8px)}
+.live-drawer-grid .snapshot-card:after{background:linear-gradient(to top,rgba(18,10,15,.64),transparent 52%)!important}
+
+/* V37 — pile de notes : clic ou glissement horizontal = carte suivante. */
+#notes .notes-stack-wrap{touch-action:pan-y!important}
+#notes .stack-note{touch-action:pan-y!important}
+#notes .notes-stack-wrap.note-shuffling .stack-note{animation:noteShuffleV37 .42s cubic-bezier(.2,.8,.2,1)}
+@keyframes noteShuffleV37{
+  0%{opacity:1;transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 9px))}
+  42%{opacity:.72;transform:translateX(-16px) rotate(calc(var(--note-rot) - 2deg)) translateY(-5px) scale(.985)}
+  100%{opacity:1;transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 9px))}
 }
