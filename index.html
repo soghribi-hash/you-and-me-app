@@ -367,11 +367,11 @@
       <div class="comp-sheet note-editor-sheet" onclick="event.stopPropagation()">
         <div class="note-editor-head"><input id="note-editor-title" placeholder="Notre petite note" maxlength="50"><button onclick="closeNoteEditor()">×</button></div>
         <div class="note-editor-palette" id="note-editor-palette" aria-label="Couleur de la carte">
-          <button class="note-color selected" data-note-color="#ffffff" style="background:#ffffff" aria-label="Blanc"></button>
-          <button class="note-color" data-note-color="#ffdfe9" style="background:#ffdfe9" aria-label="Rose pastel"></button>
-          <button class="note-color" data-note-color="#dff3e8" style="background:#dff3e8" aria-label="Vert pastel"></button>
-          <button class="note-color" data-note-color="#e9e0fb" style="background:#e9e0fb" aria-label="Lilas pastel"></button>
-          <button class="note-color" data-note-color="#dcecfb" style="background:#dcecfb" aria-label="Bleu pastel"></button>
+          <button class="note-color selected" data-note-color="#ffffff" type="button" onclick="selectNoteColor(this)" style="background:#ffffff" aria-label="Blanc"></button>
+          <button class="note-color" data-note-color="#ffdfe9" type="button" onclick="selectNoteColor(this)" style="background:#ffdfe9" aria-label="Rose pastel"></button>
+          <button class="note-color" data-note-color="#dff3e8" type="button" onclick="selectNoteColor(this)" style="background:#dff3e8" aria-label="Vert pastel"></button>
+          <button class="note-color" data-note-color="#e9e0fb" type="button" onclick="selectNoteColor(this)" style="background:#e9e0fb" aria-label="Lilas pastel"></button>
+          <button class="note-color" data-note-color="#dcecfb" type="button" onclick="selectNoteColor(this)" style="background:#dcecfb" aria-label="Bleu pastel"></button>
         </div>
         <div id="note-editor-blocks" class="note-editor-blocks">
           <div class="note-write-card note-block" data-main-text="true">

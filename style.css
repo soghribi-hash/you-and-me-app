@@ -2316,3 +2316,55 @@ body.edit-mode #home .live-peek-stack{pointer-events:auto!important}
 
 /* Le point du logo reprend exactement le lilas du &. */
 .logo-dot{color:#d3a6c8!important}
+
+
+/* V43 — derniers réglages demandés : En direct + Throwback + palette notes */
+#home .live-drawer{
+  width:202px!important;
+  height:246px!important;
+  right:8px!important;
+  top:24px!important;
+  padding:6px!important;
+  border-radius:22px!important;
+  background:rgba(28,22,31,.58)!important;
+  border:1px solid rgba(255,255,255,.08)!important;
+  box-shadow:0 18px 40px rgba(35,16,30,.18),inset 0 1px 0 rgba(255,255,255,.16)!important;
+  backdrop-filter:blur(20px) saturate(1.06)!important;
+  -webkit-backdrop-filter:blur(20px) saturate(1.06)!important;
+}
+#home .live-drawer-grid{
+  width:100%!important;
+  height:234px!important;
+  border-radius:17px!important;
+}
+#home .live-front-photo{
+  border-radius:17px!important;
+  box-shadow:0 8px 18px rgba(0,0,0,.14)!important;
+}
+#home .live-front-top b,
+#home .live-peek-stack .peek-label{
+  font-family:Figtree,Arial,sans-serif!important;
+  font-style:normal!important;
+  font-weight:900!important;
+  letter-spacing:1.35px!important;
+  text-transform:uppercase!important;
+}
+#home .live-front-top b{font-size:10px!important;color:#fff!important}
+#home .live-front-top span{font-size:8px!important}
+#home .live-front-bottom b{font-size:14px!important}
+#home .live-front-bottom span{font-size:8px!important}
+#home .live-drawer-tab{
+  right:6px!important;top:6px!important;width:26px!important;height:26px!important;
+  background:rgba(255,255,255,.13)!important;
+  border:1px solid rgba(255,255,255,.16)!important;
+}
+#note-editor-palette .note-color{
+  position:relative!important;
+  z-index:5!important;
+  pointer-events:auto!important;
+  touch-action:manipulation!important;
+  cursor:pointer!important;
+}
+#note-editor-palette .note-color.selected{
+  transform:scale(1.08)!important;
+}

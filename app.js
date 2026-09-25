@@ -539,7 +539,7 @@ function listenThrowback(){ onValue(roomRef.child('throwback'),snap=>{throwbackD
 function renderThrowback(){const el=$('throwback-photo');if(!el)return;const thumb=$('home-memory-thumb');if(throwbackData?.img){el.style.backgroundImage='url('+throwbackData.img+')';el.classList.add('has');if(thumb){thumb.style.backgroundImage='url('+throwbackData.img+')';thumb.classList.add('has');}}else{el.style.backgroundImage='';el.classList.remove('has');if(thumb){thumb.style.backgroundImage='';thumb.classList.remove('has');}}}
 function openThrowback(){if(throwbackData?.img){$('throwback-img').src=throwbackData.img;$('throwback-viewer').classList.remove('hidden');}else $('throwback-file').click();}
 function closeThrowback(){$('throwback-viewer').classList.add('hidden');}
-function chooseThrowbackPhoto(){ closeThrowback(); $('throwback-file')?.click(); }
+function chooseThrowbackPhoto(){ const input=$('throwback-file'); if(!input)return; input.value=''; input.click(); closeThrowback(); }
 function saveThrowback(e){const file=e.target.files?.[0];if(!file||!roomRef)return;const img=new Image();const r=new FileReader();r.onload=()=>{img.onload=()=>{const max=1200,scale=Math.min(1,max/img.width,max/img.height),c=document.createElement('canvas');c.width=Math.round(img.width*scale);c.height=Math.round(img.height*scale);c.getContext('2d').drawImage(img,0,0,c.width,c.height);const data=c.toDataURL('image/jpeg',.72);roomRef.child('throwback').set({img:data,from:myRole,ts:Date.now()});e.target.value='';toast('Souvenir ajouté');};img.src=r.result;};r.readAsDataURL(file);}
 
 /* ---------- CALENDRIER (plusieurs annotations par jour, par l'un ou l'autre) ---------- */
@@ -729,6 +729,13 @@ function clearCanvas() {
 
 let editingNoteId = null;
 let selectedNoteColor = '#ffffff';
+function selectNoteColor(btn){
+  if(!btn) return;
+  const color=btn.dataset.noteColor || '#ffffff';
+  selectedNoteColor=color;
+  document.querySelectorAll('#note-editor-palette .note-color').forEach(x=>x.classList.toggle('selected', x===btn || x.dataset.noteColor===color));
+  updateNoteEditorCardColor();
+}
 let noteDrawCanvas = null, noteDrawCtx = null;
 let noteDrawing = false, noteLastX = 0, noteLastY = 0, noteCanvasDirty = false;
 let noteDrawWidth = 2, noteDrawAlpha = 1, noteDrawColor = '#f0245b', noteDrawEraser = false;
@@ -769,9 +776,7 @@ function setupNoteDrawing(){
   document.querySelectorAll('.note-draw-color').forEach(btn=>btn.addEventListener('click',()=>{
     document.querySelectorAll('.note-draw-color').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); noteDrawColor=btn.dataset.color; noteDrawEraser=false; $('note-draw-eraser')?.classList.remove('active');
   }));
-  document.querySelectorAll('.note-color').forEach(btn=>btn.addEventListener('click',()=>{
-    document.querySelectorAll('.note-color').forEach(x=>x.classList.remove('selected')); btn.classList.add('selected'); selectedNoteColor=btn.dataset.noteColor; updateNoteEditorCardColor();
-  }));
+  document.querySelectorAll('.note-color').forEach(btn=>btn.addEventListener('click',()=>selectNoteColor(btn)));
 }
 function updateNoteEditorCardColor(){
   const sheet=document.querySelector('.note-editor-sheet');
@@ -1034,6 +1039,7 @@ function openNoteEditor(){
   $('note-editor-title').value='';
   resetNoteEditorBlocks();
   document.querySelectorAll('.note-color').forEach((b,i)=>b.classList.toggle('selected',i===0));
+  updateNoteEditorCardColor();
   resetNoteDrawing(); updateNoteEditorCardColor();
   $('note-delete-btn')?.classList.add('hidden');
   const send=document.querySelector('#note-editor .primary'); send.textContent='Ajouter à la pile'; send.onclick=sendStructuredNote;
