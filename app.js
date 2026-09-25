@@ -1167,14 +1167,17 @@ function cycleNoteStack(id){
   const sorted=structuredNotes.slice().sort((a,b)=>(b.ts||0)-(a.ts||0));
   const currentId = id || noteBrowseId || sorted[0]?.id;
   const idx = sorted.findIndex(n=>n.id===currentId);
-  noteBrowseId = sorted[(idx >= 0 ? idx + 1 : 0) % sorted.length]?.id || sorted[0]?.id;
+  const nextId = sorted[(idx >= 0 ? idx + 1 : 0) % sorted.length]?.id || sorted[0]?.id;
   const wrap=document.querySelector('.notes-stack-wrap');
   wrap?.classList.remove('note-shuffling');
   void wrap?.offsetWidth;
   wrap?.classList.add('note-shuffling');
   clearTimeout(noteShuffleTimer);
-  noteShuffleTimer=setTimeout(()=>wrap?.classList.remove('note-shuffling'),420);
-  renderStructuredNotes();
+  noteShuffleTimer=setTimeout(()=>{
+    noteBrowseId=nextId;
+    renderStructuredNotes();
+    requestAnimationFrame(()=>wrap?.classList.remove('note-shuffling'));
+  },180);
 }
 async function deletePublishedNote(id){
   const n=structuredNotes.find(x=>x.id===id);
@@ -1762,36 +1765,33 @@ function listenPhotos() {
   });
 }
 let liveBrowseId = null;
+let liveShuffleTimer = null;
 function cycleLiveSnapshot(id){
   if(!photoItems.length)return;
   const current = id || liveBrowseId || photoItems[0]?.id;
   const idx = photoItems.findIndex(p=>p.id===current);
-  liveBrowseId = photoItems[(idx >= 0 ? idx + 1 : 0) % photoItems.length]?.id || photoItems[0]?.id;
-  renderHomeSnapshots(photoItems);
-  const top = document.querySelector('#home-snapshots .snapshot-card.is-current');
-  top?.animate([
-    {transform:'translateX(0) rotate(0deg)',opacity:.7},
-    {transform:'translateX(-8px) rotate(-1.5deg)',opacity:1},
-    {transform:'translateX(0) rotate(0deg)',opacity:1}
-  ],{duration:320,easing:'cubic-bezier(.2,.8,.2,1)'});
+  const next = photoItems[(idx >= 0 ? idx + 1 : 0) % photoItems.length]?.id || photoItems[0]?.id;
+  const drawer = $('live-drawer');
+  drawer?.classList.remove('live-shuffling');
+  void drawer?.offsetWidth;
+  drawer?.classList.add('live-shuffling');
+  liveBrowseId = next;
+  clearTimeout(liveShuffleTimer);
+  liveShuffleTimer=setTimeout(()=>{
+    renderHomeSnapshots(photoItems);
+    requestAnimationFrame(()=>$('live-drawer')?.classList.remove('live-shuffling'));
+  },180);
 }
 function renderHomeSnapshots(items) {
   const box = $('home-snapshots');
   if (!box) return;
-
   const rail = $('live-rail');
   const stack = rail ? rail.querySelector('.live-peek-stack') : null;
 
   if (!items.length) {
     liveBrowseId = null;
-    box.innerHTML =
-      '<button class="snapshot-card placeholder" onclick="closeLivePeek();showScreen(\'photos\')">' +
-      '<span><b>En direct</b><br>Vos prochains directs apparaîtront ici.</span></button>';
-    if (stack) stack.innerHTML =
-      '<span class="peek-card peek-card-1 placeholder-peek"></span>' +
-      '<span class="peek-card peek-card-2 placeholder-peek"></span>' +
-      '<span class="peek-card peek-card-3 placeholder-peek"></span>' +
-      '<span class="peek-label">En direct <b>›</b></span>';
+    box.innerHTML = '<button class="snapshot-card placeholder" onclick="closeLivePeek();showScreen(\'photos\')"><span><b>En direct</b><br>Vos prochains directs apparaîtront ici.</span></button>';
+    if (stack) stack.innerHTML = '<span class="peek-card peek-card-1 placeholder-peek"></span><span class="peek-card peek-card-2 placeholder-peek"></span><span class="peek-card peek-card-3 placeholder-peek"></span>';
     return;
   }
 
@@ -1799,36 +1799,31 @@ function renderHomeSnapshots(items) {
   const activeIndex = Math.max(0, items.findIndex(p=>p.id===liveBrowseId));
   const visible = items.slice(0, 6);
   const ordered = [items[activeIndex], ...visible.filter(p=>p.id!==items[activeIndex]?.id)];
+  const current = ordered[0];
+  const who = current.from === myRole ? 'Toi' : nameOf(current.from);
+  const live = current.src === 'live';
 
-  box.innerHTML = ordered.map((p,i) => {
-    const who = p.from === myRole ? 'Toi' : nameOf(p.from);
-    const live = p.src === 'live';
-    const current = i === 0;
-    return '<button class="snapshot-card ' + (current ? 'is-current' : '') + '" style="--snap-i:'+i+'" onclick="cycleLiveSnapshot(\''+p.id+'\')" aria-label="Voir la photo suivante">' +
-      '<img src="' + p.img + '" alt="" draggable="false">' +
-      '<span class="snapshot-meta"><b>' + (live ? 'En direct' : who) + '</b>' + relativeTime(p.ts || Date.now()) + '</span>' +
-      (current ? '<span class="snapshot-next-hint">Touchez pour faire défiler</span>' : '') +
-      '</button>';
-  }).join('');
+  box.innerHTML = '<button class="live-front-photo" onclick="cycleLiveSnapshot(\''+current.id+'\')" aria-label="Voir la photo suivante">' +
+    '<img src="'+current.img+'" alt="" draggable="false">' +
+    '<span class="live-front-top"><b>EN DIRECT</b><span>'+relativeTime(current.ts || Date.now())+'</span></span>' +
+    '<span class="live-front-bottom"><b>'+(live?'En direct':who)+'</b><span>Touchez pour faire défiler</span></span>' +
+    '</button>';
 
   if (stack) {
     const peek = visible.slice(0,3);
-    stack.innerHTML = peek.map((p,i) =>
-      '<span class="peek-card peek-card-' + (i+1) + '" style="background-image:url(' +
-      p.img.replace(/"/g,'&quot;') + ')"></span>'
-    ).join('') + '<span class="peek-label">En direct <b>›</b></span>';
+    stack.innerHTML = peek.map((p,i) => '<span class="peek-card peek-card-'+(i+1)+'" style="background-image:url("'+p.img.replace(/"/g,'&quot;')+'");"></span>').join('') +
+      '<span class="peek-label">EN DIRECT</span>';
   }
 }
-function toggleLivePeek() {
-  const rail = $('live-rail');
-  if (!rail) return;
-  rail.classList.toggle('open');
-  if (navigator.vibrate) { try { navigator.vibrate(8); } catch (e) {} }
+function toggleLivePeek(){
+  const rail=$('live-rail');
+  if(!rail)return;
+  const willOpen=!rail.classList.contains('open');
+  rail.classList.toggle('open',willOpen);
+  if(willOpen) renderHomeSnapshots(photoItems);
+  if(navigator.vibrate){try{navigator.vibrate(8);}catch(e){}}
 }
-function closeLivePeek() {
-  const rail = $('live-rail');
-  if (rail) rail.classList.remove('open');
-}
+function closeLivePeek(){ $('live-rail')?.classList.remove('open'); }
 function renderPhotos(items) {
   const feed = $('photos-feed');
   const drafts = {};
@@ -2358,17 +2353,56 @@ function initWidgetSystem() {
 
   let pressTimer = null, pressStart = null, suppressClickOn = null;
   const LONG_PRESS_MS = 480;
-  const pinch = {wid:null, pts:new Map(), base:100, dist:0};
+  const pointers = new Map();
+  let pinchState = null;
+
+  function stopWidgetDragForPinch(){
+    if(dragState?.w) dragState.w.classList.remove('widget-dragging');
+    dragState=null;
+  }
+  function beginPinch(w){
+    if(!w || !w.dataset.wid || pointers.size < 2) return;
+    const pts=Array.from(pointers.values()).slice(-2);
+    const dx=pts[1].x-pts[0].x, dy=pts[1].y-pts[0].y;
+    const dist=Math.hypot(dx,dy);
+    if(dist<12)return;
+    stopWidgetDragForPinch();
+    const wid=w.dataset.wid, cfg=normalizedWidgetConfig(wid,widgetConfigs[wid]);
+    pinchState={wid,w,baseScale:Number(cfg.scale)||100,startDist:dist,moved:false};
+    w.classList.add('widget-dragging');
+    try{w.setPointerCapture(pts[0].id);}catch(_){ }
+    try{w.setPointerCapture(pts[1].id);}catch(_){ }
+  }
+  function updatePinch(){
+    if(!pinchState || pointers.size<2)return;
+    const pts=Array.from(pointers.values()).slice(-2);
+    const dx=pts[1].x-pts[0].x, dy=pts[1].y-pts[0].y;
+    const dist=Math.hypot(dx,dy);
+    if(!dist)return;
+    const scale=Math.max(60,Math.min(150,pinchState.baseScale*(dist/pinchState.startDist)));
+    if(Math.abs(scale-pinchState.baseScale)>1)pinchState.moved=true;
+    saveWidgetConfig(pinchState.wid,{scale:Math.round(scale)});
+  }
+  function endPinch(){
+    if(pinchState?.w) pinchState.w.classList.remove('widget-dragging');
+    if(pinchState?.moved) suppressClickOn=pinchState.w;
+    pinchState=null;
+  }
+
   document.addEventListener('pointerdown', e => {
     const w = e.target.closest('.widget');
     if (editMode) {
-      pinch.pts.delete(e.pointerId);
-      if (w) startWidgetDrag(e,w);
+      if(w && e.target.closest('.widget-edit-handle,button,input,textarea,select,a,[contenteditable="true"]')) return;
+      if(w){
+        pointers.set(e.pointerId,{id:e.pointerId,x:e.clientX,y:e.clientY,w});
+        if(pointers.size>=2){ beginPinch(w); e.preventDefault(); }
+        else startWidgetDrag(e,w);
+      }
       return;
     }
     if (!w) { pressStart = null; return; }
     if (e.pointerType === 'mouse' && e.button !== 0) return;
-    if (e.target.closest('button,input,textarea,select,a,[contenteditable=\"true\"]')) return;
+    if (e.target.closest('button,input,textarea,select,a,[contenteditable="true"]')) return;
     pressStart = { x: e.clientX, y: e.clientY, w, pointerId:e.pointerId, target:e.target };
     clearTimeout(pressTimer);
     pressTimer = setTimeout(() => {
@@ -2378,22 +2412,37 @@ function initWidgetSystem() {
       if (navigator.vibrate) { try { navigator.vibrate(12); } catch (e) {} }
       suppressClickOn = p.w;
       pressStart = null;
-      // Le même appui long devient immédiatement le début du déplacement.
+      pointers.set(p.pointerId,{id:p.pointerId,x:p.x,y:p.y,w:p.w});
       startWidgetDrag({
         clientX:p.x, clientY:p.y, pointerId:p.pointerId, pointerType:e.pointerType, target:p.target,
         preventDefault(){ try { e.preventDefault(); } catch(_){} }
       }, p.w);
     }, LONG_PRESS_MS);
   }, { passive: false });
+
   document.addEventListener('pointermove', e => {
+    if(editMode && pointers.has(e.pointerId)){
+      const point=pointers.get(e.pointerId); point.x=e.clientX; point.y=e.clientY;
+      if(pointers.size>=2){ e.preventDefault(); updatePinch(); return; }
+    }
     if (dragState) { e.preventDefault(); moveWidgetDrag(e); return; }
     if (pressStart && (Math.abs(e.clientX - pressStart.x) > 10 || Math.abs(e.clientY - pressStart.y) > 10)) {
-      clearTimeout(pressTimer);
-      pressStart = null;
+      clearTimeout(pressTimer); pressStart = null;
     }
   }, { passive: false });
-  document.addEventListener('pointerup', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: false });
-  document.addEventListener('pointercancel', e => { pinch.pts.delete(e.pointerId); if(!pinch.pts.size){pinch.wid=null;pinch.dist=0;} clearTimeout(pressTimer); pressStart = null; endWidgetDrag(); }, { passive: false });
+
+  document.addEventListener('pointerup', e => {
+    pointers.delete(e.pointerId);
+    if(pinchState && pointers.size<2) endPinch();
+    clearTimeout(pressTimer); pressStart = null;
+    if(!pinchState) endWidgetDrag();
+  }, { passive: false });
+  document.addEventListener('pointercancel', e => {
+    pointers.delete(e.pointerId);
+    if(pinchState && pointers.size<2) endPinch();
+    clearTimeout(pressTimer); pressStart = null;
+    if(!pinchState) endWidgetDrag();
+  }, { passive: false });
 
   document.addEventListener('click', e => {
     if (e.target.closest('#widget-editor')) return;
@@ -2406,6 +2455,7 @@ function initWidgetSystem() {
     if (e.target.closest('#app') && !e.target.closest('.bottomnav')) { e.preventDefault(); e.stopPropagation(); }
   }, true);
 }
+
 initWidgetSystem();
 
 /* ---------- DÉMARRAGE ---------- */

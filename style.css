@@ -2134,3 +2134,80 @@ body.edit-mode .widget { touch-action:none !important; }
   0%{opacity:.78;transform:translateX(14px) translateY(-4px) rotate(calc(var(--note-rot) + 1.5deg)) scale(.985)}
   100%{opacity:1;transform:rotate(var(--note-rot)) translateY(calc(var(--stack) * 7px)) scale(1)}
 }
+
+
+/* V39 — En direct : pile photo discrète + carte avant compacte, dans la DA */
+#home .live-rail.widget{
+  width:170px!important;height:250px!important;right:-8px!important;top:145px!important;
+  background:transparent!important;box-shadow:none!important;filter:none!important;
+  pointer-events:none!important;z-index:22!important;
+}
+#home .live-peek-stack{
+  right:-2px!important;top:0!important;width:72px!important;height:112px!important;
+  border-radius:24px 0 0 24px!important;background:transparent!important;
+  box-shadow:none!important;filter:drop-shadow(0 10px 18px rgba(45,16,31,.14))!important;
+  pointer-events:auto!important;cursor:pointer!important;
+}
+#home .live-peek-stack .peek-card{
+  width:60px!important;height:82px!important;right:0!important;top:15px!important;
+  border:3px solid rgba(255,255,255,.96)!important;border-radius:17px!important;
+  box-shadow:0 8px 18px rgba(50,22,40,.12)!important;
+}
+#home .live-peek-stack .peek-card-1{right:0!important;transform:rotate(8deg) translateY(4px)!important}
+#home .live-peek-stack .peek-card-2{right:7px!important;transform:rotate(-5deg) translateY(-2px)!important}
+#home .live-peek-stack .peek-card-3{right:14px!important;transform:rotate(1deg)!important}
+#home .live-peek-stack .peek-label{
+  position:absolute!important;right:0!important;bottom:-2px!important;top:auto!important;
+  width:29px!important;height:82px!important;padding:8px 4px!important;
+  border-radius:15px 0 0 15px!important;background:rgba(23,19,26,.92)!important;color:#fff!important;
+  writing-mode:vertical-rl!important;transform:rotate(180deg)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  font-size:7px!important;letter-spacing:1.3px!important;font-weight:900!important;
+  box-shadow:0 8px 18px rgba(20,10,18,.12)!important;
+}
+#home .live-drawer{
+  right:12px!important;top:18px!important;width:258px!important;height:326px!important;
+  max-height:none!important;padding:9px!important;border-radius:25px!important;
+  background:rgba(24,20,27,.92)!important;color:#fff!important;
+  border:1px solid rgba(255,255,255,.12)!important;
+  box-shadow:0 22px 55px rgba(35,16,30,.25)!important;
+  backdrop-filter:blur(18px)!important;-webkit-backdrop-filter:blur(18px)!important;
+  pointer-events:auto!important;opacity:0;transform:translateX(24px) scale(.96);visibility:hidden;
+  transition:opacity .24s ease,transform .28s cubic-bezier(.2,.8,.2,1),visibility .24s ease!important;
+}
+#home .live-rail.open .live-drawer{right:12px!important;opacity:1;transform:translateX(0) scale(1);visibility:visible!important}
+#home .live-rail.open .live-peek-stack{opacity:0!important;pointer-events:none!important}
+#home .live-drawer-tab{display:none!important}
+#home .live-drawer-head{display:none!important}
+#home .live-drawer-grid{
+  width:100%!important;height:308px!important;max-height:none!important;padding:0!important;
+  overflow:hidden!important;border-radius:20px!important;
+}
+#home .live-front-photo{
+  position:relative!important;display:block!important;width:100%!important;height:100%!important;
+  margin:0!important;padding:0!important;border:0!important;border-radius:20px!important;overflow:hidden!important;
+  background:#302830!important;color:#fff!important;text-align:left!important;cursor:pointer!important;
+  box-shadow:0 10px 24px rgba(0,0,0,.18)!important;
+}
+#home .live-front-photo img{width:100%!important;height:100%!important;display:block!important;object-fit:cover!important}
+#home .live-front-photo:after{content:"";position:absolute!important;inset:0!important;background:linear-gradient(to top,rgba(13,9,14,.74),rgba(13,9,14,.02) 62%)!important;pointer-events:none!important}
+#home .live-front-top{position:absolute!important;left:14px!important;right:14px!important;top:13px!important;z-index:3!important;display:flex!important;justify-content:space-between!important;align-items:center!important;font-size:8px!important;letter-spacing:1.4px!important;font-weight:900!important;color:#fff!important}
+#home .live-front-top b{color:#ff86a7!important}
+#home .live-front-top span{font-size:9px!important;letter-spacing:0!important;font-weight:700!important;opacity:.78!important}
+#home .live-front-bottom{position:absolute!important;left:14px!important;right:14px!important;bottom:14px!important;z-index:3!important;display:flex!important;flex-direction:column!important;gap:3px!important;color:#fff!important}
+#home .live-front-bottom b{font-size:16px!important;line-height:1.05!important;letter-spacing:-.3px!important}
+#home .live-front-bottom span{font-size:9px!important;opacity:.72!important}
+#home .live-drawer.live-shuffling .live-front-photo{animation:liveFrontShuffleV39 .34s cubic-bezier(.2,.8,.2,1)}
+@keyframes liveFrontShuffleV39{
+  0%{transform:translateX(0) rotate(0);opacity:1}
+  45%{transform:translateX(-12px) rotate(-1.5deg);opacity:.72}
+  100%{transform:translateX(0) rotate(0);opacity:1}
+}
+
+/* V39 — widgets : rien ne bouge pendant le scroll normal; édition uniquement par appui long */
+.widget{touch-action:pan-y!important}
+body.edit-mode .widget{touch-action:none!important}
+body.edit-mode #home .live-rail{touch-action:none!important}
+.widget.widget-dragging{transition:none!important}
+#widget-editor .we-hint{line-height:1.45!important}
+#widget-editor .we-pos-row,#widget-editor .we-live-pos{display:none!important}

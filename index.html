@@ -117,19 +117,8 @@
         <div class="we-fonts" id="we-fonts"></div>
       </div>
       <div class="we-block">
-        <div class="we-label">Emplacement</div><div class="we-hint">Maintiens le mode édition puis glisse le widget où tu veux. La position est enregistrée pour vous deux.</div>
-        <div class="we-pos-row" id="we-standard-pos">
-          <button class="btn-small" onclick="moveCurrentWidget(-1)">↑ Monter</button>
-          <button class="btn-small" onclick="moveCurrentWidget(1)">↓ Descendre</button>
-        </div>
-        <div class="we-live-pos hidden" id="we-live-pos">
-          <div class="we-dir-row">
-            <button class="btn-small" onclick="nudgeLiveRail(0,-8)" aria-label="Monter">↑</button>
-            <button class="btn-small" onclick="nudgeLiveRail(-8,0)" aria-label="Déplacer à gauche">←</button>
-            <button class="btn-small" onclick="nudgeLiveRail(8,0)" aria-label="Déplacer à droite">→</button>
-            <button class="btn-small" onclick="nudgeLiveRail(0,8)" aria-label="Descendre">↓</button>
-          </div>
-        </div>
+        <div class="we-label">Emplacement &amp; taille</div>
+        <div class="we-hint">Appui long sur le widget pour le déplacer avec ton doigt. Écarte ou rapproche deux doigts pour le redimensionner.</div>
       </div>
       <div class="comp-actions">
         <button class="ghost" onclick="resetCurrentWidget()">Réinitialiser</button>
